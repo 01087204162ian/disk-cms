@@ -40,6 +40,36 @@ class ModernTemplateLoader {
         path: '/pages/insurance/field-practice-insurance.html',
         category: 'insurance'
       },
+      'kj-driver-search': { 
+        title: '기사찾기', 
+        parent: '대리운전',
+        path: '/pages/insurance/kj-driver-search.html',
+        category: 'insurance'
+      },
+      'kj-driver-company': { 
+        title: '대리업체', 
+        parent: '대리운전',
+        path: '/pages/insurance/kj-driver-company.html',
+        category: 'insurance'
+      },
+      'kj-driver-endorse-list': { 
+        title: '배서리스트', 
+        parent: '대리운전',
+        path: '/pages/insurance/kj-driver-endorse-list.html',
+        category: 'insurance'
+      },
+      'kj-driver-code-by-policy': { 
+        title: '증권별코드', 
+        parent: '대리운전',
+        path: '/pages/insurance/kj-driver-code-by-policy.html',
+        category: 'insurance'
+      },
+      'kj-driver-policy-search': { 
+        title: '증권번호찾기', 
+        parent: '대리운전',
+        path: '/pages/insurance/kj-driver-policy-search.html',
+        category: 'insurance'
+      },
       'travel-insurance': { 
         title: '여행자보험', 
         parent: '보험 업무 관리',

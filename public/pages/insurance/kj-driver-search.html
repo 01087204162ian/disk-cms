@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | KJ 대리운전 - 기사찾기</title>
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="page">
+    <div id="sidebar-container"></div>
+    <div class="page-wrapper">
+      <div id="header-container"></div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+              <div>
+                <h3 class="card-title mb-1">기사찾기</h3>
+                <div class="text-muted">대리운전 기사를 검색하고 상세정보를 확인합니다.</div>
+              </div>
+              <div class="btn-list">
+                <button class="btn btn-primary btn-sm" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <circle cx="10" cy="10" r="7" />
+                    <line x1="21" y1="21" x2="15" y2="15" />
+                  </svg>
+                  검색
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                  <label class="form-label">검색 기준</label>
+                  <select class="form-select">
+                    <option>이름</option>
+                    <option>휴대폰</option>
+                    <option>면허번호</option>
+                    <option>소속업체</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">검색어</label>
+                  <input type="text" class="form-control" placeholder="예: 홍길동 / 010-1234-5678" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">상태</label>
+                  <select class="form-select">
+                    <option value="">전체</option>
+                    <option>활동</option>
+                    <option>휴면</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>이름</th>
+                      <th>소속업체</th>
+                      <th>휴대폰</th>
+                      <th>면허번호</th>
+                      <th>상태</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="6" class="text-center text-muted py-4">데이터를 불러오는 중입니다.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="footer-container"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+  <script src="/js/template-loader3.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await window.modernTemplateLoader.initializePage('kj-driver-search');
+    });
+  </script>
+</body>
+</html>
+

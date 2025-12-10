@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | KJ 대리운전 - 증권번호찾기</title>
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="page">
+    <div id="sidebar-container"></div>
+    <div class="page-wrapper">
+      <div id="header-container"></div>
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+              <div>
+                <h3 class="card-title mb-1">증권번호찾기</h3>
+                <div class="text-muted">계약자/차량/기간 기준으로 증권번호를 검색합니다.</div>
+              </div>
+              <div class="btn-list">
+                <button class="btn btn-primary btn-sm" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <circle cx="10" cy="10" r="7" />
+                    <line x1="21" y1="21" x2="15" y2="15" />
+                  </svg>
+                  검색
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                  <label class="form-label">계약자명</label>
+                  <input type="text" class="form-control" placeholder="계약자/법인명" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">차량번호</label>
+                  <input type="text" class="form-control" placeholder="예: 12가3456" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">보험기간(시작)</label>
+                  <input type="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">보험기간(종료)</label>
+                  <input type="date" class="form-control" />
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>증권번호</th>
+                      <th>계약자</th>
+                      <th>차량번호</th>
+                      <th>보험기간</th>
+                      <th>보험사</th>
+                      <th>상태</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="7" class="text-center text-muted py-4">데이터를 불러오는 중입니다.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="footer-container"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+  <script src="/js/template-loader3.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await window.modernTemplateLoader.initializePage('kj-driver-policy-search');
+    });
+  </script>
+</body>
+</html>
+
