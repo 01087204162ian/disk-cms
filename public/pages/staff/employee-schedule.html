@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | {{PAGE_TITLE}}</title>
+
+  <!-- 한글 폰트 (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/sj-styles.css" rel="stylesheet">
+ <link href="/css/employee-schedule.css" rel="stylesheet">
+</head>
+
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <div>페이지를 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 헤더 컨테이너 -->
+  <div id="header-container">
+    <!-- sj-header.html 컴포넌트가 여기에 로드됩니다 -->
+  </div>
+
+  <!-- 사이드바 오버레이 (모바일용) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container">
+    <!-- sj-sidebar.html 컴포넌트가 여기에 로드됩니다 -->
+  </div>
+
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+      <div class="content-area">
+      <!-- 페이지 헤더 -->
+      <!--<div class="content-header">
+        <h1 class="content-title">내 근무 스케줄</h1>
+        <p class="content-subtitle">4일 근무제 개인 스케줄 관리</p>
+      </div>-->
+      
+      <!-- 스케줄 요약 -->
+      <div class="schedule-header">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h2 style="margin: 0; font-size: 1.5rem;">2025년 1월 스케줄</h2>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">현재 시프트: 금요일 휴무 패턴</p>
+          </div>
+          <div class="status-badge status-approved">
+            <i class="fas fa-check-circle"></i> 승인완료
+          </div>
+        </div>
+        
+        <div class="schedule-summary">
+          <div class="summary-card">
+            <span class="summary-number">16</span>
+            <div class="summary-label">이번 달 근무일</div>
+          </div>
+          <div class="summary-card">
+            <span class="summary-number">32</span>
+            <div class="summary-label">주당 근무시간</div>
+          </div>
+          <div class="summary-card">
+            <span class="summary-number">2</span>
+            <div class="summary-label">사용한 반차</div>
+          </div>
+          <div class="summary-card">
+            <span class="summary-number">금요일</span>
+            <div class="summary-label">기본 휴무일</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 이번 달 시프트 패턴 -->
+      <div class="shift-info">
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; font-weight: 600; color: #2d3748;">
+          <i class="fas fa-calendar-week"></i> 이번 달 근무 패턴
+        </h3>
+        <p style="color: #718096; font-size: 0.875rem; margin-bottom: 1rem;">
+          매주 금요일이 휴무입니다. 다음 달(2월)부터는 월요일 휴무로 변경됩니다.
+        </p>
+        
+        <div class="shift-pattern">
+          <div class="day-pattern work">
+            <div class="day-name">월요일</div>
+            <div class="day-schedule">9:00-18:00</div>
+          </div>
+          <div class="day-pattern work">
+            <div class="day-name">화요일</div>
+            <div class="day-schedule">9:00-18:00</div>
+          </div>
+          <div class="day-pattern work">
+            <div class="day-name">수요일</div>
+            <div class="day-schedule">9:00-18:00</div>
+          </div>
+          <div class="day-pattern work">
+            <div class="day-name">목요일</div>
+            <div class="day-schedule">9:00-18:00</div>
+          </div>
+          <div class="day-pattern off">
+            <div class="day-name">금요일</div>
+            <div class="day-schedule">휴무</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 캘린더 -->
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <h3 class="calendar-title">
+            <i class="fas fa-calendar-alt"></i> 월간 캘린더
+          </h3>
+          <div class="calendar-nav">
+            <button class="nav-btn" id="prevMonth">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="current-month" id="currentMonth">2025년 1월</div>
+            <button class="nav-btn" id="nextMonth">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="calendar-grid">
+          <!-- 요일 헤더 -->
+          <div class="calendar-day-header">일</div>
+          <div class="calendar-day-header">월</div>
+          <div class="calendar-day-header">화</div>
+          <div class="calendar-day-header">수</div>
+          <div class="calendar-day-header">목</div>
+          <div class="calendar-day-header">금</div>
+          <div class="calendar-day-header weekend">토</div>
+          
+          <!-- 캘린더 날짜들 (예시) -->
+          <div class="calendar-day other-month">
+            <div class="day-number">29</div>
+          </div>
+          <div class="calendar-day other-month">
+            <div class="day-number">30</div>
+          </div>
+          <div class="calendar-day other-month">
+            <div class="day-number">31</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">1</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">2</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">3</div>
+            <div class="day-status off"></div>
+            <div class="day-info off-info">휴무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">4</div>
+          </div>
+          
+          <div class="calendar-day">
+            <div class="day-number">5</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">6</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">7</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">8</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">9</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">10</div>
+            <div class="day-status off"></div>
+            <div class="day-info off-info">휴무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">11</div>
+          </div>
+          
+          <div class="calendar-day">
+            <div class="day-number">12</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">13</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">14</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day today">
+            <div class="day-number">15</div>
+            <div class="day-status half"></div>
+            <div class="day-info half-info">오후 반차</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">16</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">17</div>
+            <div class="day-status half"></div>
+            <div class="day-info half-info">오후 근무</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">18</div>
+          </div>
+          
+          <!-- 나머지 날짜들... -->
+          <div class="calendar-day">
+            <div class="day-number">19</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">20</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">21</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">22</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">23</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">24</div>
+            <div class="day-status off"></div>
+            <div class="day-info off-info">휴무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">25</div>
+          </div>
+          
+          <div class="calendar-day">
+            <div class="day-number">26</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">27</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">28</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">29</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">30</div>
+            <div class="day-status work"></div>
+            <div class="day-info work-info">근무일</div>
+          </div>
+          <div class="calendar-day">
+            <div class="day-number">31</div>
+            <div class="day-status off"></div>
+            <div class="day-info off-info">휴무일</div>
+          </div>
+          <div class="calendar-day other-month">
+            <div class="day-number">1</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 액션 버튼들 -->
+      <div class="action-buttons">
+        <button class="btn-half-day" onclick="openHalfDayModal()">
+          <i class="fas fa-clock"></i>
+          반차 신청
+        </button>
+        <button class="btn-schedule-info" onclick="showScheduleInfo()">
+          <i class="fas fa-info-circle"></i>
+          시프트 안내
+        </button>
+      </div>
+    </div>
+  </main>
+	<!-- 반차 신청 모달 (기존 모달 스타일 활용) -->
+  <div class="modal fade" id="halfDayModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            반차 신청
+            <small>근무일에 반차를 신청할 수 있습니다</small>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="halfDayForm" class="form-grid">
+            <label class="col-form-label">신청일</label>
+            <input type="date" class="form-control" id="halfDayDate" required>
+            
+            <label class="col-form-label">반차 종류</label>
+            <select class="form-control" id="halfDayType" required>
+              <option value="">선택하세요</option>
+              <option value="HALF_AM">오전 반차 (14시 출근)</option>
+              <option value="HALF_PM">오후 반차 (14시 퇴근)</option>
+            </select>
+
+            
+            <label class="col-form-label">긴급 여부</label>
+            <select class="form-control" id="isEmergency">
+              <option value="false">계획된 반차 (당주 조정)</option>
+              <option value="true">긴급 반차 (차주 보충)</option>
+            </select>
+            
+            <div class="full-width">
+              <label class="col-form-label">신청 사유</label>
+              <textarea class="form-control" id="halfDayReason" rows="3" 
+                      placeholder="반차 사용 사유를 입력해주세요" required></textarea>
+            </div>
+          </form>
+          
+          <div class="alert alert-warning mt-3" style="font-size: 0.875rem;">
+            <i class="fas fa-info-circle"></i>
+            <strong>안내사항:</strong><br>
+            • 계획된 반차: 해당 주 휴무일에 4시간 근무하여 32시간 유지<br>
+            • 긴급 반차: 이번 주 28시간, 다음 주 휴무일에 4시간 추가 근무
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-primary" onclick="submitHalfDay()">신청하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- SJ 템플릿 로더 -->
+  <script src="/js/sj-template-loader.js"></script>
+  
+  <script>
+    // 페이지 로드 후 자동 초기화
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('SJ 템플릿 페이지가 로드되었습니다.');
+      
+      // {{PAGE_ID}}를 실제 페이지 ID로 교체
+      await window.sjTemplateLoader.initializePage('employee-schedule');
+    });
+  </script>
+   <script src="/js/staff/employee-schedule.js"></script>
+</body>
+</html>

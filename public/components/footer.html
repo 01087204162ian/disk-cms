@@ -1,0 +1,154 @@
+<!-- 현대화된 푸터 - Tabler 기반 -->
+<footer class="footer footer-transparent d-print-none">
+  <div class="container-xl">
+    <div class="row text-center align-items-center flex-row-reverse">
+      <div class="col-lg-auto ms-lg-auto">
+        <ul class="list-inline list-inline-dots mb-0">
+          <li class="list-inline-item">
+            <a href="#" class="link-secondary">Version 1.0.0</a>
+          </li>
+          <li class="list-inline-item" id="systemStatus">
+            <span class="badge bg-success-lt">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-xs me-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M9 12l2 2l4 -4"/>
+              </svg>
+              시스템 정상
+            </span>
+          </li>
+        </ul>
+      </div>
+      <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+        <ul class="list-inline list-inline-dots mb-0">
+          <li class="list-inline-item">
+            Copyright &copy; <span id="currentYear">2024</span>
+            <a href="#" class="link-secondary">보험 CMS</a>.
+            All rights reserved.
+          </li>
+          <li class="list-inline-item">
+            <span class="text-muted small">
+              마지막 업데이트: <span id="lastUpdateTime">--:--</span>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/**
+ * 푸터 초기화 및 관리 함수
+ */
+document.addEventListener('DOMContentLoaded', function() {
+  // 현재 연도 설정
+  updateCurrentYear();
+  
+  // 마지막 업데이트 시간 초기화
+  updateLastUpdateTime();
+  
+  // 시스템 상태 확인 (선택사항)
+  checkSystemStatus();
+  
+  // 주기적 업데이트 (5분마다)
+  setInterval(() => {
+    updateLastUpdateTime();
+    checkSystemStatus();
+  }, 300000); // 5분
+});
+
+/**
+ * 현재 연도 업데이트
+ */
+function updateCurrentYear() {
+  const yearElement = document.getElementById('currentYear');
+  if (yearElement) {
+    yearElement.textContent = new Date().getFullYear();
+  }
+}
+
+/**
+ * 마지막 업데이트 시간 업데이트
+ */
+function updateLastUpdateTime() {
+  const timeElement = document.getElementById('lastUpdateTime');
+  if (timeElement) {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    timeElement.textContent = timeString;
+  }
+}
+
+/**
+ * 시스템 상태 확인 (선택사항)
+ */
+async function checkSystemStatus() {
+  const statusElement = document.getElementById('systemStatus');
+  if (!statusElement) return;
+
+  try {
+    // API 엔드포인트가 있다면 실제 상태 확인
+    // const response = await fetch('/api/system/status');
+    // const data = await response.json();
+    
+    // 현재는 기본적으로 정상 상태로 표시
+    updateSystemStatusUI('normal');
+    
+  } catch (error) {
+    console.warn('시스템 상태 확인 실패:', error);
+    updateSystemStatusUI('error');
+  }
+}
+
+/**
+ * 시스템 상태 UI 업데이트
+ */
+function updateSystemStatusUI(status) {
+  const statusElement = document.getElementById('systemStatus');
+  if (!statusElement) return;
+
+  let badgeClass, iconPath, statusText;
+
+  switch (status) {
+    case 'normal':
+      badgeClass = 'bg-success-lt';
+      iconPath = 'M9 12l2 2l4 -4';
+      statusText = '시스템 정상';
+      break;
+    case 'warning':
+      badgeClass = 'bg-warning-lt';
+      iconPath = 'M12 9v2m0 4v.01';
+      statusText = '시스템 경고';
+      break;
+    case 'error':
+      badgeClass = 'bg-danger-lt';
+      iconPath = 'M12 8v4m0 4h.01';
+      statusText = '시스템 오류';
+      break;
+    default:
+      badgeClass = 'bg-secondary-lt';
+      iconPath = 'M12 8h.01M11 12h1v4h1';
+      statusText = '상태 확인중';
+  }
+
+  statusElement.innerHTML = `
+    <span class="badge ${badgeClass}">
+      <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-xs me-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <circle cx="12" cy="12" r="9"/>
+        <path d="${iconPath}"/>
+      </svg>
+      ${statusText}
+    </span>
+  `;
+}
+
+/**
+ * 전역 함수로 외부에서 시스템 상태 업데이트 가능
+ */
+window.updateSystemStatus = updateSystemStatusUI;
+</script>

@@ -1,0 +1,569 @@
+/* 현장 실습 모달 */
+/* 모달 정보 테이블 스타일 */
+.modal-info-table {
+  margin-bottom: 0;
+  font-size: 0.875rem;
+  width: 100%;
+}
+
+.modal-info-table th {
+  background-color: #f0f0f0;
+  font-weight: 600;
+  color: #333;
+  width: 120px;
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.5rem 0.5rem;
+  border: 1px solid #ddd;
+  line-height: 1.2;
+}
+
+.modal-info-table td {
+  padding: 0.25rem 0.5rem;
+  vertical-align: middle;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  line-height: 1.2;
+}
+
+/* input이 셀에 꽉 차게 - 우선순위 강화 */
+
+.modal-info-table .form-control-sm,
+#claimModal .table .form-control-sm{
+  font-family: 'Pretendard', 'Inter', sans-serif !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  padding: 0.25rem 0.5rem !important;
+  height: 32px !important;
+  min-height: auto !important;
+  border: none !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  background-color: transparent !important;
+  text-align: right !important;
+  color: #1f2937 !important;
+  line-height: 1.5 !important;
+}
+
+.modal-info-table .form-control-sm:focus,
+#claimModal .table .form-control-sm:focus{
+  border: 1px solid #667eea !important;
+  box-shadow: none !important;
+  background-color: #f9fafb !important;
+  outline: none !important;
+  text-align: left !important;  /* 왼쪽 정렬 */
+}
+
+/* textarea도 셀에 맞게 */
+.modal-info-table textarea.form-control-sm,
+#claimModal .table textarea.form-control-sm{
+  height: auto !important;
+  min-height: 60px !important;
+  resize: vertical !important;
+  width: 100% !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  padding: 0.25rem 0.5rem !important;
+}
+
+.modal-info-table textarea.form-control-sm:focus {
+  border: 1px solid #667eea !important;
+  box-shadow: none !important;
+  background-color: #f9fafb !important;
+  outline: none !important;
+}
+
+/* 학생 정보 행 */
+.student-info-row {
+  padding: 0.5rem !important;
+  background-color: #fff;
+  color: #333;
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+
+/* 보험료 정보 행 */
+/* 보험료 정보 행 - 배경색 제거 */
+.premium-info-row {
+  background: transparent !important;
+  color: #333 !important;
+  font-weight: 600;
+  padding: 0.6rem !important;
+  line-height: 1.3;
+}
+
+.premium-label {
+  margin-right: 1.5rem;
+  color: #333 !important;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.premium-total {
+  color: #667eea !important;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-left: 0.5rem;
+}
+
+/* 모달 폭 */
+#fieldPracticeDetailModal .modal-dialog {
+  max-width: 850px;
+}
+
+/* 전체 행 높이 통일 */
+.modal-info-table tr {
+  height: 40px;
+}
+
+/* 여러 줄 셀은 예외 */
+.modal-info-table tr:has(textarea),
+.modal-info-table .student-info-row,
+.modal-info-table .premium-info-row {
+  height: auto;
+}
+
+/* 모달 푸터 버튼 단색 통일 */
+#fieldPracticeDetailModal .modal-footer .btn {
+  background-color: #667eea !important;
+  color: white !important;
+  border: none !important;
+}
+
+#fieldPracticeDetailModal .modal-footer .btn:hover {
+  background-color: #5a67d8 !important;
+}
+#fieldPracticeDetailModal .modal-footer .form-select {
+  background-color: #667eea !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* 이전 설계번호 스타일 */
+#beforegabunho {
+  margin-left: 1rem;
+  padding: 0.25rem 0.75rem;
+  background-color: #f0f0f0;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* 관리자 선택 드롭다운 스타일 */
+#mem-id-select.styled-select {
+  margin-left: 1rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background-color: white;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+#mem-id-select.styled-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+
+/*second Modal*/
+/* 테이블 스타일 */
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+	font-size: 12px;
+    margin-top: 15px;
+	margin-bottom: 15px;
+}
+.info-table td {
+    border: 1px solid #ddd;
+    padding: 0px;
+    text-align: left;
+}
+.info-table th {
+    border: 1px solid #ddd;
+    padding: 2px;
+    background: #f4f4f4;
+    text-align: center;
+}
+.etc-input {
+	width: 100%;
+	padding: 3px 6px;
+	border: 1px solid #fff;
+	border-radius: 3px;
+	font-size: 12px;
+}
+
+.info-table th, .info-table td {
+        font-size: 14px;
+        padding: 8px;
+    }
+    
+.radio-group {
+	flex-direction: row;
+	gap: 15px;
+}
+#fieldPracticeSecondModal .second-modal-radio {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+	justify-content: center;
+}
+    .radio-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+}
+
+/* 입력 필드 스타일 */
+.date-input {
+    width: 50%;
+    padding: 4px;
+    margin-top: 1px;
+    border: 1px solid #fff;
+    border-radius: 5px;
+}
+.week-input {
+	width: 100%;
+	padding: 3px 6px;
+	border: 1px solid #fff;
+	text-align: right;
+	border-radius: 3px;
+	font-size: 12px;
+}
+
+#fieldPracticeSecondModal .info-table th,
+#fieldPracticeSecondModal .info-table td {
+    padding: 2px;
+    line-height: 1.2;
+}
+
+
+/* 업로드 모달 */
+.upModal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.upModal .modal-content {
+    position: relative;
+    z-index: 1002;
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 800px;
+}
+
+.upload-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #ffffff;
+   border: 1px solid #ced4da;
+}
+
+
+/* 파일 목록 테이블 스타일 개선 */
+.file-table {
+    width: 100%;
+    border-collapse: collapse;
+	font-size: 12px;
+    margin-top: 15px;
+	margin-bottom: 15px;
+}
+.file-table td {
+    border: 1px solid #ddd;
+    padding: 4px;
+    text-align: center;
+}
+.file-table th {
+    border: 1px solid #ddd;
+    padding: 6px;
+    background: #f4f4f4;
+    text-align: center;
+}
+
+/* 파일 타입 선택 드롭다운 */
+.u_select {
+    min-width: 140px;
+    padding: 5px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #495057;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.u_select:hover {
+    border-color: #adb5bd;
+}
+/* 동적 입력 필드 */
+#dynamicField {
+    flex: 1;
+}
+
+#dynamicField input {
+    width: 100%;
+    padding: 5px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #495057;
+}
+
+/* 파일 입력 필드 */
+.uploadedFile {
+    flex: 2;
+    padding: 4px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 12px;
+    background-color: white;
+}
+
+/* 업로드 버튼 */
+.uButton{
+	 padding: 6px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.uButton:hover {
+    background-color: #0056b3;
+}
+
+
+#claimModal .table th {
+  text-align: center;
+  vertical-align: middle;
+   background-color: #f8f9fa; /* 연한 회색 유지하고 싶다면 */
+}
+
+
+/* ========== 클레임 관리 페이지 전용 스타일 (최소화) ========== */
+
+/* 클레임 관련 추가 스타일만 여기에 작성 */
+
+/* 사고경위 컬럼 - 말줄임표 처리 */
+.col-description {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 클레임 상세 모달 */
+#claimDetailModal .modal-dialog {
+  max-width: 850px;
+}
+
+/* 업로드 모달 */
+#claimUploadModal .modal-dialog {
+  max-width: 800px;
+}
+
+/* 메모 입력 필드 개선 */
+.memo-input {
+  width: 100%;
+  font-size: 0.6875rem;
+  border: none;
+  border-radius: 0;
+  padding: 0.25rem 0.5rem;
+  background-color: transparent;
+  transition: all 0.2s;
+}
+
+.memo-input:focus {
+  border: 1px solid #667eea;
+  box-shadow: none;
+  background-color: #f9fafb;
+  outline: none;
+}
+
+/* 수정 성공/실패 애니메이션 */
+.edit-success {
+  background-color: #d4edda !important;
+  border-color: #c3e6cb !important;
+  transition: all 0.3s;
+}
+
+.edit-error {
+  background-color: #f8d7da !important;
+  border-color: #f5c6cb !important;
+  transition: all 0.3s;
+}
+
+/* 모바일 카드 - 클레임 전용 스타일 */
+.mobile-card-claim-status {
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  text-align: center;
+  display: inline-block;
+}
+
+/* 통계 버튼 */
+#statistics_btn {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+#statistics_btn:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+}
+
+
+
+/* ========================================
+   검색 결과 헤더 스타일
+   ======================================== */
+
+/* 메인 컨테이너 */
+.search-result-summary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+/* 슬라이드 다운 애니메이션 */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 내부 컨텐츠 배치 */
+.result-summary-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* 검색 결과 정보 영역 */
+.result-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.result-info i {
+  font-size: 20px;
+}
+
+/* 초기화 버튼 스타일 */
+.search-result-summary .btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s;
+}
+
+.search-result-summary .btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+  .result-summary-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .result-info {
+    justify-content: center;
+  }
+  
+  .search-result-summary {
+    padding: 12px 15px;
+  }
+  
+  .result-info {
+    font-size: 14px;
+  }
+}
+/* cNum 분석 영역 반응형 */
+@media (max-width: 576px) {
+  .result-summary-content > div:last-child {
+    font-size: 12px !important;
+  }
+  
+  .result-summary-content span {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+}
+
+/* 토스트 애니메이션 */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+
+/* cNum 분석 슬라이드 */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}

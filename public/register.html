@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .signup-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .signup-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .signup-header h1 {
+            color: #333;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .signup-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .form-group input:valid {
+            border-color: #4caf50;
+        }
+
+        .form-group.error input {
+            border-color: #f44336;
+            background: #ffeaea;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .form-group.error .error-message {
+            display: block;
+        }
+
+        .signup-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .signup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .signup-btn:active {
+            transform: translateY(0);
+        }
+
+        .signup-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: #764ba2;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .api-error {
+            background: #f44336;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .signup-container {
+                padding: 30px 25px;
+                margin: 10px;
+            }
+            
+            .signup-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-header">
+            <h1>회원가입</h1>
+            <p>새 계정을 만들어보세요</p>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            회원가입이 완료되었습니다!
+        </div>
+
+        <div class="api-error" id="apiError">
+            오류가 발생했습니다.
+        </div>
+
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="email">이메일 *</label>
+                <input type="email" id="email" name="email" required placeholder="example@email.com">
+                <div class="error-message">올바른 이메일 주소를 입력해주세요.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">비밀번호 *</label>
+                <input type="password" id="password" name="password" required placeholder="8자 이상 입력해주세요">
+                <div class="error-message">비밀번호는 8자 이상이어야 합니다.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">비밀번호 확인 *</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="비밀번호를 다시 입력해주세요">
+                <div class="error-message">비밀번호가 일치하지 않습니다.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="name">성명 *</label>
+                <input type="text" id="name" name="name" required placeholder="홍길동">
+                <div class="error-message">성명을 입력해주세요.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">휴대폰번호 *</label>
+                <input type="tel" id="phone" name="phone" required placeholder="010-1234-5678">
+                <div class="error-message">올바른 휴대폰번호를 입력해주세요.</div>
+            </div>
+
+            <button type="submit" class="signup-btn">
+                <span class="loading" id="loading"></span>
+                <span id="btnText">회원가입</span>
+            </button>
+        </form>
+
+        <div class="login-link">
+            <p>이미 계정이 있으신가요? <a href="/login.html">로그인</a></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('signupForm');
+        const inputs = form.querySelectorAll('input');
+        const submitBtn = document.querySelector('.signup-btn');
+        const loading = document.getElementById('loading');
+        const btnText = document.getElementById('btnText');
+        const successMessage = document.getElementById('successMessage');
+        const apiError = document.getElementById('apiError');
+
+        // 실시간 유효성 검사
+        inputs.forEach(input => {
+            input.addEventListener('blur', () => validateField(input));
+            input.addEventListener('input', () => {
+                if (input.parentElement.classList.contains('error')) {
+                    validateField(input);
+                }
+            });
+        });
+
+        function validateField(input) {
+            const formGroup = input.parentElement;
+            formGroup.classList.remove('error');
+
+            switch (input.name) {
+                case 'email':
+                    if (!isValidEmail(input.value)) {
+                        formGroup.classList.add('error');
+                        return false;
+                    }
+                    break;
+
+                case 'password':
+                    if (input.value.length < 8) {
+                        formGroup.classList.add('error');
+                        return false;
+                    }
+                    // 비밀번호 확인 필드도 재검사
+                    const confirmPassword = document.getElementById('confirmPassword');
+                    if (confirmPassword.value) {
+                        validateField(confirmPassword);
+                    }
+                    break;
+
+                case 'confirmPassword':
+                    const password = document.getElementById('password');
+                    if (input.value !== password.value) {
+                        formGroup.classList.add('error');
+                        return false;
+                    }
+                    break;
+
+                case 'name':
+                    if (!input.value.trim()) {
+                        formGroup.classList.add('error');
+                        return false;
+                    }
+                    break;
+
+                case 'phone':
+                    if (!isValidPhone(input.value)) {
+                        formGroup.classList.add('error');
+                        return false;
+                    }
+                    break;
+            }
+            return true;
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function isValidPhone(phone) {
+            const phoneRegex = /^01[0-9]-\d{4}-\d{4}$/;
+            return phoneRegex.test(phone);
+        }
+
+        // 휴대폰번호 자동 포맷팅
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^\d]/g, '');
+            
+            if (value.length >= 3 && value.length <= 7) {
+                value = value.replace(/(\d{3})(\d+)/, '$1-$2');
+            } else if (value.length >= 8) {
+                value = value.replace(/(\d{3})(\d{4})(\d+)/, '$1-$2-$3');
+            }
+            
+            if (value.length > 13) {
+                value = value.substring(0, 13);
+            }
+            
+            e.target.value = value;
+        });
+
+        // 에러 메시지 숨기기
+        function hideMessages() {
+            successMessage.style.display = 'none';
+            apiError.style.display = 'none';
+        }
+
+        // 로딩 상태 관리
+        function setLoading(isLoading) {
+            if (isLoading) {
+                loading.style.display = 'inline-block';
+                btnText.textContent = '처리중...';
+                submitBtn.disabled = true;
+            } else {
+                loading.style.display = 'none';
+                btnText.textContent = '회원가입';
+                submitBtn.disabled = false;
+            }
+        }
+
+        // 폼 제출 처리
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            hideMessages();
+            
+            let isValid = true;
+            inputs.forEach(input => {
+                if (!validateField(input)) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                return;
+            }
+
+            // 서버로 데이터 전송
+            try {
+                setLoading(true);
+
+                const formData = new FormData(form);
+                const userData = Object.fromEntries(formData);
+                
+                // confirmPassword는 서버로 전송하지 않음
+                delete userData.confirmPassword;
+
+                console.log('전송할 데이터:', userData);
+
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const result = await response.json();
+                console.log('서버 응답:', result);
+
+                if (result.success) {
+                    // 성공시 처리
+                    successMessage.textContent = result.message;
+                    successMessage.style.display = 'block';
+                    form.style.display = 'none';
+                    
+                    // 3초 후 로그인 페이지로 이동
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                    
+                } else {
+                    // 실패시 처리
+                    apiError.textContent = result.message || '회원가입에 실패했습니다.';
+                    apiError.style.display = 'block';
+                    
+                    // 특정 필드 오류 표시
+                    if (result.field) {
+                        const fieldElement = document.getElementById(result.field);
+                        if (fieldElement) {
+                            const formGroup = fieldElement.parentElement;
+                            formGroup.classList.add('error');
+                            const errorMsg = formGroup.querySelector('.error-message');
+                            if (errorMsg) {
+                                errorMsg.textContent = result.message;
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('회원가입 요청 오류:', error);
+                apiError.textContent = '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.';
+                apiError.style.display = 'block';
+            } finally {
+                setLoading(false);
+            }
+        });
+    </script>
+</body>
+</html>

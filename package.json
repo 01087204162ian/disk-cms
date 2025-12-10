@@ -1,0 +1,48 @@
+{
+  "name": "disk-cms",
+  "version": "1.0.0",
+  "description": "����븮�� ���� ���� CMS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "prod": "NODE_ENV=production node server.js",
+    "create-page": "node scripts/create-page.js",
+    "create-crud": "node scripts/create-page.js $1 $2 crud",
+    "create-simple": "node scripts/create-page.js $1 $2 simple",
+    "setup-templates": "node scripts/setup-templates.js"
+  },
+  "keywords": [
+    "insurance",
+    "cms",
+    "nodejs",
+    "express"
+  ],
+  "author": "Insurance CMS Team",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-mysql-session": "^3.0.0",
+    "express-session": "^1.18.2",
+    "express-validator": "^7.2.1",
+    "form-data": "^4.0.4",
+    "joi": "^17.9.2",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.43",
+    "multer": "^2.0.2",
+    "mysql2": "^3.6.0",
+    "nodemailer": "^7.0.10",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | 현장실습보험</title>
+
+  <!-- 한글 폰트 (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/sj-styles.css" rel="stylesheet">
+  <link href="/css/statistics.css" rel="stylesheet">
+  <link href="/css/field-practice/field-practice.css" rel="stylesheet">
+ 
+</head>
+
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <div>페이지를 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 헤더 컨테이너 -->
+  <div id="header-container"></div>
+
+  <!-- 사이드바 오버레이 (모바일용) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container"></div>
+
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            
+            <!-- 통합 검색/필터 영역 -->
+            <div class="search-filter-row">
+			  <div class="row align-items-end">
+				<!-- 검색 유형 필터 -->
+				<div class="col-md-1 col-sm-6 mb-2 mb-md-0">
+				  <select id="searchField" class="form-control">
+					  <option value="school1">학교명</option>
+					  <option value="school2">사업자번호</option>
+					  <option value="school5">이메일</option>
+					  <option value="school4">전화번호</option>
+					  <option value="damdanga">담당자</option>
+					</select>
+				</div>
+				
+				<!-- 검색 유형 필터 -->
+				<div class="col-md-1 col-sm-6 mb-2 mb-md-0">
+				  <select id="searchType" class="form-control">
+					<option value="contains">포함</option>
+					<option value="exact">정확</option>
+					<option value="policy">증권번호</option>
+				  </select>
+				</div>
+				
+				<!-- 보험사 필터 -->
+				<div class="col-md-1 col-sm-6 mb-2 mb-md-0">
+				  <select id="statusFilter" class="form-control">
+					<option value="">전체 상태</option>
+					<option value="1">접수</option>
+					<option value="2">보험료 안내중</option>
+					<option value="3">청약서</option>
+					<option value="4">입금대기중</option>
+					<option value="5">입금확인</option>
+					<option value="6">증권 발급</option>
+					<option value="7">보류</option>
+					<option value="12">수정요청</option>
+					<option value="38">청약서날인</option>
+					<option value="39">질문서날인</option>
+					<option value="40">과별인원</option>
+				  </select>
+				</div>
+				
+				<!-- 페이지 크기 -->
+				<div class="col-md-1 col-sm-6 mb-2 mb-md-0">
+				  <select id="pageSize" class="form-control">
+					<option value="15" selected>15개</option>
+					<option value="30">30개</option>
+					<option value="50">50개</option>
+					<option value="100">100개</option>
+					<option value="500">500개</option>
+				  </select>
+				</div>
+				
+				<!-- 검색 영역 -->
+				<!-- 검색 영역 -->
+					<div class="col-md-5">
+					  <div class="input-group">
+						<input type="text" id="search_word" class="form-control" placeholder="학교명, 사업자번호, 담당자로 검색">
+						<div class="input-group-append">
+						  <button class="btn btn-primary" type="button" id="search_btn">
+							<i class="fas fa-search"></i> <span class="d-none d-sm-inline">검색</span>
+						  </button>
+						</div>
+					  </div>
+					</div>
+
+					<!-- 🆕 통계 버튼 (우측 정렬) -->
+					<div class="col-md-3 col-sm-12 mb-2 mb-md-0 text-end">
+					  <button class="btn btn-info" id="statistics_btn">
+						  <i class="fas fa-chart-bar"></i> 통계
+						</button>
+					</div>
+			  </div>
+			</div>
+			<!-- 통합 검색/필터 영역 끝 -->
+			<!-- ⭐ 검색 결과 요약 추가 -->
+			<div id="search-result-summary" class="search-result-summary" style="display: none;">
+				  <div class="result-summary-content">
+					<div class="result-info">
+					  <i class="fas fa-search"></i>
+					  <span id="result-summary-text"></span>
+					</div>
+					<button class="btn btn-sm btn-outline-light" onclick="clearSearch()">
+					  <i class="fas fa-times"></i> 검색 초기화
+					</button>
+				  </div>
+				</div>
+            <!-- 데스크톱 테이블 -->
+            <div class="desktop-table">
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm">
+                  <thead class="thead-light">
+                    <tr>
+                      <th class="col-number">#</th>
+                      <th class="col-business-number">사업자번호</th>
+                      <th class="col-school-name">학교명</th>
+                      <th class="col-number-of-students">학생수</th>
+                      <th class="col-phone d-none d-lg-table-cell">연락처</th>
+                      <th class="field-col-date">신청일</th>
+                      <th class="col-design-number d-none d-lg-table-cell">증권번호</th>
+                      <th class="filed-col-premium">보험료</th>
+                      <th class="field-col-account">보험사</th>
+                      <th class="col-status">상태</th>
+                      
+                      <th class="field-col-damdanga">증권</th>
+                      <th class="field-col-damdanga">클레임</th>
+                      <th class="col-memo d-none d-xl-table-cell">메모</th>
+					  <th class="field-col-damdanga d-none d-xl-table-cell">담당자</th>
+                      <th class="field-col-damdanga d-none d-xl-table-cell">관리자</th>
+                    </tr>
+                  </thead>
+                  <tbody id="field_practice_table_body">
+                    <tr>
+                      <td colspan="15" class="text-center py-4">데이터를 불러오는 중...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 모바일 카드 -->
+            <div class="mobile-cards" id="field_practice_mobile_cards">
+              <div class="text-center py-4">데이터를 불러오는 중...</div>
+            </div>
+
+            <!-- 페이징 -->
+            <div class="row mt-3">
+              <div class="col-md-6 col-12 mb-2">
+                <div id="pagination_info" class="dataTables_info text-center text-md-left"></div>
+              </div>
+              <div class="col-md-6 col-12">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination pagination-sm justify-content-center justify-content-md-end" id="pagination_controls"></ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+
+	 <!-- 현장실습보험 상세보기 모달 -->
+	<div class="modal fade" id="fieldPracticeDetailModal" tabindex="-1" >
+	  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+		<div class="modal-content">
+		  <div class="modal-header">
+			  <div class="d-flex align-items-center gap-2 flex-grow-1">
+				<h5 class="modal-title mb-0">
+				  <i class="fas fa-info-circle"></i> 
+				  <span id="modal-school-name">상세정보</span>
+				</h5>
+				<span id="beforegabunho" class="badge "></span>
+				<select id="mem-id-select" class="styled-select ms-auto">
+				  <option value="">담당자 선택...</option>
+				</select>
+			  </div>
+			 
+			</div>
+		  <div class="modal-body" id="fieldPracticeModalBody">
+			<!-- 동적 콘텐츠 영역 -->
+		  </div>
+		  <div class="modal-footer" id="fieldPracticeModalFooter">
+			<!-- 동적 푸터 -->
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+		<!-- 파일 업로드 모달 -->
+		<div class="modal fade" id="uploadModal" tabindex="-1">
+		  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+			<div class="modal-content">
+			  <!-- Modal Header -->
+			  <div class="modal-header">
+				<h5 class="modal-title">
+				  <i class="fas fa-upload"></i>
+				  <span id="cName">파일 업로드</span>
+				</h5>
+				
+			  </div>
+
+			  <!-- Hidden Input -->
+			  <input type="hidden" id="qNum" />
+
+			  <!-- Modal Body -->
+			  <div class="modal-body">
+				<!-- 파일 업로드 폼 - 한 줄 배치 -->
+				<div class="upload-container mb-4">
+				  <div class="d-flex gap-2 align-items-end flex-wrap">
+					<div style="width: 150px;">
+					  <select id="fileType" class="form-select">
+						<!-- 동적으로 생성됨 -->
+					  </select>
+					</div>
+					<div id="dynamicFieldWrapper" style="display: none; width: 180px;">
+					  <input type="text" id="dynamicInput" class="form-control" placeholder="설계번호를 입력하세요">
+					</div>
+					<div class="flex-grow-1">
+					  <input type="file" id="uploadedFile" class="form-control">
+					</div>
+					<div>
+					  <button type="button" class="btn btn-primary" id="uploadBtn">
+						<i class="fas fa-upload"></i> 업로드
+					  </button>
+					</div>
+				  </div>
+				</div>
+
+				<!-- 파일 목록 테이블 -->
+				<div class="table-responsive">
+				  <table class="table table-bordered table-hover file-table">
+					<thead id="fileThead"></thead>
+					<tbody id="file_list"></tbody>
+				  </table>
+				</div>
+			  </div>
+
+			  <!-- Modal Footer -->
+			  <div class="modal-footer">
+				<span class="me-auto text-muted">파일 업로드를 완료하세요.</span>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+				  <i class="fas fa-times"></i> 닫기
+				</button>
+			  </div>
+			</div>
+		  </div>
+		</div>
+		
+
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/sj-template-loader.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('현장실습보험 페이지가 로드되었습니다.');
+      await window.sjTemplateLoader.initializePage('field-practice-applications');
+    });
+  </script>
+    <!-- ✅ 가장 먼저 로드 -->
+	<script src="/js/field-practice/common-notice.js"></script>
+   <script src="/js/field-practice/field-practice-modal.js"></script><!--  1st Modal-->
+    <script src="/js/field-practice/field-practice-second-modal.js"></script><!--  2st Modal-->
+	<script src="/js/field-practice/file-upload.js"></script><!--  1st Modal-->
+	<script src="/js/field-practice/field-practice-claim-modal-unified.js"></script>
+	<!--<script src="/js/field-practice/filed-practice-claim-modal.js"></script>-->
+  <script src="/js/field-practice/field-practice-statistics-modal.js"></script>
+  <script src="/js/field-practice/field-practice_cNum_modal.js"></script>
+  <script src="/js/field-practice/field-practice.js"></script>
+ 
+  
+</body>
+</html>

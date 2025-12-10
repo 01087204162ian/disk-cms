@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>보험 CMS 관리자</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #f8fafc;
+            --accent-color: #06b6d4;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f8fafc;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+            text-decoration: none;
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: var(--danger-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background: white;
+            border-right: 1px solid var(--border-color);
+            z-index: 900;
+            transform: translateX(0);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-content {
+            padding: 1.5rem 0;
+        }
+
+        .menu-section {
+            margin-bottom: 2rem;
+        }
+
+        .menu-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 0 1.5rem;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: rgba(37, 99, 235, 0.05);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+        }
+
+        .menu-item.active {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .menu-item.has-submenu {
+            justify-content: space-between;
+        }
+
+        .menu-item.has-submenu .chevron {
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item.has-submenu.expanded .chevron {
+            transform: rotate(90deg);
+        }
+
+        .menu-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        /* 2단계 메뉴 */
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(248, 250, 252, 0.8);
+        }
+
+        .submenu.expanded {
+            max-height: 500px;
+        }
+
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1.5rem 0.5rem 3rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 3px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .submenu-item:hover {
+            background: rgba(37, 99, 235, 0.05);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+        }
+
+        .submenu-item.active {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .submenu-item::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            margin-right: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .submenu-item:hover::before,
+        .submenu-item.active::before {
+            background: var(--primary-color);
+        }
+
+        .menu-badge {
+            margin-left: auto;
+            background: var(--primary-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .menu-badge.warning {
+            background: var(--warning-color);
+        }
+
+        .menu-badge.success {
+            background: var(--success-color);
+        }
+
+        /* Main Content */
+        .main {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 2rem;
+            min-height: calc(100vh - var(--header-height));
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main.expanded {
+            margin-left: 0;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .stat-icon.primary {
+            background: var(--gradient-primary);
+        }
+
+        .stat-icon.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .stat-icon.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .stat-icon.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success-color);
+        }
+
+        .stat-change.negative {
+            color: var(--danger-color);
+        }
+
+        /* Content Cards */
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(37, 99, 235, 0.02);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-secondary);
+            text-align: center;
+            font-size: 0.9rem;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .footer.expanded {
+            margin-left: 0;
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 850;
+            backdrop-filter: blur(4px);
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            :root {
+                --sidebar-width: 260px;
+            }
+            
+            .main {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 240px;
+            }
+            
+            .header-actions {
+                gap: 0.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 1rem;
+            }
+            
+            .header-left {
+                gap: 0.5rem;
+            }
+
+            .logo span {
+                font-size: 1.1rem;
+            }
+
+            /* 모바일에서는 기본적으로 사이드바 숨김 */
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 280px;
+                height: 100vh;
+                z-index: 900;
+                transform: translateX(-100%);
+                box-shadow: var(--shadow-xl);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            /* 모바일에서 collapsed 클래스는 무시 */
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .footer {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .main.expanded,
+            .footer.expanded {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .header-actions {
+                gap: 0.25rem;
+            }
+
+            .header-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .card-header,
+            .card-content {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 0 0.75rem;
+            }
+
+            .logo {
+                font-size: 1rem;
+            }
+
+            .logo i {
+                font-size: 1.2rem;
+            }
+
+            .sidebar {
+                width: 260px;
+            }
+
+            .main {
+                padding: 0.75rem;
+            }
+
+            .page-header {
+                margin-bottom: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.25rem;
+            }
+
+            .stats-grid {
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 0.75rem;
+            }
+
+            .stat-header {
+                margin-bottom: 0.75rem;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+            }
+
+            .stat-change {
+                font-size: 0.75rem;
+            }
+
+            .menu-item {
+                padding: 0.5rem 1rem;
+            }
+
+            .menu-section-title {
+                padding: 0 1rem;
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .header {
+                padding: 0 0.5rem;
+            }
+            
+            .main {
+                padding: 0.5rem;
+            }
+            
+            .stats-grid {
+                gap: 0.5rem;
+            }
+            
+            .stat-card {
+                padding: 0.5rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-card {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        /* Scrollbar Styling */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="#" class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>보험CMS</span>
+            </a>
+        </div>
+        <div class="header-right">
+            <div class="header-actions">
+                <button class="header-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="header-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <button class="header-btn">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar">김</div>
+                <div class="user-info">
+                    <h4>김관리자</h4>
+                    <p>시스템 관리자</p>
+                </div>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <!-- 대시보드 -->
+            <div class="menu-section">
+                <div class="menu-section-title">대시보드</div>
+                <a href="#" class="menu-item active" data-menu="home">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-home"></i>
+                        <span>홈</span>
+                    </div>
+                </a>
+                <a href="#" class="menu-item" data-menu="analytics">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-chart-line"></i>
+                        <span>분석</span>
+                    </div>
+                </a>
+                <a href="#" class="menu-item" data-menu="reports">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>리포트</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 보험 관리 -->
+            <div class="menu-section">
+                <div class="menu-section-title">보험 관리</div>
+                
+                <!-- 보험상품 관리 (2단계 메뉴 있음) -->
+                <div class="menu-item has-submenu" data-menu="products">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>보험상품 관리</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="menu-badge">124</span>
+                        <i class="fas fa-chevron-right chevron" style="font-size: 0.8rem;"></i>
+                    </div>
+                </div>
+                <div class="submenu" data-parent="products">
+                    <a href="#" class="submenu-item" data-submenu="product-list">상품 목록</a>
+                    <a href="#" class="submenu-item" data-submenu="product-add">상품 등록</a>
+                    <a href="#" class="submenu-item" data-submenu="product-category">상품 분류</a>
+                    <a href="#" class="submenu-item" data-submenu="product-pricing">가격 정책</a>
+                </div>
+
+                <!-- 계약 관리 (2단계 메뉴 있음) -->
+                <div class="menu-item has-submenu" data-menu="contracts">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-file-contract"></i>
+                        <span>계약 관리</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="menu-badge warning">15</span>
+                        <i class="fas fa-chevron-right chevron" style="font-size: 0.8rem;"></i>
+                    </div>
+                </div>
+                <div class="submenu" data-parent="contracts">
+                    <a href="#" class="submenu-item" data-submenu="contract-list">계약 목록</a>
+                    <a href="#" class="submenu-item" data-submenu="contract-pending">승인 대기</a>
+                    <a href="#" class="submenu-item" data-submenu="contract-active">유효 계약</a>
+                    <a href="#" class="submenu-item" data-submenu="contract-expired">만료 계약</a>
+                </div>
+
+                <!-- 청구/지급 관리 (2단계 메뉴 있음) -->
+                <div class="menu-item has-submenu" data-menu="claims">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-handshake"></i>
+                        <span>청구/지급 관리</span>
+                    </div>
+                    <i class="fas fa-chevron-right chevron" style="font-size: 0.8rem;"></i>
+                </div>
+                <div class="submenu" data-parent="claims">
+                    <a href="#" class="submenu-item" data-submenu="claim-new">신규 청구</a>
+                    <a href="#" class="submenu-item" data-submenu="claim-review">심사 중</a>
+                    <a href="#" class="submenu-item" data-submenu="claim-approved">승인 완료</a>
+                    <a href="#" class="submenu-item" data-submenu="claim-rejected">거부</a>
+                </div>
+
+                <!-- 보험료 관리 (1단계만) -->
+                <a href="#" class="menu-item" data-menu="premium">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-calculator"></i>
+                        <span>보험료 관리</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 고객 관리 -->
+            <div class="menu-section">
+                <div class="menu-section-title">고객 관리</div>
+                
+                <!-- 고객 정보 (2단계 메뉴 있음) -->
+                <div class="menu-item has-submenu" data-menu="customers">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-users"></i>
+                        <span>고객 정보</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="menu-badge success">2,847</span>
+                        <i class="fas fa-chevron-right chevron" style="font-size: 0.8rem;"></i>
+                    </div>
+                </div>
+                <div class="submenu" data-parent="customers">
+                    <a href="#" class="submenu-item" data-submenu="customer-list">고객 목록</a>
+                    <a href="#" class="submenu-item" data-submenu="customer-add">고객 등록</a>
+                    <a href="#" class="submenu-item" data-submenu="customer-group">고객 그룹</a>
+                    <a href="#" class="submenu-item" data-submenu="customer-history">가입 이력</a>
+                </div>
+
+                <!-- 설계사 관리 (1단계만) -->
+                <a href="#" class="menu-item" data-menu="agents">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-user-tie"></i>
+                        <span>설계사 관리</span>
+                    </div>
+                </a>
+
+                <!-- 고객 상담 (1단계만) -->
+                <a href="#" class="menu-item" data-menu="support">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-headset"></i>
+                        <span>고객 상담</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 시스템 관리 -->
+            <div class="menu-section">
+                <div class="menu-section-title">시스템</div>
+                
+                <!-- 사용자 관리 (2단계 메뉴 있음) -->
+                <div class="menu-item has-submenu" data-menu="users">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-user-cog"></i>
+                        <span>사용자 관리</span>
+                    </div>
+                    <i class="fas fa-chevron-right chevron" style="font-size: 0.8rem;"></i>
+                </div>
+                <div class="submenu" data-parent="users">
+                    <a href="#" class="submenu-item" data-submenu="user-list">사용자 목록</a>
+                    <a href="#" class="submenu-item" data-submenu="user-add">사용자 등록</a>
+                    <a href="#" class="submenu-item" data-submenu="user-roles">역할 관리</a>
+                </div>
+
+                <!-- 권한 관리 (1단계만) -->
+                <a href="#" class="menu-item" data-menu="permissions">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>권한 관리</span>
+                    </div>
+                </a>
+
+                <!-- 시스템 설정 (1단계만) -->
+                <a href="#" class="menu-item" data-menu="settings">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-cogs"></i>
+                        <span>시스템 설정</span>
+                    </div>
+                </a>
+
+                <!-- 로그 관리 (1단계만) -->
+                <a href="#" class="menu-item" data-menu="logs">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-history"></i>
+                        <span>로그 관리</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main" id="main">
+        <div class="page-header">
+            <h1 class="page-title">대시보드</h1>
+            <p class="page-subtitle">보험 CMS 시스템 현황을 한눈에 확인하세요</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">총 계약 건수</div>
+                    <div class="stat-icon primary">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                </div>
+                <div class="stat-value">2,847</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>12.5% 증가</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">이번 달 보험료</div>
+                    <div class="stat-icon success">
+                        <i class="fas fa-won-sign"></i>
+                    </div>
+                </div>
+                <div class="stat-value">₩847M</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>8.2% 증가</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">처리 대기</div>
+                    <div class="stat-icon warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="stat-value">156</div>
+                <div class="stat-change negative">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>3.1% 감소</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">고객 만족도</div>
+                    <div class="stat-icon primary">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+                <div class="stat-value">4.8</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>0.3 증가</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Cards -->
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">최근 활동</div>
+                <div class="card-subtitle">시스템에서 발생한 최근 활동들을 확인하세요</div>
+            </div>
+            <div class="card-content">
+                <p>여기에 실제 컨텐츠가 들어갑니다. 각 메뉴별로 다른 컨텐츠 영역이 표시될 예정입니다.</p>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">시스템 알림</div>
+                <div class="card-subtitle">중요한 시스템 알림 및 공지사항</div>
+            </div>
+            <div class="card-content">
+                <p>알림 및 공지사항 내용이 표시됩니다.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" id="footer">
+        <p>&copy; 2025 보험CMS. All rights reserved. | Version 2.1.0</p>
+    </footer>
+
+    <script>
+        // Menu Toggle Functionality
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const main = document.getElementById('main');
+        const footer = document.getElementById('footer');
+
+        let isCollapsed = false;
+        let isMobile = window.innerWidth <= 768;
+
+        menuToggle.addEventListener('click', () => {
+            if (isMobile) {
+                // Mobile: Toggle sidebar with overlay
+                const isOpen = sidebar.classList.contains('mobile-open');
+                
+                if (isOpen) {
+                    sidebar.classList.remove('mobile-open');
+                    sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                } else {
+                    sidebar.classList.add('mobile-open');
+                    sidebarOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            } else {
+                // Desktop: Toggle sidebar collapse
+                isCollapsed = !isCollapsed;
+                
+                if (isCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    main.classList.add('expanded');
+                    footer.classList.add('expanded');
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    main.classList.remove('expanded');
+                    footer.classList.remove('expanded');
+                }
+            }
+        });
+
+        // Close sidebar when clicking overlay (mobile)
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-open');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+
+        // 1단계/2단계 메뉴 관리
+        function initializeMenu() {
+            // 1단계 메뉴 클릭 이벤트
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const hasSubmenu = item.classList.contains('has-submenu');
+                    const menuId = item.dataset.menu;
+                    
+                    if (hasSubmenu) {
+                        // 2단계 메뉴가 있는 경우 - 토글
+                        toggleSubmenu(menuId, item);
+                    } else {
+                        // 일반 메뉴인 경우 - 직접 활성화
+                        setActiveMenu(item, null);
+                        updatePageContent(item.querySelector('span').textContent, null);
+                        
+                        // 모바일에서 사이드바 닫기
+                        if (isMobile) {
+                            closeMobileSidebar();
+                        }
+                    }
+                });
+            });
+
+            // 2단계 메뉴 클릭 이벤트
+            document.querySelectorAll('.submenu-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const submenuId = item.dataset.submenu;
+                    const parentSubmenu = item.closest('.submenu');
+                    const parentMenu = document.querySelector(`[data-menu="${parentSubmenu.dataset.parent}"]`);
+                    
+                    // 2단계 메뉴 활성화
+                    setActiveMenu(parentMenu, item);
+                    updatePageContent(parentMenu.querySelector('span').textContent, item.textContent);
+                    
+                    // 모바일에서 사이드바 닫기
+                    if (isMobile) {
+                        closeMobileSidebar();
+                    }
+                });
+            });
+        }
+
+        // 서브메뉴 토글
+        function toggleSubmenu(menuId, menuItem) {
+            const submenu = document.querySelector(`[data-parent="${menuId}"]`);
+            const isExpanded = submenu.classList.contains('expanded');
+            
+            // 모든 서브메뉴 닫기
+            document.querySelectorAll('.submenu').forEach(sub => {
+                sub.classList.remove('expanded');
+            });
+            document.querySelectorAll('.menu-item.has-submenu').forEach(item => {
+                item.classList.remove('expanded');
+            });
+            
+            // 현재 서브메뉴 토글
+            if (!isExpanded) {
+                submenu.classList.add('expanded');
+                menuItem.classList.add('expanded');
+            }
+        }
+
+        // 활성 메뉴 설정
+        function setActiveMenu(parentMenuItem, submenuItem) {
+            // 모든 active 제거
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.submenu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 부모 메뉴 활성화
+            parentMenuItem.classList.add('active');
+            
+            // 서브메뉴가 있으면 서브메뉴도 활성화
+            if (submenuItem) {
+                submenuItem.classList.add('active');
+                
+                // 해당 서브메뉴가 속한 부모 메뉴 확장
+                const parentMenuId = parentMenuItem.dataset.menu;
+                const submenu = document.querySelector(`[data-parent="${parentMenuId}"]`);
+                if (submenu) {
+                    submenu.classList.add('expanded');
+                    parentMenuItem.classList.add('expanded');
+                }
+            }
+        }
+
+        // 모바일 사이드바 닫기
+        function closeMobileSidebar() {
+            sidebar.classList.remove('mobile-open');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // 페이지 컨텐츠 업데이트
+        function updatePageContent(mainTitle, subTitle) {
+            const pageTitle = document.querySelector('.page-title');
+            const pageSubtitle = document.querySelector('.page-subtitle');
+            
+            if (subTitle) {
+                pageTitle.textContent = `${mainTitle} > ${subTitle}`;
+                pageSubtitle.textContent = `${subTitle} 관련 기능을 관리할 수 있습니다`;
+            } else {
+                switch(mainTitle) {
+                    case '홈':
+                        pageTitle.textContent = '대시보드';
+                        pageSubtitle.textContent = '보험 CMS 시스템 현황을 한눈에 확인하세요';
+                        break;
+                    case '분석':
+                        pageTitle.textContent = '데이터 분석';
+                        pageSubtitle.textContent = '보험 데이터를 분석하고 인사이트를 얻어보세요';
+                        break;
+                    case '보험상품 관리':
+                        pageTitle.textContent = '보험상품 관리';
+                        pageSubtitle.textContent = '보험상품을 등록, 수정, 관리할 수 있습니다';
+                        break;
+                    case '고객 정보':
+                        pageTitle.textContent = '고객 정보 관리';
+                        pageSubtitle.textContent = '고객 정보를 조회하고 관리할 수 있습니다';
+                        break;
+                    default:
+                        pageTitle.textContent = mainTitle;
+                        pageSubtitle.textContent = `${mainTitle} 관련 기능을 관리할 수 있습니다`;
+                }
+            }
+        }
+
+        // Menu Toggle Functionality
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const main = document.getElementById('main');
+        const footer = document.getElementById('footer');
+
+        let isCollapsed = false;
+        let isMobile = window.innerWidth <= 768;
+
+        menuToggle.addEventListener('click', () => {
+            if (isMobile) {
+                // Mobile: Toggle sidebar with overlay
+                const isOpen = sidebar.classList.contains('mobile-open');
+                
+                if (isOpen) {
+                    closeMobileSidebar();
+                } else {
+                    sidebar.classList.add('mobile-open');
+                    sidebarOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            } else {
+                // Desktop: Toggle sidebar collapse
+                isCollapsed = !isCollapsed;
+                
+                if (isCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    main.classList.add('expanded');
+                    footer.classList.add('expanded');
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    main.classList.remove('expanded');
+                    footer.classList.remove('expanded');
+                }
+            }
+        });
+
+        // Close sidebar when clicking overlay (mobile)
+        sidebarOverlay.addEventListener('click', () => {
+            closeMobileSidebar();
+        });
+
+        // Responsive handling
+        function handleResize() {
+            const wasMobile = isMobile;
+            isMobile = window.innerWidth <= 768;
+            
+            if (isMobile && !wasMobile) {
+                // Switching to mobile
+                sidebar.classList.remove('collapsed');
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                main.classList.remove('expanded');
+                footer.classList.remove('expanded');
+                document.body.style.overflow = '';
+                isCollapsed = false;
+            } else if (!isMobile && wasMobile) {
+                // Switching to desktop
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                if (isCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    main.classList.add('expanded');
+                    footer.classList.add('expanded');
+                }
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+
+        // Prevent body scroll when sidebar is open on mobile
+        function preventBodyScroll() {
+            if (isMobile && sidebar.classList.contains('mobile-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Add smooth scrolling animation for stats cards
+        function observeStatsCards() {
+            const statsCards = document.querySelectorAll('.stat-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationDelay = Math.random() * 0.3 + 's';
+                        entry.target.classList.add('animate');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            statsCards.forEach(card => observer.observe(card));
+        }
+
+        // Touch/swipe support for mobile sidebar
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (!isMobile) return;
+            
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+            
+            // Swipe right to open sidebar (from left edge)
+            if (swipeDistance > swipeThreshold && touchStartX < 50 && !sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.add('mobile-open');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // Swipe left to close sidebar
+            if (swipeDistance < -swipeThreshold && sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // 초기 상태 설정
+            isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // 모바일에서는 사이드바 숨김
+                sidebar.classList.remove('mobile-open');
+                sidebar.classList.add('collapsed');
+                main.classList.add('expanded');
+                footer.classList.add('expanded');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            } else {
+                // 데스크톱에서는 사이드바 표시
+                sidebar.classList.remove('collapsed');
+                sidebar.classList.remove('mobile-open');
+                main.classList.remove('expanded');
+                footer.classList.remove('expanded');
+                sidebarOverlay.classList.remove('active');
+                isCollapsed = false;
+            }
+            
+            // 메뉴 초기화
+            initializeMenu();
+            observeStatsCards();
+        });
+    </script>
+</body>
+</html>

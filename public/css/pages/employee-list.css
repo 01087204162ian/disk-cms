@@ -1,0 +1,603 @@
+/*
+ * employee-list.css - 직원 목록 페이지 전용 스타일
+ * 기본 디자인 시스템과 조화를 이루는 전문적인 스타일링
+ */
+
+/* 🎨 CSS 변수 정의 */
+:root {
+  /* 직원 목록 전용 색상 */
+  --employee-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --employee-success: linear-gradient(135deg, #48bb78, #38a169);
+  --employee-warning: linear-gradient(135deg, #f6ad55, #ed8936);
+  --employee-danger: linear-gradient(135deg, #f56565, #e53e3e);
+  --employee-info: linear-gradient(135deg, #4299e1, #3182ce);
+  
+  /* 테이블 색상 */
+  --table-header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --table-hover-bg: rgba(102, 126, 234, 0.1);
+  --table-stripe-bg: rgba(0, 0, 0, 0.02);
+  
+  /* 필터 색상 */
+  --filter-card-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --filter-button-bg: var(--employee-primary);
+  
+  /* 애니메이션 */
+  --hover-transform: translateY(-2px);
+  --scale-transform: scale(1.05);
+}
+
+/* 📊 페이지 레이아웃 */
+.content-wrapper {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+}
+
+.content-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 0 0 20px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.content-header h1 {
+  background: var(--employee-primary);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+/* 📈 통계 카드 개선 */
+.small-box {
+  border-radius: 15px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.small-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/></g></svg>');
+  pointer-events: none;
+}
+
+.small-box:hover {
+  transform: var(--hover-transform);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.small-box .inner {
+  position: relative;
+  z-index: 1;
+}
+
+.small-box .icon {
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.small-box:hover .icon {
+  transform: var(--scale-transform) rotate(5deg);
+}
+
+/* 🔍 필터 카드 스타일링 */
+.card {
+  border-radius: 15px;
+  border: none;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  transform: var(--hover-transform);
+}
+
+.card-header {
+  background: var(--filter-card-bg);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 15px 15px 0 0 !important;
+  padding: 20px;
+}
+
+.card-header h3 {
+  color: #4a5568;
+  font-weight: 600;
+  margin: 0;
+}
+
+.card-body {
+  padding: 25px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+/* 📝 폼 요소 스타일링 */
+.form-group label {
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-control {
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  padding: 12px 15px;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  transform: scale(1.02);
+}
+
+/* 🎛️ 버튼 스타일링 */
+.btn {
+  border-radius: 25px;
+  padding: 10px 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-primary {
+  background: var(--employee-primary);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+  transform: var(--hover-transform);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.btn-success {
+  background: var(--employee-success);
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+}
+
+.btn-success:hover {
+  transform: var(--hover-transform);
+  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #a0aec0, #718096);
+  box-shadow: 0 4px 15px rgba(160, 174, 192, 0.4);
+}
+
+/* 📋 DataTable 커스터마이징 */
+#employeesTable_wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+#employeesTable {
+  border-radius: 10px;
+  overflow: hidden;
+  border: none;
+}
+
+#employeesTable thead th {
+  background: var(--table-header-bg);
+  color: white;
+  border: none;
+  padding: 15px 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  position: relative;
+}
+
+#employeesTable thead th::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#employeesTable tbody tr {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+#employeesTable tbody tr:nth-child(even) {
+  background-color: var(--table-stripe-bg);
+}
+
+#employeesTable tbody tr:hover {
+  background-color: var(--table-hover-bg);
+  transform: scale(1.01);
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+}
+
+#employeesTable tbody td {
+  padding: 15px 12px;
+  vertical-align: middle;
+  border: none;
+  font-size: 0.9rem;
+}
+
+/* 🏷️ 뱃지 스타일링 */
+.badge {
+  border-radius: 15px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.badge-danger {
+  background: var(--employee-danger);
+}
+
+.badge-warning {
+  background: var(--employee-warning);
+}
+
+.badge-info {
+  background: var(--employee-info);
+}
+
+.badge-success {
+  background: var(--employee-success);
+}
+
+.badge-primary {
+  background: var(--employee-primary);
+}
+
+.badge-secondary {
+  background: linear-gradient(135deg, #a0aec0, #718096);
+}
+
+/* 🎛️ 액션 버튼 그룹 */
+.btn-group .btn {
+  border-radius: 8px;
+  margin: 0 2px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
+.btn-group .btn-info {
+  background: var(--employee-info);
+}
+
+.btn-group .btn-warning {
+  background: var(--employee-warning);
+}
+
+.btn-group .btn-danger {
+  background: var(--employee-danger);
+}
+
+.btn-group .btn:hover {
+  transform: scale(1.1);
+  z-index: 2;
+  position: relative;
+}
+
+/* 📱 모달 스타일링 */
+.modal-content {
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.modal-header {
+  background: var(--employee-primary);
+  color: white;
+  border-bottom: none;
+  padding: 20px 30px;
+}
+
+.modal-header h4 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 30px;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.modal-body dl.row {
+  margin-bottom: 0;
+}
+
+.modal-body dt {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.modal-body dd {
+  color: #2d3748;
+  font-size: 0.95rem;
+}
+
+.modal-footer {
+  background: rgba(248, 250, 252, 0.8);
+  border-top: 1px solid #e2e8f0;
+  padding: 20px 30px;
+}
+
+/* 📊 DataTables 검색 및 페이징 */
+.dataTables_filter input {
+  border-radius: 25px;
+  border: 2px solid #e2e8f0;
+  padding: 8px 20px;
+  margin-left: 10px;
+}
+
+.dataTables_length select {
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  padding: 5px 10px;
+}
+
+.page-link {
+  border-radius: 8px;
+  border: none;
+  margin: 0 2px;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  transition: all 0.3s ease;
+}
+
+.page-link:hover {
+  background: var(--employee-primary);
+  color: white;
+  transform: var(--hover-transform);
+}
+
+.page-item.active .page-link {
+  background: var(--employee-primary);
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* 🎯 로딩 스피너 */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(102, 126, 234, 0.3);
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* ⚠️ 에러 상태 */
+.text-danger {
+  color: #f56565 !important;
+}
+
+.table-error-state {
+  text-align: center;
+  padding: 40px;
+  color: #f56565;
+  font-size: 1.1rem;
+}
+
+.table-error-state i {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  display: block;
+}
+
+/* 📱 반응형 디자인 */
+@media (max-width: 768px) {
+  .content-header {
+    border-radius: 0;
+    margin-bottom: 15px;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+  
+  .btn {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+  }
+  
+  .small-box {
+    margin-bottom: 15px;
+  }
+  
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .btn-group .btn {
+    margin: 0;
+    border-radius: 5px;
+  }
+  
+  .modal-dialog {
+    margin: 10px;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  #employeesTable_wrapper {
+    padding: 10px;
+  }
+  
+  #employeesTable {
+    font-size: 0.8rem;
+  }
+  
+  #employeesTable thead th,
+  #employeesTable tbody td {
+    padding: 8px 6px;
+  }
+}
+
+@media (max-width: 576px) {
+  .content-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+  
+  .small-box .inner h3 {
+    font-size: 1.5rem;
+  }
+  
+  .card-header {
+    padding: 15px;
+  }
+  
+  .card-header h3 {
+    font-size: 1rem;
+  }
+}
+
+/* 🎭 애니메이션 정의 */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 🌟 페이지 로드 애니메이션 */
+.small-box {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.small-box:nth-child(1) { animation-delay: 0.1s; }
+.small-box:nth-child(2) { animation-delay: 0.2s; }
+.small-box:nth-child(3) { animation-delay: 0.3s; }
+.small-box:nth-child(4) { animation-delay: 0.4s; }
+
+.card {
+  animation: slideInRight 0.6s ease-out;
+}
+
+/* 🎨 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+  :root {
+    --table-hover-bg: rgba(0, 0, 0, 0.2);
+    --table-stripe-bg: rgba(0, 0, 0, 0.05);
+  }
+  
+  .form-control {
+    border-width: 3px;
+  }
+  
+  .btn {
+    border: 2px solid currentColor;
+  }
+}
+
+/* 🚫 애니메이션 줄이기 선호 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .small-box:hover,
+  .card:hover,
+  .btn:hover {
+    transform: none;
+  }
+}
+
+/* 🌙 다크 모드 지원 (추후 확장) */
+@media (prefers-color-scheme: dark) {
+  .content-wrapper {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  }
+  
+  .card-body {
+    background: rgba(45, 55, 72, 0.95);
+    color: #f7fafc;
+  }
+  
+  .form-control {
+    background-color: #2d3748;
+    border-color: #4a5568;
+    color: #f7fafc;
+  }
+  
+  .modal-body {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    color: #f7fafc;
+  }
+}

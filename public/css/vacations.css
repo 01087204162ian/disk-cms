@@ -1,0 +1,305 @@
+/* 4일제 스케줄 전용 스타일 */
+    .schedule-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .schedule-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .summary-card {
+      background: rgba(255,255,255,0.1);
+      padding: 1rem;
+      border-radius: 0.375rem;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    
+    .summary-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: block;
+    }
+    
+    .summary-label {
+      font-size: 0.875rem;
+      opacity: 0.9;
+      margin-top: 0.25rem;
+    }
+    
+    .calendar-container {
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .calendar-header {
+      background: #f8f9fa;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .calendar-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin: 0;
+    }
+    
+    .calendar-nav {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .nav-btn {
+      background: none;
+      border: none;
+      color: #667eea;
+      font-size: 1.125rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      transition: background-color 0.2s;
+    }
+    
+    .nav-btn:hover {
+      background-color: #e2e8f0;
+    }
+    
+    .current-month {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #4a5568;
+      min-width: 120px;
+      text-align: center;
+    }
+    
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .calendar-day-header {
+      background: #f7fafc;
+      padding: 0.75rem;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #4a5568;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .calendar-day-header.weekend {
+      color: #e53e3e;
+    }
+    
+    .calendar-day {
+      min-height: 80px;
+      border-bottom: 1px solid #f1f5f9;
+      border-right: 1px solid #f1f5f9;
+      padding: 0.5rem;
+      position: relative;
+      background: white;
+      transition: background-color 0.2s;
+    }
+    
+    .calendar-day:hover {
+      background-color: #f7fafc;
+    }
+    
+    .calendar-day.other-month {
+      background-color: #f8f9fa;
+      color: #a0aec0;
+    }
+    
+    .calendar-day.today {
+      background: linear-gradient(135deg, #ebf8ff 0%, #dbeafe 100%);
+      border-left: 3px solid #3b82f6;
+    }
+    
+    .day-number {
+      font-weight: 600;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .day-status {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    
+    .day-status.work {
+      background-color: #10b981;
+    }
+    
+    .day-status.off {
+      background-color: #ef4444;
+    }
+    
+    .day-status.half {
+      background: linear-gradient(45deg, #10b981 50%, #f59e0b 50%);
+    }
+    
+    .day-info {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.25rem;
+    }
+    
+    .work-info {
+      color: #059669;
+      font-weight: 500;
+    }
+    
+    .off-info {
+      color: #dc2626;
+      font-weight: 500;
+    }
+    
+    .half-info {
+      color: #d97706;
+      font-weight: 500;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .btn-half-day {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-half-day:hover {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    .btn-schedule-info {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-schedule-info:hover {
+      background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+    
+    .shift-info {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .shift-pattern {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .day-pattern {
+      text-align: center;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      border: 2px solid #e2e8f0;
+      transition: all 0.2s;
+    }
+    
+    .day-pattern.work {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      border-color: #10b981;
+      color: #047857;
+    }
+    
+    .day-pattern.off {
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      border-color: #ef4444;
+      color: #dc2626;
+    }
+    
+    .day-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .day-schedule {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+    
+    /* 모바일 최적화 */
+    @media (max-width: 768px) {
+      .schedule-summary {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+      
+      .calendar-day {
+        min-height: 60px;
+        padding: 0.375rem;
+      }
+      
+      .shift-pattern {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+      
+      .day-pattern {
+        padding: 0.75rem;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .action-buttons button {
+        width: 100%;
+        max-width: 300px;
+      }
+    }

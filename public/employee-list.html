@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>보험 CMS | 직원 목록</title>
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- AdminLTE CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/css/dataTables.bootstrap4.min.css">
+  
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/pages/employee-list.css">
+</head>
+
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    
+    <!-- Preloader -->
+    <div class="preloader flex-column justify-content-center align-items-center">
+      <img class="animation__shake" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjNjY3ZWVhIi8+Cjwvc3ZnPgo=" alt="AdminLTELogo" height="60" width="60">
+    </div>
+
+    <!-- 템플릿 컨테이너들 -->
+    <div id="navbar-container"></div>
+    <div id="sidebar-container"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="content-wrapper">
+      <!-- Content Header -->
+      <div class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-6">
+              <h1>직원 목록</h1>
+            </div>
+            <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-right">
+                <li class="breadcrumb-item"><a href="/dashboard.html">홈</a></li>
+                <li class="breadcrumb-item"><a href="#">직원 관리</a></li>
+                <li class="breadcrumb-item active">직원 목록</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <section class="content">
+        <div class="container-fluid">
+          
+          <!-- 통계 카드 -->
+          <div class="row">
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-info">
+                <div class="inner">
+                  <h3 id="totalEmployeesCount">
+                    <div class="loading-spinner"></div>
+                  </h3>
+                  <p>전체 직원</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-users"></i>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-success">
+                <div class="inner">
+                  <h3 id="activeEmployeesCount">
+                    <div class="loading-spinner"></div>
+                  </h3>
+                  <p>활성 직원</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-user-check"></i>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-warning">
+                <div class="inner">
+                  <h3 id="pendingEmployeesCount">
+                    <div class="loading-spinner"></div>
+                  </h3>
+                  <p>승인 대기</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-user-clock"></i>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-secondary">
+                <div class="inner">
+                  <h3 id="departmentsCount">
+                    <div class="loading-spinner"></div>
+                  </h3>
+                  <p>부서 수</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-building"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 필터 및 검색 -->
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fas fa-filter mr-2"></i>
+                    필터 및 검색
+                  </h3>
+                  <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                      <i class="fas fa-minus"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label>부서</label>
+                        <select class="form-control" id="departmentFilter">
+                          <option value="">전체 부서</option>
+                          <!-- 동적으로 로드 -->
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label>역할</label>
+                        <select class="form-control" id="roleFilter">
+                          <option value="">전체 역할</option>
+                          <option value="EMPLOYEE">일반직원</option>
+                          <option value="DEPARTMENT_MANAGER">부서관리자</option>
+                          <option value="SYSTEM_ADMIN">시스템관리자</option>
+                          <option value="SUPER_ADMIN">최고관리자</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label>근무형태</label>
+                        <select class="form-control" id="workTypeFilter">
+                          <option value="">전체</option>
+                          <option value="FULL_TIME">정규직</option>
+                          <option value="PART_TIME">파트타임</option>
+                          <option value="CONTRACT">계약직</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <label>상태</label>
+                        <select class="form-control" id="statusFilter">
+                          <option value="">전체 상태</option>
+                          <option value="ACTIVE">활성</option>
+                          <option value="PENDING">승인대기</option>
+                          <option value="INACTIVE">비활성</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <button type="button" class="btn btn-primary" id="applyFiltersBtn">
+                        <i class="fas fa-search mr-2"></i>필터 적용
+                      </button>
+                      <button type="button" class="btn btn-secondary ml-2" id="resetFiltersBtn">
+                        <i class="fas fa-undo mr-2"></i>초기화
+                      </button>
+                    </div>
+                    <div class="col-md-6 text-right">
+                      <button type="button" class="btn btn-success" id="exportExcelBtn">
+                        <i class="fas fa-file-excel mr-2"></i>Excel 내보내기
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 직원 목록 테이블 -->
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fas fa-users mr-2"></i>
+                    직원 목록
+                  </h3>
+                  <div class="card-tools">
+                    <button type="button" class="btn btn-primary btn-sm" id="addEmployeeBtn">
+                      <i class="fas fa-plus mr-2"></i>직원 추가
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table id="employeesTable" class="table table-bordered table-striped">
+                      <thead>
+                        <tr>
+                          <th>사번</th>
+                          <th>이름</th>
+                          <th>이메일</th>
+                          <th>부서</th>
+                          <th>역할</th>
+                          <th>근무형태</th>
+                          <th>근무스케줄</th>
+                          <th>상태</th>
+                          <th>가입일</th>
+                          <th>작업</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- DataTables로 동적 로드 -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+    <!-- 푸터 컨테이너 -->
+    <div id="footer-container"></div>
+  </div>
+
+  <!-- 직원 상세 모달 -->
+  <div class="modal fade" id="employeeDetailModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">직원 상세 정보</h4>
+          <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <dl class="row">
+                <dt class="col-sm-4">사번:</dt>
+                <dd class="col-sm-8" id="modal-employee-id"></dd>
+                
+                <dt class="col-sm-4">이름:</dt>
+                <dd class="col-sm-8" id="modal-name"></dd>
+                
+                <dt class="col-sm-4">이메일:</dt>
+                <dd class="col-sm-8" id="modal-email"></dd>
+                
+                <dt class="col-sm-4">부서:</dt>
+                <dd class="col-sm-8" id="modal-department"></dd>
+                
+                <dt class="col-sm-4">역할:</dt>
+                <dd class="col-sm-8" id="modal-role"></dd>
+              </dl>
+            </div>
+            <div class="col-md-6">
+              <dl class="row">
+                <dt class="col-sm-4">근무형태:</dt>
+                <dd class="col-sm-8" id="modal-work-type"></dd>
+                
+                <dt class="col-sm-4">근무스케줄:</dt>
+                <dd class="col-sm-8" id="modal-work-schedule"></dd>
+                
+                <dt class="col-sm-4">상태:</dt>
+                <dd class="col-sm-8" id="modal-status"></dd>
+                
+                <dt class="col-sm-4">가입일:</dt>
+                <dd class="col-sm-8" id="modal-created-at"></dd>
+                
+                <dt class="col-sm-4">최근 로그인:</dt>
+                <dd class="col-sm-8" id="modal-last-login"></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning" id="editEmployeeBtn">
+            <i class="fas fa-edit mr-2"></i>수정
+          </button>
+          <button type="button" class="btn btn-danger" id="deleteEmployeeBtn">
+            <i class="fas fa-trash mr-2"></i>삭제
+          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
+  <!-- JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
+  <!-- DataTables -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+  
+  <!-- 템플릿 로더 -->
+  <script src="../js/common/template-loader.js"></script>
+  
+  <!-- 페이지별 스크립트 -->
+  <script src="../js/pages/employee-list.js"></script>
+
+  <script>
+    // 페이지 초기화
+    $(document).ready(async function() {
+      try {
+        // 1단계: 템플릿 시스템 초기화
+        await initializePage('employee-list');
+        
+        // 2단계: 직원 목록 페이지 특화 기능 초기화
+        if (window.employeeList) {
+          await window.employeeList.initialize();
+        }
+        
+        console.log('✅ 직원 목록 페이지 초기화 완료!');
+        
+      } catch (error) {
+        console.error('❌ 직원 목록 페이지 초기화 실패:', error);
+      }
+    });
+  </script>
+</body>
+</html>

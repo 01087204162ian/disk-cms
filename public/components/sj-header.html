@@ -1,0 +1,41 @@
+<!-- 상단 헤더 -->
+  <header class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="menu-toggle" id="menuToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+        <a href="/pages/dashboard.html" class="logo">
+          <i class="fas fa-shield-alt"></i>
+          보험 CMS
+        </a>
+      </div>
+      
+      <!-- 페이지 정보 영역 -->
+      <div class="header-center">
+        <div class="page-info">
+          <h1 class="page-title">{{PAGE_TITLE}}</h1>
+          <p class="page-subtitle">{{PAGE_DESCRIPTION}}</p>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar" data-user-avatar>홍</div>
+          <div>
+            <div class="user-name" id="userName" data-user-name>홍길동</div>
+            <div class="user-role" id="userRole" data-user-role>팀장</div>
+          </div>
+        </div>
+        
+        <div class="current-time" id="currentTime" data-current-time>
+          2024-12-19 15:30:45
+        </div>
+        
+        <button class="logout-btn" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>로그아웃</span>
+        </button>
+      </div>
+    </div>
+  </header>

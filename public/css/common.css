@@ -1,0 +1,532 @@
+/*
+ * common.css - 전체 프로젝트 공통 스타일
+ * 모든 페이지에서 사용되는 기본 스타일과 유틸리티
+ */
+
+/* 🎨 전역 CSS 변수 */
+:root {
+  /* 기본 색상 팔레트 */
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --success-gradient: linear-gradient(135deg, #48bb78, #38a169);
+  --error-gradient: linear-gradient(135deg, #f56565, #e53e3e);
+  --warning-gradient: linear-gradient(135deg, #f6ad55, #ed8936);
+  --info-gradient: linear-gradient(135deg, #4299e1, #3182ce);
+  
+  /* 투명도 */
+  --glass-light: rgba(255, 255, 255, 0.1);
+  --glass-medium: rgba(255, 255, 255, 0.2);
+  --glass-strong: rgba(255, 255, 255, 0.3);
+  
+  /* 테두리 반경 */
+  --border-radius-sm: 10px;
+  --border-radius-md: 15px;
+  --border-radius-lg: 50px;
+  
+  /* 트랜지션 */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* 그림자 */
+  --shadow-soft: 0 5px 15px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 10px 30px rgba(102, 126, 234, 0.3);
+  --shadow-strong: 0 15px 40px rgba(0, 0, 0, 0.2);
+  
+  /* 애니메이션 */
+  --hover-lift: translateY(-2px);
+  --hover-scale: scale(1.05);
+}
+
+/* 🌐 기본 레이아웃 재정의 */
+.content-wrapper {
+  background: #f4f6f9;
+  min-height: 100vh;
+}
+
+/* 📋 카드 공통 스타일 */
+.card {
+  border-radius: var(--border-radius-md);
+  border: none;
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-normal);
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: var(--hover-lift);
+  box-shadow: var(--shadow-medium);
+}
+
+.card-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  padding: 20px;
+}
+
+.card-body {
+  padding: 25px;
+}
+
+/* 🎯 버튼 공통 스타일 */
+.btn {
+  border-radius: 25px;
+  padding: 10px 25px;
+  font-weight: 600;
+  transition: all var(--transition-normal);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+  transform: var(--hover-lift);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.btn-success {
+  background: var(--success-gradient);
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+}
+
+.btn-success:hover {
+  transform: var(--hover-lift);
+  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6);
+}
+
+.btn-warning {
+  background: var(--warning-gradient);
+  box-shadow: 0 4px 15px rgba(246, 173, 85, 0.4);
+}
+
+.btn-warning:hover {
+  transform: var(--hover-lift);
+  box-shadow: 0 6px 20px rgba(246, 173, 85, 0.6);
+}
+
+.btn-danger {
+  background: var(--error-gradient);
+  box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+}
+
+.btn-danger:hover {
+  transform: var(--hover-lift);
+  box-shadow: 0 6px 20px rgba(245, 101, 101, 0.6);
+}
+
+.btn-info {
+  background: var(--info-gradient);
+  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
+}
+
+.btn-info:hover {
+  transform: var(--hover-lift);
+  box-shadow: 0 6px 20px rgba(66, 153, 225, 0.6);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #a0aec0, #718096);
+  box-shadow: 0 4px 15px rgba(160, 174, 192, 0.4);
+}
+
+.btn-secondary:hover {
+  transform: var(--hover-lift);
+  box-shadow: 0 6px 20px rgba(160, 174, 192, 0.6);
+}
+
+/* 📊 통계 박스 공통 스타일 */
+.small-box, .info-box {
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  position: relative;
+}
+
+.small-box::before, .info-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="2"/></g></svg>');
+  pointer-events: none;
+}
+
+.small-box:hover, .info-box:hover {
+  transform: var(--hover-lift);
+  box-shadow: var(--shadow-strong);
+}
+
+.small-box .icon, .info-box .icon {
+  transition: all var(--transition-normal);
+}
+
+.small-box:hover .icon, .info-box:hover .icon {
+  transform: var(--hover-scale) rotate(5deg);
+}
+
+/* 🎉 토스트 알림 시스템 */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1050;
+  max-width: 350px;
+}
+
+.toast {
+  border-radius: var(--border-radius-sm);
+  border: none;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(10px);
+  margin-bottom: 10px;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.toast-success {
+  background: var(--success-gradient);
+  color: white;
+}
+
+.toast-error {
+  background: var(--error-gradient);
+  color: white;
+}
+
+.toast-warning {
+  background: var(--warning-gradient);
+  color: white;
+}
+
+.toast-info {
+  background: var(--info-gradient);
+  color: white;
+}
+
+.toast-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+.toast-body {
+  color: inherit;
+}
+
+/* 📝 폼 요소 공통 스타일 */
+.form-group label {
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.form-control {
+  border-radius: var(--border-radius-sm);
+  border: 2px solid #e2e8f0;
+  padding: 12px 15px;
+  transition: all var(--transition-normal);
+  font-size: 0.95rem;
+}
+
+.form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  transform: scale(1.02);
+}
+
+.form-control:hover {
+  border-color: #cbd5e0;
+}
+
+/* 📋 테이블 공통 스타일 */
+.table {
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.table thead th {
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+}
+
+.table tbody tr {
+  transition: all var(--transition-fast);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+/* 🏷️ 뱃지 공통 스타일 */
+.badge {
+  border-radius: 15px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 🔄 로딩 스피너 */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(102, 126, 234, 0.3);
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* 📱 모달 공통 스타일 */
+.modal-content {
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.modal-header {
+  background: var(--primary-gradient);
+  color: white;
+  border-bottom: none;
+  padding: 20px 30px;
+}
+
+.modal-header h4, .modal-header h5 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 30px;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.modal-footer {
+  background: rgba(248, 250, 252, 0.8);
+  border-top: 1px solid #e2e8f0;
+  padding: 20px 30px;
+}
+
+/* 🎯 유틸리티 클래스 */
+.text-gradient {
+  background: var(--primary-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.hover-lift {
+  transition: transform var(--transition-normal);
+}
+
+.hover-lift:hover {
+  transform: var(--hover-lift);
+}
+
+.admin-only {
+  position: relative;
+}
+
+.admin-only::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+  border-radius: inherit;
+  z-index: -1;
+  animation: pulse 2s ease-in-out infinite;
+  opacity: 0.3;
+}
+
+/* 🌟 애니메이션 정의 */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* 🎨 브레드크럼 스타일 */
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+  color: #6c757d;
+  font-weight: bold;
+}
+
+.breadcrumb-item a {
+  color: #667eea;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb-item a:hover {
+  color: #764ba2;
+}
+
+.breadcrumb-item.active {
+  color: #6c757d;
+}
+
+/* 📱 반응형 유틸리티 */
+@media (max-width: 768px) {
+  .btn {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .toast-container {
+    left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+}
+
+/* 🎨 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+  .form-control {
+    border-width: 3px;
+  }
+  
+  .btn {
+    border: 2px solid currentColor;
+  }
+  
+  .card {
+    border: 2px solid #e2e8f0;
+  }
+}
+
+/* 🚫 애니메이션 줄이기 선호 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .btn:hover,
+  .card:hover,
+  .small-box:hover,
+  .info-box:hover {
+    transform: none;
+  }
+}
+
+/* 🌙 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --glass-light: rgba(255, 255, 255, 0.05);
+    --glass-medium: rgba(255, 255, 255, 0.1);
+    --glass-strong: rgba(255, 255, 255, 0.15);
+  }
+  
+  .content-wrapper {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  }
+  
+  .card-body {
+    background: rgba(45, 55, 72, 0.95);
+    color: #f7fafc;
+  }
+  
+  .form-control {
+    background-color: #2d3748;
+    border-color: #4a5568;
+    color: #f7fafc;
+  }
+  
+  .modal-body {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    color: #f7fafc;
+  }
+  
+  .table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}

@@ -1,0 +1,355 @@
+CREATE TABLE users (
+
+  email varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '이메일 (Primary Key)',
+
+  password varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '암호화된 비밀번호',
+
+  name varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '이름',
+
+  phone varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '연락처',
+
+  employee_id varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '사번',
+
+  department_id int DEFAULT NULL COMMENT '소속 부서',
+
+  position varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '직급',
+
+  hire_date date DEFAULT NULL COMMENT '입사일',
+
+  role enum('SUPER_ADMIN','DEPT_MANAGER','SYSTEM_ADMIN','EMPLOYEE') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'EMPLOYEE' COMMENT '권한 레벨',
+
+  work_type enum('FULL_TIME','PART_TIME','CONTRACT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'FULL_TIME',
+
+  work_schedule enum('4_DAY','FLEXIBLE','STANDARD') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '4_DAY',
+
+  last_login_at timestamp NULL DEFAULT NULL,
+
+  is_active tinyint(1) DEFAULT '1',
+
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`email`),
+
+  UNIQUE KEY employee_id (`employee_id`),
+
+  KEY idx_email (`email`),
+
+  KEY idx_department (`department_id`),
+
+  KEY idx_role (`role`),
+
+  CONSTRAINT users_ibfk_1 FOREIGN KEY (`department_id`) REFERENCES departments (`id`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ciCREATE TABLE attendance (
+
+  id int NOT NULL AUTO_INCREMENT,
+
+  user_id varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+
+  work_date date NOT NULL,
+
+  check_in_time timestamp NULL DEFAULT NULL COMMENT '출근 시간',
+
+  check_out_time timestamp NULL DEFAULT NULL COMMENT '퇴근 시간',
+
+  work_hours decimal(4,2) DEFAULT NULL COMMENT '실제 근무 시간',
+
+  break_hours decimal(4,2) DEFAULT '1.00' COMMENT '휴게 시간',
+
+  overtime_hours decimal(4,2) DEFAULT '0.00' COMMENT '초과 근무 시간',
+
+  status enum('PRESENT','ABSENT','LATE','EARLY_LEAVE','HOLIDAY') COLLATE utf8mb4_unicode_ci DEFAULT 'PRESENT',
+
+  check_in_location varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '출근 위치',
+
+  check_out_location varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '퇴근 위치',
+
+  notes text COLLATE utf8mb4_unicode_ci COMMENT '특이사항',
+
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+
+  UNIQUE KEY unique_user_date (`user_id`,`work_date`),
+
+  KEY idx_work_date (`work_date`),
+
+  KEY idx_user_month (`user_id`,`work_date`),
+
+  KEY idx_attendance_user_month (`user_id`,`work_date`),
+
+  CONSTRAINT attendance_ibfk_1 FOREIGN KEY (`user_id`) REFERENCES users (`email`) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ciCREATE TABLE departments (
+
+  id int NOT NULL AUTO_INCREMENT,
+
+  name varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '부서명',
+
+  code varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '부서코드',
+
+  description text COLLATE utf8mb4_unicode_ci COMMENT '부서 설명',
+
+  manager_id int DEFAULT NULL COMMENT '팀장 ID',
+
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  is_active tinyint(1) DEFAULT '1',
+
+  PRIMARY KEY (`id`),
+
+  UNIQUE KEY code (`code`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ciCREATE TABLE kpi_records (
+
+  id int NOT NULL AUTO_INCREMENT,
+
+  user_id varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+
+  product_id int DEFAULT NULL,
+
+  task_type enum('ENDORSEMENT','NEW_CONTRACT','CLAIM','CONSULTATION') COLLATE utf8mb4_unicode_ci NOT NULL,
+
+  processed_count int DEFAULT '1' COMMENT '처리 건수',
+
+  processing_time int DEFAULT NULL COMMENT '처리 시간 (분)',
+
+  accuracy_score decimal(3,1) DEFAULT NULL COMMENT '정확도 점수 (0-100)',
+
+  work_date date NOT NULL,
+
+  start_time timestamp NULL DEFAULT NULL,
+
+  end_time timestamp NULL DEFAULT NULL,
+
+  notes text COLLATE utf8mb4_unicode_ci COMMENT '특이사항',
+
+  quality_grade enum('EXCELLENT','GOOD','AVERAGE','POOR') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '품질 등급',
+
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+
+  KEY product_id (`product_id`),
+
+  KEY idx_user_date (`user_id`,`work_date`),
+
+  KEY idx_task_type (`task_type`),
+
+  KEY idx_work_date (`work_date`),
+
+  KEY idx_kpi_user_product_date (`user_id`,`product_id`,`work_date`),
+
+  CONSTRAINT kpi_records_ibfk_1 FOREIGN KEY (`user_id`) REFERENCES users (`email`) ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CONSTRAINT kpi_records_ibfk_2 FOREIGN KEY (`product_id`) REFERENCES products (`id`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ciCREATE TABLE kpi_summary (
+
+  id int NOT NULL AUTO_INCREMENT,
+
+  user_id varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+
+  department_id int DEFAULT NULL,
+
+  product_id int DEFAULT NULL,
+
+  summary_type enum('DAILY','WEEKLY','MONTHLY','YEARLY') COLLATE utf8mb4_unicode_ci NOT NULL,
+
+  summary_date date NOT NULL,
+
+  total_tasks int DEFAULT '0',
+
+  total_endorsements int DEFAULT '0',
+
+  total_new_contracts int DEFAULT '0',
+
+  total_claims int DEFAULT '0',
+
+  total_consultations int DEFAULT '0',
+
+  avg_processing_time decimal(6,2) DEFAULT NULL COMMENT '평균 처리 시간',
+
+  avg_accuracy_score decimal(4,1) DEFAULT NULL COMMENT '평균 정확도',
+
+  total_work_hours decimal(6,2) DEFAULT NULL COMMENT '총 근무 시간',
+
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+
+  UNIQUE KEY unique_summary (`user_id`,`product_id`,`summary_type`,`summary_date`),
+
+  KEY department_id (`department_id`),
+
+  KEY product_id (`product_id`),
+
+  KEY idx_summary_date (`summary_date`,`summary_type`),
+
+  CONSTRAINT kpi_summary_ibfk_1 FOREIGN KEY (`user_id`) REFERENCES users (`email`) ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CONSTRAINT kpi_summary_ibfk_2 FOREIGN KEY (`department_id`) REFERENCES departments (`id`),
+
+  CONSTRAINT kpi_summary_ibfk_3 FOREIGN KEY (`product_id`) REFERENCES products (`id`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ciCREATE TABLE leaves (
+
+  id int NOT NULL AUTO_INCREMENT,
+
+  user_id varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+
+  leave_type enum('ANNUAL','HALF_AM','HALF_PM','SICK','SPECIAL') COLLATE utf8mb4_unicode_ci NOT NULL,
+
+  start_date date NOT NULL,
+
+  end_date date NOT NULL,
+
+  days_count decimal(3,1) NOT NULL COMMENT '휴가 일수 (0.5일 단위)',
+
+  reason text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '휴가 사유',
+
+  status enum('PENDING','APPROVED','REJECTED','CANCELLED') COLLATE utf8mb4_unicode_ci DEFAULT 'PENDING',
+
+  approved_by varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+
+  approved_at timestamp NULL DEFAULT NULL,
+
+  rejection_reason text COLLATE utf8mb4_unicode_ci,
+
+  substitute_user_id varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+
+  KEY idx_user_dates (`user_id`,`start_date`,`end_date`),
+
+  KEY idx_status (`status`),
+
+  KEY idx_leave_type (`leave_type`),
+
+  KEY idx_leaves_user_dates (`user_id`,`start_date`,`end_date`,`status`),
+
+  KEY leaves_ibfk_2 (`approved_by`),
+
+  KEY leaves_ibfk_3 (`substitute_user_id`),
+
+  CONSTRAINT leaves_ibfk_1 FOREIGN KEY (`user_id`) REFERENCES users (`email`) ON DELETE CASCADE ON UPDATE CASCADE,
+
+  CONSTRAINT leaves_ibfk_2 FOREIGN KEY (`approved_by`) REFERENCES users (`email`) ON DELETE SET NULL ON UPDATE CASCADE,
+
+  CONSTRAINT leaves_ibfk_3 FOREIGN KEY (`substitute_user_id`) REFERENCES users (`email`) ON DELETE SET NULL ON UPDATE CASCADE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ciCREATE TABLE products (
+
+  id int NOT NULL AUTO_INCREMENT,
+
+  name varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '상품명',
+
+  code varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '상품코드',
+
+  category varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '상품 카테고리',
+
+  description text COLLATE utf8mb4_unicode_ci COMMENT '상품 설명',
+
+  is_active tinyint(1) DEFAULT '1',
+
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+
+  UNIQUE KEY code (`code`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ciCREATE TABLE product_managers (
+
+  id int NOT NULL AUTO_INCREMENT,
+
+  product_id int NOT NULL,
+
+  user_id varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+
+  manager_type enum('PRIMARY','SECONDARY') COLLATE utf8mb4_unicode_ci DEFAULT 'PRIMARY' COMMENT '정/부 담당자',
+
+  assigned_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  is_active tinyint(1) DEFAULT '1',
+
+  PRIMARY KEY (`id`),
+
+  UNIQUE KEY unique_product_user_type (`product_id`,`user_id`,`manager_type`),
+
+  KEY idx_product_active (`product_id`,`is_active`),
+
+  KEY product_managers_ibfk_2 (`user_id`),
+
+  CONSTRAINT product_managers_ibfk_1 FOREIGN KEY (`product_id`) REFERENCES products (`id`) ON DELETE CASCADE,
+
+  CONSTRAINT product_managers_ibfk_2 FOREIGN KEY (`user_id`) REFERENCES users (`email`) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ciCREATE TABLE work_schedules (
+
+  id int NOT NULL AUTO_INCREMENT,
+
+  user_id int NOT NULL,
+
+  year int NOT NULL,
+
+  month int NOT NULL,
+
+  work_days json DEFAULT NULL COMMENT '근무 요일 [1,2,3,4] (월=1, 화=2, ...)',
+
+  status enum('PENDING','APPROVED','REJECTED') COLLATE utf8mb4_unicode_ci DEFAULT 'PENDING',
+
+  requested_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  approved_by varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+
+  approved_at timestamp NULL DEFAULT NULL,
+
+  rejection_reason text COLLATE utf8mb4_unicode_ci,
+
+  shift_week int DEFAULT NULL COMMENT '시프트 주차 (1-4)',
+
+  is_shift_month tinyint(1) DEFAULT '0' COMMENT '시프트 적용 월 여부',
+
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+
+  UNIQUE KEY unique_user_month (`user_id`,`year`,`month`),
+
+  KEY idx_year_month (`year`,`month`),
+
+  KEY idx_status (`status`),
+
+  KEY work_schedules_ibfk_2 (`approved_by`),
+
+  CONSTRAINT work_schedules_ibfk_2 FOREIGN KEY (`approved_by`) REFERENCES users (`email`) ON DELETE SET NULL ON UPDATE CASCADE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ciCREATE TABLE sessions (
+
+  session_id varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+
+  expires int unsigned NOT NULL,
+
+  data mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+
+  PRIMARY KEY (`session_id`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

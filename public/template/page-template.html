@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>보험 CMS | {{PAGE_TITLE}}</title>
+  
+  <!-- Tabler CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet">
+  
+  <!-- 페이지별 추가 CSS -->
+  <style>
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .toast-container {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 1050;
+    }
+    .nav-link.active {
+      background-color: rgba(var(--tblr-primary-rgb), 0.1);
+      color: var(--tblr-primary);
+    }
+    .dropdown-toggle.active {
+      background-color: rgba(var(--tblr-primary-rgb), 0.1);
+      color: var(--tblr-primary);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">로딩 중...</span>
+    </div>
+  </div>
+
+  <!-- 토스트 컨테이너 -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="page">
+    <!-- 사이드바 컨테이너 -->
+    <div id="sidebar-container">
+      <!-- 사이드바 컴포넌트가 여기에 로드됩니다 -->
+    </div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="page-wrapper">
+      <!-- 헤더 컨테이너 -->
+      <div id="header-container">
+        <!-- 헤더 컴포넌트가 여기에 로드됩니다 -->
+      </div>
+
+      <!-- 페이지 콘텐츠 -->
+      <div class="page-body">
+        <div class="container-xl">
+          
+          <!-- 동적 콘텐츠 영역 -->
+          <div id="page-content">
+            {{CONTENT}}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 푸터 컨테이너 -->
+      <div id="footer-container">
+        <!-- 푸터 컴포넌트가 여기에 로드됩니다 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabler JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+  
+  <!-- 현대화된 템플릿 로더 -->
+  <script src="../js/template-loader2.js"></script>
+
+  <script>
+    // 페이지 로드 후 자동 초기화
+   document.addEventListener('DOMContentLoaded', async function() {
+		  console.log('컴포넌트 기반 템플릿이 로드되었습니다.');
+		  
+		  // 자동 초기화 추가
+		  await window.modernTemplateLoader.initializePage('dashboard');
+		});
+  </script>
+</body>
+</html>
+

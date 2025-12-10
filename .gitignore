@@ -1,0 +1,71 @@
+# ======================================
+# OS 기본 파일
+# ======================================
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ======================================
+# Visual Studio Code
+# ======================================
+.vscode/
+.history/
+
+# ======================================
+# PHP / Server / CMS 환경
+# ======================================
+
+# 환경설정(절대 Git에 포함시키면 안 됨)
+.env
+.env.local
+.env.production
+config.php
+dbcon.php        # DB 접속 정보 보호
+
+# Composer (사용 시)
+vendor/
+composer.lock
+
+# 로그
+*.log
+logs/
+storage/logs/
+
+# 캐시/임시파일
+cache/
+tmp/
+temp/
+*.tmp
+
+# 세션 데이터
+sessions/
+
+# 서버에서 생성되는 업로드 파일
+uploads/
+upload/
+user_upload/
+files/
+data/
+backup/
+
+# 백업 파일
+*.bak
+*.backup
+*.old
+*.orig
+
+# ======================================
+# Git 자체 파일
+# ======================================
+.gitattributes
+
+# ======================================
+# 기타 개발환경에서 생기는 파일
+# ======================================
+*.swp
+*.swo
+*.cache
+*.zip
+*.tar
+*.tar.gz

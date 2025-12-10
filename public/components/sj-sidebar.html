@@ -1,0 +1,198 @@
+<!-- 좌측 사이드바 -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-menu">
+    <!-- 대시보드 -->
+    <div class="menu-item">
+      <a href="/pages/dashboard.html" class="menu-title" data-menu="dashboard" style="text-decoration: none;">
+        <div>
+          <i class="fas fa-tachometer-alt menu-icon"></i>
+          대시보드
+        </div>
+      </a>
+    </div>
+
+    <!-- 직원전용 메뉴 -->
+    <div class="menu-item">
+      <div class="menu-title" data-target="staff-menu" data-menu="staff">
+        <div>
+          <i class="fas fa-users menu-icon"></i>
+          직원전용
+        </div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </div>
+      <div class="submenu" id="staff-menu">
+        <a href="/pages/staff/employees.html" class="submenu-item" data-menu="staff-employees">직원리스트</a>
+        <a href="/pages/staff/notices.html" class="submenu-item" data-menu="staff-notices">공지사항</a>
+        <a href="/pages/staff/employee-schedule.html" class="submenu-item" data-menu="employee-schedule">근무일정</a>
+        <a href="/pages/staff/reports.html" class="submenu-item" data-menu="staff-reports">고지사항</a>
+      </div>
+    </div>
+
+    <!-- 보험상품 메뉴 -->
+    <div class="menu-item">
+      <div class="menu-title" data-target="insurance-menu" data-menu="insurance">
+        <div>
+          <i class="fas fa-shield-alt menu-icon"></i>
+          보험상품
+        </div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </div>
+      <div class="submenu" id="insurance-menu">
+        <!-- 대리운전 -->
+        <div class="menu-item">
+          <div class="menu-title" data-target="proxy-driving-menu" data-menu="proxy-driving" style="padding-left: 2rem; font-size: 0.8rem;">
+            <div>
+              <i class="fas fa-car menu-icon"></i>
+              대리운전
+            </div>
+            <i class="fas fa-chevron-right menu-arrow"></i>
+          </div>
+          <div class="submenu" id="proxy-driving-menu">
+            <a href="/insurance/proxy-driving/kj.html" class="submenu-item" data-menu="proxy-kj" style="padding-left: 4rem;">KJ대리운전</a>
+            <a href="/insurance/proxy-driving/das.html" class="submenu-item" data-menu="proxy-das" style="padding-left: 4rem;">daS대리운전</a>
+            <a href="/insurance/proxy-driving/personal.html" class="submenu-item" data-menu="proxy-personal" style="padding-left: 4rem;">개인대리운전</a>
+          </div>
+        </div>
+
+        <!-- 근재보험 (새로 추가) -->
+        <div class="menu-item">
+          <div class="menu-title" data-target="workers-comp-menu" data-menu="workers-comp" style="padding-left: 2rem; font-size: 0.8rem;">
+            <div>
+              <i class="fas fa-hard-hat menu-icon"></i>
+              근재보험
+            </div>
+            <i class="fas fa-chevron-right menu-arrow"></i>
+          </div>
+          <div class="submenu" id="workers-comp-menu">
+            <a href="/pages/workers-comp/consultation.html" class="submenu-item" data-menu="workers-comp-consultation" style="padding-left: 4rem;">상담신청리스트</a>
+            <a href="/pages/workers-comp/contracts.html" class="submenu-item" data-menu="workers-comp-contracts" style="padding-left: 4rem;">가입신청리스트</a>
+          </div>
+        </div>
+
+        <!-- 현장실습보험 -->
+        <div class="menu-item">
+          <div class="menu-title" data-target="internship-menu" data-menu="internship" style="padding-left: 2rem; font-size: 0.8rem;">
+            <div>
+              <i class="fas fa-graduation-cap menu-icon"></i>
+              현장실습보험
+            </div>
+            <i class="fas fa-chevron-right menu-arrow"></i>
+          </div>
+          <div class="submenu" id="internship-menu">
+            <a href="/pages/field-practice/applications.html" class="submenu-item" data-menu="field-practice-applications" style="padding-left: 4rem;">신청리스트</a>
+			<a href="/pages/field-practice/idList.html" class="submenu-item" data-menu="field-practice-id" style="padding-left: 4rem;">I.D</a>
+            <a href="/pages/field-practice/claims.html" class="submenu-item" data-menu="field-practice-claims" style="padding-left: 4rem;">클레임</a>
+          </div>
+        </div>
+
+        <!-- 약국배상책임보험 -->
+        <div class="menu-item">
+          <div class="menu-title" data-target="pharmacy-menu" data-menu="pharmacy" style="padding-left: 2rem; font-size: 0.8rem;">
+            <div>
+              <i class="fas fa-pills menu-icon"></i>
+              약국배상책임보험
+            </div>
+            <i class="fas fa-chevron-right menu-arrow"></i>
+          </div>
+          <div class="submenu" id="pharmacy-menu">
+            <a href="/pages/pharmacy/applications.html" class="submenu-item" data-menu="pharmacy-applications" style="padding-left: 4rem;">신청리스트</a>
+            <a href="/pages/pharmacy/claims.html" class="submenu-item" data-menu="pharmacy-claims" style="padding-left: 4rem;">클레임</a>
+          </div>
+        </div>
+
+        <!-- 홀인원보험 -->
+        <div class="menu-item">
+          <div class="menu-title" data-target="hole-in-one-menu" data-menu="golf" style="padding-left: 2rem; font-size: 0.8rem;">
+            <div>
+              <i class="fas fa-golf-ball menu-icon"></i>
+              홀인원보험
+            </div>
+            <i class="fas fa-chevron-right menu-arrow"></i>
+          </div>
+          <div class="submenu" id="hole-in-one-menu">
+            <a href="/insurance/hole-in-one/applications.html" class="submenu-item" data-menu="golf-applications" style="padding-left: 4rem;">신청리스트</a>
+            <a href="/insurance/hole-in-one/claims.html" class="submenu-item" data-menu="golf-claims" style="padding-left: 4rem;">클레임</a>
+          </div>
+        </div>
+
+        <!-- 여행자보험 -->
+        <a href="/insurance/travel.html" class="submenu-item" data-menu="travel" style="padding-left: 2rem;">
+          <i class="fas fa-plane menu-icon"></i>
+          여행자보험
+        </a>
+      </div>
+    </div>
+
+    <!-- 관리자 전용 -->
+    <div class="menu-item admin-only">
+      <a href="/admin/dashboard.html" class="menu-title" data-menu="admin" style="text-decoration: none;">
+        <div>
+          <i class="fas fa-cog menu-icon"></i>
+          관리자
+        </div>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="modal fade" id="dynamicModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle"></h5>
+        
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- 동적 콘텐츠 -->
+      </div>
+      <div class="modal-footer" id="modalFoot">
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+		<!--  통계 모달 (Bootstrap) -->
+<div class="modal fade" id="performanceModal" tabindex="-1" aria-labelledby="performanceModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <!-- 모달 헤더 -->
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
+          <h5 class="modal-title mb-0" id="performanceModalLabel">
+            <i class="fas fa-chart-line"></i> 
+          </h5>
+          <div id="performanceSummary" class="text-muted small"></div>
+        </div>
+       
+      </div>
+
+      <!-- 모달 서브헤더 (필터 영역) -->
+      <div class="modal-body pt-3 pb-0">
+        <div class="row g-2 mb-3">
+          <div class="col-auto">
+            <div id="yearSelect_"></div>
+          </div>
+          <div class="col-auto">
+            <div id="monthSelect_"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 모달 바디 -->
+      <div class="modal-body pt-0">
+        <div class="table-responsive">
+          <table id="performanceTable" class="table table-bordered table-hover table-sm">
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 모달 푸터 -->
+      <div class="modal-footer">
+        <div id="changeP" class="me-auto"></div>
+        
+      </div>
+    </div>
+  </div>
+</div>
