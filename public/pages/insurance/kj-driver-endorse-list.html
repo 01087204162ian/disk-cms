@@ -4,89 +4,103 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>보험 CMS | KJ 대리운전 - 배서리스트</title>
-  <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet">
+  <!-- 한글 폰트 & 아이콘 & 부트스트랩 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/sj-styles.css" rel="stylesheet">
 </head>
 <body>
-  <div class="page">
-    <div id="sidebar-container"></div>
-    <div class="page-wrapper">
-      <div id="header-container"></div>
-      <div class="page-body">
-        <div class="container-xl">
-          <div class="card">
-            <div class="card-header d-flex align-items-center justify-content-between">
-              <div>
-                <h3 class="card-title mb-1">배서리스트</h3>
-                <div class="text-muted">배서(특약) 내역을 조회하고 상태를 확인합니다.</div>
-              </div>
-              <div class="btn-list">
-                <button class="btn btn-primary btn-sm" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  신규 배서
-                </button>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="row g-3 mb-3">
-                <div class="col-md-3">
-                  <label class="form-label">증권번호</label>
-                  <input type="text" class="form-control" placeholder="증권번호 입력" />
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label">배서 번호</label>
-                  <input type="text" class="form-control" placeholder="배서 번호" />
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label">상태</label>
-                  <select class="form-select">
-                    <option value="">전체</option>
-                    <option>작성중</option>
-                    <option>확정</option>
-                    <option>취소</option>
-                  </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                  <button class="btn btn-outline-primary w-100" type="button">검색</button>
-                </div>
-              </div>
-
-              <div class="table-responsive">
-                <table class="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>증권번호</th>
-                      <th>배서번호</th>
-                      <th>보험사</th>
-                      <th>배서일자</th>
-                      <th>상태</th>
-                      <th>작성자</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colspan="7" class="text-center text-muted py-4">데이터를 불러오는 중입니다.</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="footer-container"></div>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <div>페이지를 불러오는 중...</div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-  <script src="/js/template-loader3.js"></script>
+  <!-- 헤더 컨테이너 -->
+  <div id="header-container"></div>
+
+  <!-- 사이드바 오버레이 (모바일) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container"></div>
+
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <div class="container-xl">
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <h3 class="card-title mb-1">배서리스트</h3>
+            <div class="text-muted">배서(특약) 내역을 조회하고 상태를 확인합니다.</div>
+          </div>
+          <div class="btn-list">
+            <button class="btn btn-primary btn-sm" type="button">
+              <i class="fas fa-plus"></i> 신규 배서
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label class="form-label">증권번호</label>
+              <input type="text" class="form-control" placeholder="증권번호 입력" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">배서 번호</label>
+              <input type="text" class="form-control" placeholder="배서 번호" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">상태</label>
+              <select class="form-select">
+                <option value="">전체</option>
+                <option>작성중</option>
+                <option>확정</option>
+                <option>취소</option>
+              </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+              <button class="btn btn-outline-primary w-100" type="button">검색</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover table-sm">
+              <thead class="thead-light">
+                <tr>
+                  <th>#</th>
+                  <th>증권번호</th>
+                  <th>배서번호</th>
+                  <th>보험사</th>
+                  <th>배서일자</th>
+                  <th>상태</th>
+                  <th>작성자</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">데이터를 불러오는 중입니다.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- SJ 템플릿 로더 -->
+  <script src="/js/sj-template-loader.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      await window.modernTemplateLoader.initializePage('kj-driver-endorse-list');
+    document.addEventListener('DOMContentLoaded', async function() {
+      await window.sjTemplateLoader.initializePage('kj-driver-endorse-list');
     });
   </script>
 </body>
