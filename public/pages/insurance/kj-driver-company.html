@@ -32,67 +32,111 @@
 
   <!-- 메인 컨텐츠 -->
   <main class="main-content">
-    <div class="container-xl">
-      <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <div>
-            <h3 class="card-title mb-1">대리업체</h3>
-            <div class="text-muted">대리운전 협력 업체 목록을 관리합니다.</div>
-          </div>
-          <div class="btn-list">
-            <button class="btn btn-primary btn-sm" type="button">
-              <i class="fas fa-plus"></i> 신규 등록
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="row g-3 mb-3">
-            <div class="col-md-4">
-              <label class="form-label">업체명 / 사업자번호</label>
-              <input type="text" class="form-control" placeholder="예: KJ대리 / 123-45-67890" />
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            
+            <!-- 통합 검색/필터 영역 -->
+            <div class="search-filter-row">
+              <div class="row align-items-end">
+                <!-- 지역 필터 -->
+                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                  <select id="regionFilter" class="form-control">
+                    <option value="">전체 지역</option>
+                    <option value="서울/수도권">서울/수도권</option>
+                    <option value="충청/강원">충청/강원</option>
+                    <option value="영남">영남</option>
+                    <option value="호남/제주">호남/제주</option>
+                  </select>
+                </div>
+                
+                <!-- 상태 필터 -->
+                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                  <select id="statusFilter" class="form-control">
+                    <option value="">전체 상태</option>
+                    <option value="활성">활성</option>
+                    <option value="중단">중단</option>
+                  </select>
+                </div>
+                
+                <!-- 페이지 크기 -->
+                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                  <select id="pageSize" class="form-control">
+                    <option value="20" selected>20개</option>
+                    <option value="50">50개</option>
+                    <option value="100">100개</option>
+                  </select>
+                </div>
+                
+                <!-- 검색 영역 -->
+                <div class="col-md-6">
+                  <div class="input-group">
+                    <input type="text" id="search_word" class="form-control" placeholder="업체명, 사업자번호로 검색">
+                    <div class="input-group-append">
+                      <button class="btn btn-primary" type="button" id="search_btn">
+                        <i class="fas fa-search"></i> <span class="d-none d-sm-inline">검색</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="col-md-3">
-              <label class="form-label">지역</label>
-              <select class="form-select">
-                <option value="">전체</option>
-                <option>서울/수도권</option>
-                <option>충청/강원</option>
-                <option>영남</option>
-                <option>호남/제주</option>
-              </select>
+            <!-- 통합 검색/필터 영역 끝 -->
+            
+            <!-- 버튼 영역 -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <div class="btn-row">
+                  <button type="button" class="btn btn-info btn-sm" id="addCompany" style="margin-left: auto;">
+                    <i class="fas fa-plus"></i> <span class="d-none d-md-inline">신규 등록</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <div class="col-md-3">
-              <label class="form-label">상태</label>
-              <select class="form-select">
-                <option value="">전체</option>
-                <option>활성</option>
-                <option>중단</option>
-              </select>
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
-              <button class="btn btn-outline-primary w-100" type="button">검색</button>
-            </div>
-          </div>
 
-          <div class="table-responsive">
-            <table class="table table-bordered table-hover table-sm">
-              <thead class="thead-light">
-                <tr>
-                  <th>#</th>
-                  <th>업체명</th>
-                  <th>사업자번호</th>
-                  <th>담당자</th>
-                  <th>연락처</th>
-                  <th>지역</th>
-                  <th>상태</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td colspan="7" class="text-center text-muted py-4">데이터를 불러오는 중입니다.</td>
-                </tr>
-              </tbody>
-            </table>
+            <!-- 데스크톱 테이블 -->
+            <div class="desktop-table">
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm">
+                  <thead class="thead-light">
+                    <tr>
+                      <th class="col-number">#</th>
+                      <th class="col-company-name">업체명</th>
+                      <th class="col-business-number">사업자번호</th>
+                      <th class="col-manager d-none d-lg-table-cell">담당자</th>
+                      <th class="col-phone">연락처</th>
+                      <th class="col-region d-none d-lg-table-cell">지역</th>
+                      <th class="col-status">상태</th>
+                    </tr>
+                  </thead>
+                  <tbody id="driver_company_table_body">
+                    <tr>
+                      <td colspan="7" class="text-center py-4">데이터를 불러오는 중...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 모바일 카드 -->
+            <div class="mobile-cards" id="driver_company_mobile_cards">
+              <div class="text-center py-4">데이터를 불러오는 중...</div>
+            </div>
+
+            <!-- 페이징 -->
+            <div class="row mt-3">
+              <div class="col-md-6 col-12 mb-2">
+                <div id="pagination_info" class="dataTables_info text-center text-md-left"></div>
+              </div>
+              <div class="col-md-6 col-12">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination pagination-sm justify-content-center justify-content-md-end" id="pagination_controls">
+                    <!-- 페이징 버튼이 여기에 로드됩니다 -->
+                  </ul>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </div>
