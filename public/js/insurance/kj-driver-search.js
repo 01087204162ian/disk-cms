@@ -176,7 +176,13 @@
     fetchList();
   });
 
-  // 초기 로드
-  fetchList();
+  // 초기 로드에서는 자동 호출하지 않음 (사용자 입력 후 검색)
+  tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center py-4">검색어를 입력해 주세요.</td>
+      </tr>`;
+  mobileCards.innerHTML = `<div class="text-center py-4">검색어를 입력해 주세요.</div>`;
+  paginationInfo.textContent = '';
+  paginationControls.innerHTML = '';
 })();
 
