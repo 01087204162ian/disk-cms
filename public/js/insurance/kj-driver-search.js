@@ -25,7 +25,7 @@
     if (!rows || rows.length === 0) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center py-4">데이터가 없습니다.</td>
+          <td colspan="12" class="text-center py-4">데이터가 없습니다.</td>
         </tr>`;
       return;
     }
@@ -36,10 +36,16 @@
           <tr>
             <td>${row.num ?? ''}</td>
             <td>${row.Name ?? ''}</td>
-            <td class="d-none d-lg-table-cell">${row.companyNum ?? ''}</td>
-            <td>${row.Hphone ?? ''}</td>
-            <td class="d-none d-lg-table-cell">${row.policyNum ?? ''}</td>
+            <td class="d-none d-lg-table-cell">${row.Jumin ?? ''}</td>
             <td>${statusLabel(row.status)}</td>
+            <td class="d-none d-lg-table-cell">${row.progress ?? ''}</td>
+            <td>${row.companyNum ?? ''}</td>
+            <td>${row.InsuranceCompany ?? ''}</td>
+            <td>${row.policyNum ?? ''}</td>
+            <td>${row.sago ?? ''}</td>
+            <td>${row.InputDay ?? ''}</td>
+            <td>${row.OutPutDay ?? ''}</td>
+            <td>${row.sago ?? ''}</td>
           </tr>
         `
       )
@@ -61,9 +67,10 @@
               <div><strong>${row.Name ?? ''}</strong></div>
               <div class="text-muted">${statusLabel(row.status)}</div>
             </div>
-            <div class="small text-muted">${row.policyNum ?? ''}</div>
-            <div class="mt-1">${row.Hphone ?? ''}</div>
-            <div class="text-muted small">소속: ${row.companyNum ?? ''}</div>
+            <div class="small text-muted">주민번호: ${row.Jumin ?? ''}</div>
+            <div class="mt-1">증권번호: ${row.policyNum ?? ''}</div>
+            <div class="text-muted small">회사: ${row.companyNum ?? ''} / 보험사: ${row.InsuranceCompany ?? ''}</div>
+            <div class="text-muted small">등록일: ${row.InputDay ?? ''} / 해지일: ${row.OutPutDay ?? ''}</div>
           </div>
         </div>`
       )
