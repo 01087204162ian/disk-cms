@@ -30,6 +30,9 @@ const pharmacyReportsRoutes = require('./routes/pharmacy/reports'); // 🆕 추�
 const workersCompApplicationsRoutes = require('./routes/workers-comp/applications'); // 근재보험 신청서 관리
 const workersCompConsultationsRoutes = require('./routes/workers-comp/consultations'); // 근재보험 상담신청서 관리
 
+// 보험상품 (KJ 대리운전 등)
+const kjDriverSearchRoutes = require('./routes/insurance/kj-driver-search');
+
 const fieldPracticeRoutes = require('./routes/field-practice/applications'); // 현장실습보험 신청
 const fieldPracticeClaimsRoutes = require('./routes/field-practice/claims'); // 현장실습보험 클레임리스트
 const fieldPracticeAccountsRoutes = require('./routes/field-practice/accounts'); // 현장실습보험 id리스트
@@ -85,6 +88,9 @@ app.use('/api/pharmacy2', pharmacy2Routes);
 app.use('/api/pharmacy-admin', pharmacyAdminRoutes);
 app.use('/api/pharmacy-deposits', pharmacyDepositsRoutes); // 🆕 예치
 app.use('/api/pharmacy-reports', pharmacyReportsRoutes); // 🆕 실적
+
+// 보험상품 (KJ 대리운전 등)
+app.use('/api/insurance', kjDriverSearchRoutes);
 
 // 근재보험 관련 (새로 추가)
 app.use('/api/workers-comp', workersCompApplicationsRoutes);
