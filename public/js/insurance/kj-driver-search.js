@@ -40,7 +40,7 @@
             <td>${statusLabel(row.status)}</td>
             <td class="d-none d-lg-table-cell">${row.progress ?? ''}</td>
             <td>${row.companyNum ?? ''}</td>
-            <td>${row.InsuranceCompany ?? ''}</td>
+            <td>${row.insuranceCompanyName ?? row.InsuranceCompany ?? ''}</td>
             <td>${row.policyNum ?? ''}</td>
             <td>${row.sago ?? ''}</td>
             <td>${row.InputDay ?? ''}</td>
@@ -69,7 +69,7 @@
             </div>
             <div class="small text-muted">주민번호: ${row.Jumin ?? ''}</div>
             <div class="mt-1">증권번호: ${row.policyNum ?? ''}</div>
-            <div class="text-muted small">회사: ${row.companyNum ?? ''} / 보험사: ${row.InsuranceCompany ?? ''}</div>
+            <div class="text-muted small">회사: ${row.companyNum ?? ''} / 보험사: ${row.insuranceCompanyName ?? row.InsuranceCompany ?? ''}</div>
             <div class="text-muted small">등록일: ${row.InputDay ?? ''} / 해지일: ${row.OutPutDay ?? ''}</div>
           </div>
         </div>`
