@@ -332,15 +332,13 @@
       <div class="mb-3">
         <h6>기본 정보</h6>
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-12">
             <table class="table table-sm table-bordered mb-0">
               <tr>
-                <th class="bg-light" style="width: 30%;">주민번호</th>
+                <th class="bg-light">주민번호</th>
                 <td>${company.jumin || ''}</td>
-                <th class="bg-light" style="width: 30%;">대리운전회사</th>
+                <th class="bg-light">대리운전회사</th>
                 <td>${company.company || companyName || ''}</td>
-              </tr>
-              <tr>
                 <th class="bg-light">성명</th>
                 <td>${company.Pname || ''}</td>
                 <th class="bg-light">핸드폰번호</th>
@@ -351,8 +349,6 @@
                 <td>${company.cphone || ''}</td>
                 <th class="bg-light">담당자</th>
                 <td>${company.name || company.damdanga || ''}</td>
-              </tr>
-              <tr>
                 <th class="bg-light">팩스</th>
                 <td>${company.fax || ''}</td>
                 <th class="bg-light">사업자번호</th>
@@ -363,12 +359,12 @@
                 <td>${company.lNumber || ''}</td>
                 <th class="bg-light">보험료 받는날</th>
                 <td>${company.FirstStart || ''}</td>
+                <th class="bg-light">읽기 전용 ID</th>
+                <td colspan="3">${company.mem_id || ''}${company.permit == 1 ? '허용' : (company.permit == 2 ? '차단' : '')}</td>
               </tr>
               <tr>
-                <th class="bg-light">읽기 전용 ID</th>
-                <td>${company.mem_id || ''}${company.permit == 1 ? '허용' : (company.permit == 2 ? '차단' : '')}</td>
                 <th class="bg-light">주소</th>
-                <td>${company.postNum || ''} ${company.address1 || ''} ${company.address2 || ''}</td>
+                <td colspan="7">${company.postNum || ''} ${company.address1 || ''} ${company.address2 || ''}</td>
               </tr>
             </table>
           </div>
