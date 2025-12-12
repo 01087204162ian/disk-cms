@@ -513,8 +513,9 @@
             <tbody>
     `;
     
-    // 증권 데이터 렌더링 (최대 10개)
-    for (let i = 0; i < 10; i++) {
+    // 증권 데이터 렌더링 (기존 개수 + 1 신규 입력행, 최대 10행)
+    const certiRowCount = Math.min((certiData.length || 0) + 1, 10);
+    for (let i = 0; i < certiRowCount; i++) {
       const certi = certiData[i] || {};
       html += renderCertiRow(certi, i, !certi.num);
     }
