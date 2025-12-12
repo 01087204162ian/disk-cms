@@ -2721,15 +2721,15 @@ body {
 }
 
 /* ========== KJ 대리운전 기사 찾기 테이블 컬럼 폭 ========== */
-.col-number   { width: 50px;  text-align: center; }
-.col-name     { width: 120px; }
-.col-jumin    { width: 180px; }
-.col-status   { width: 90px;  text-align: center; }
-.col-etag     { width: 110px; }
-.col-company  { width: 180px; }
-.col-insurer  { width: 100px; }
-.col-policy   { width: 150px; }
-.col-discount { width: 220px; }
-.col-phone    { width: 140px; }
-.col-date     { width: 150px; }
-.col-accident { width: 110px; text-align: center; }
+.col-kj-ser-number { width: 50px;  text-align: center; }
+.col-kj-name       { width: 110px; }
+.col-kj-jumin      { width: 160px; }
+.col-kj-status     { width: 90px;  text-align: center; }
+.col-kj-etag       { width: 90px; }
+.col-kj-company    { width: 180px; }
+.col-kj-insurer    { width: 100px; }
+.col-kj-policy     { width: 150px; }
+.col-kj-discount   { width: 220px; }
+.col-kj-phone      { width: 150px; }
+.col-kj-date       { width: 150px; }
+.col-kj-accident   { width: 140px; text-align: center; }

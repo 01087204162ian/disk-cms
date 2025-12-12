@@ -108,8 +108,25 @@
       <input type="text"
              class="form-control form-control-sm driver-phone-input"
              data-num="${row.num}"
+             data-original="${phone}"
              value="${phone}">
     `;
+  };
+
+  // 핸드폰 번호 하이픈 제거 함수
+  const removePhoneHyphen = (phone) => {
+    return phone.replace(/-/g, '');
+  };
+
+  // 핸드폰 번호 하이픈 추가 함수 (010-1234-5678 형식)
+  const addPhoneHyphen = (phone) => {
+    const cleaned = removePhoneHyphen(phone);
+    if (cleaned.length === 11) {
+      return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+    } else if (cleaned.length === 10) {
+      return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    }
+    return cleaned;
   };
 
   // 사고 select 렌더링
@@ -151,12 +168,12 @@
 
       return `
         <tr>
-          <td class="text-center">${displayIndex}</td>
-          <td>${row.Name ?? ''}</td>
-          <td class="d-none d-lg-table-cell">${juminText}</td>
-          <td>${renderStatusCell(row)}</td>
-          <td class="d-none d-lg-table-cell">${renderEtagSelect(row)}</td>
-          <td>
+          <td class="col-kj-ser-number text-center">${displayIndex}</td>
+          <td class="col-kj-name">${row.Name ?? ''}</td>
+          <td class="col-kj-jumin d-none d-lg-table-cell">${juminText}</td>
+          <td class="col-kj-status">${renderStatusCell(row)}</td>
+          <td class="col-kj-etag d-none d-lg-table-cell">${renderEtagSelect(row)}</td>
+          <td class="col-kj-company">
             <a href="#" class="driver-company-link"
                data-role="open-company-modal"
                data-company-num="${row.companyNum}"
@@ -164,13 +181,13 @@
                ${companyText}
             </a>
           </td>
-          <td>${insurerText}</td>
-          <td>${row.policyNum ?? ''}</td>
-          <td>${discountText}</td>
-          <td class="d-none d-lg-table-cell">${renderPhoneCell(row)}</td>
-          <td class="d-none d-lg-table-cell">${inputDay}</td>
-          <td class="d-none d-lg-table-cell">${outputDay}</td>
-          <td>${renderSagoSelect(row)}</td>
+          <td class="col-kj-insurer">${insurerText}</td>
+          <td class="col-kj-policy">${row.policyNum ?? ''}</td>
+          <td class="col-kj-discount">${discountText}</td>
+          <td class="col-kj-phone d-none d-lg-table-cell">${renderPhoneCell(row)}</td>
+          <td class="col-kj-date d-none d-lg-table-cell">${inputDay}</td>
+          <td class="col-kj-date d-none d-lg-table-cell">${outputDay}</td>
+          <td class="col-kj-accident">${renderSagoSelect(row)}</td>
         </tr>
       `;
     }).join('');
@@ -393,12 +410,48 @@
     }
   });
 
-  // 핸드폰 입력 blur 이벤트
+  // 핸드폰 입력 포커스 이벤트 (클릭 시 하이픈 제거)
+  tableBody.addEventListener('focus', (e) => {
+    const target = e.target;
+    if (target.classList.contains('driver-phone-input')) {
+      const original = target.dataset.original || '';
+      const withoutHyphen = removePhoneHyphen(original);
+      target.value = withoutHyphen;
+    }
+  }, true);
+
+  // 핸드폰 입력 이벤트 (입력 시 하이픈 자동 추가)
+  tableBody.addEventListener('input', (e) => {
+    const target = e.target;
+    if (target.classList.contains('driver-phone-input')) {
+      const cursorPos = target.selectionStart;
+      const value = target.value;
+      const cleaned = removePhoneHyphen(value);
+      const formatted = addPhoneHyphen(cleaned);
+      
+      if (formatted !== value) {
+        target.value = formatted;
+        // 커서 위치 조정
+        const diff = formatted.length - value.length;
+        target.setSelectionRange(cursorPos + diff, cursorPos + diff);
+      }
+    }
+  }, true);
+
+  // 핸드폰 입력 blur 이벤트 (서버 전송)
   tableBody.addEventListener('blur', async (e) => {
     const target = e.target;
     if (target.classList.contains('driver-phone-input')) {
       const num = target.dataset.num;
-      const value = target.value.trim();
+      const value = removePhoneHyphen(target.value.trim()); // 서버에는 하이픈 없이 전송
+      
+      // 원본과 동일하면 전송하지 않음
+      const original = removePhoneHyphen(target.dataset.original || '');
+      if (value === original) {
+        // 원본으로 복원 (하이픈 포함)
+        target.value = target.dataset.original || '';
+        return;
+      }
       
       try {
         const res = await fetch('/api/insurance/kj-driver/phone', {
@@ -408,19 +461,25 @@
         });
         const json = await res.json();
         if (!json.success) throw new Error(json.error || '핸드폰 수정 실패');
-        // 성공 시 별도 알림은 생략
+        
+        // 성공 시 원본 값 업데이트 및 하이픈 추가하여 표시
+        target.dataset.original = value;
+        target.value = addPhoneHyphen(value);
       } catch (err) {
         console.error(err);
         alert('핸드폰 번호 저장 중 오류가 발생했습니다.');
+        // 실패 시 원본으로 복원
+        target.value = target.dataset.original || '';
       }
     }
   }, true);
 
-  // 핸드폰 입력 Enter 키 처리
+  // 핸드폰 입력 Enter 키 처리 (서버 전송)
   tableBody.addEventListener('keyup', (e) => {
     const target = e.target;
     if (target.classList.contains('driver-phone-input') && e.key === 'Enter') {
-      target.blur();
+      e.preventDefault();
+      target.blur(); // blur 이벤트로 서버 전송
     }
   });
 
