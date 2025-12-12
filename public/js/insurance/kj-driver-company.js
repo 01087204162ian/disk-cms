@@ -351,7 +351,7 @@
     };
     
     // 테이블 행 렌더링
-    const renderCertiRow = (certi = {}, idx = 0, isNew = false) => {
+  const renderCertiRow = (certi = {}, idx = 0, isNew = false) => {
       const bgClass = idx % 2 === 0 ? 'table-light' : '';
       const naStateColor = certi.naColor ? getNaStateColor(certi.naColor) : '#666666';
       const naStateText = certi.naState || '';
@@ -390,7 +390,9 @@
             <input type="text" class="form-control form-control-sm certi-field" data-field="nabang" value="${certi.nabang || ''}">
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-primary certi-save-btn" ${requiredFilled ? '' : 'disabled'}>
+            <button class="btn btn-sm btn-outline-primary certi-save-btn ${isNew && !Number(certi.InsuraneCompany) ? 'd-none' : ''}"
+                    data-is-new="${isNew ? 'true' : 'false'}"
+                    ${requiredFilled ? '' : 'disabled'}>
               ${certi.num ? '수정' : '저장'}
             </button>
           </td>
@@ -614,6 +616,56 @@
     }
     
     modalBody.innerHTML = html;
+
+    const companyNum = company.num || company.dNum || data.num || '';
+
+    const toggleSaveState = (rowEl) => {
+      if (!rowEl) return;
+      const insurer = rowEl.querySelector('[data-field="InsuraneCompany"]');
+      const starty = rowEl.querySelector('[data-field="startyDay"]');
+      const policy = rowEl.querySelector('[data-field="policyNum"]');
+      const nabang = rowEl.querySelector('[data-field="nabang"]');
+      const saveBtn = rowEl.querySelector('.certi-save-btn');
+      if (!saveBtn) return;
+      const isNew = saveBtn.dataset.isNew === 'true';
+
+      const hasInsurer = insurer && Number(insurer.value);
+      const requiredFilled = Boolean(hasInsurer && starty?.value && policy?.value && nabang?.value);
+
+      if (isNew && !hasInsurer) {
+        saveBtn.classList.add('d-none');
+        saveBtn.disabled = true;
+        return;
+      }
+
+      saveBtn.classList.remove('d-none');
+      saveBtn.disabled = !requiredFilled;
+    };
+
+    modalBody.addEventListener('input', (e) => {
+      const row = e.target.closest('tr[data-row-index]');
+      if (!row) return;
+      if (e.target.classList.contains('certi-field') || e.target.classList.contains('insurer-select')) {
+        toggleSaveState(row);
+      }
+    });
+    modalBody.addEventListener('change', (e) => {
+      const row = e.target.closest('tr[data-row-index]');
+      if (!row) return;
+      if (e.target.classList.contains('certi-field') || e.target.classList.contains('insurer-select')) {
+        toggleSaveState(row);
+      }
+    });
+
+    // 저장/수정 클릭 후 재로딩 (실제 저장 API 연동 시 성공 콜백에 배치)
+    modalBody.addEventListener('click', (e) => {
+      const btn = e.target.closest('.certi-save-btn');
+      if (!btn) return;
+      if (btn.disabled) return;
+      if (!companyNum) return;
+      // TODO: 저장 API 연동 필요. 현재는 저장 후 재조회만 수행.
+      openCompanyModal(companyNum, companyName);
+    });
   };
 
   // 모달 트리거 이벤트 위임 (kj-driver-search.js와 동일)
