@@ -410,9 +410,11 @@
             </button>
           </td>
           <td>
-            <select class="form-select form-select-sm certi-field" data-field="nabang_1" ${certi.num ? '' : 'disabled'}>
-              ${Array.from({ length: 10 }, (_, i) => i + 1).map(v => `<option value="${v}" ${Number(certi.nabang_1) === v ? 'selected' : ''}>${v}회차</option>`).join('')}
-            </select>
+            ${isNew ? '' : `
+              <select class="form-select form-select-sm certi-field" data-field="nabang_1" ${certi.num ? '' : 'disabled'}>
+                ${Array.from({ length: 10 }, (_, i) => i + 1).map(v => `<option value="${v}" ${Number(certi.nabang_1) === v ? 'selected' : ''}>${v}회차</option>`).join('')}
+              </select>
+            `}
           </td>
           <td style="color: ${isNew ? '' : naStateColor};">
             ${isNew ? '' : `${naStateText}${giganText}`}
