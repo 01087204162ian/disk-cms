@@ -414,32 +414,26 @@
               ${Array.from({ length: 10 }, (_, i) => i + 1).map(v => `<option value="${v}" ${Number(certi.nabang_1) === v ? 'selected' : ''}>${v}회차</option>`).join('')}
             </select>
           </td>
-          <td style="color: ${naStateColor};">
-            ${naStateText}${giganText}
+          <td style="color: ${isNew ? '' : naStateColor};">
+            ${isNew ? '' : `${naStateText}${giganText}`}
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-secondary certi-member-btn" ${certi.num ? '' : 'disabled'}>인원</button>
+            ${isNew ? '' : `<button class="btn btn-sm btn-outline-secondary certi-member-btn" ${certi.num ? '' : 'disabled'}>인원</button>`}
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-success certi-new-member-btn" ${certi.num ? '' : 'disabled'}>신규</button>
+            ${isNew ? '' : `<button class="btn btn-sm btn-outline-success certi-new-member-btn" ${certi.num ? '' : 'disabled'}>신규</button>`}
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-warning certi-endorse-btn" ${certi.num ? '' : 'disabled'}>배서</button>
+            ${isNew ? '' : `<button class="btn btn-sm btn-outline-warning certi-endorse-btn" ${certi.num ? '' : 'disabled'}>배서</button>`}
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-dark certi-divi-btn" data-divi="${certi.divi || 1}">
-              ${mapDivi(certi.divi || 1)}
-            </button>
+            ${isNew ? '' : `<button class="btn btn-sm btn-outline-dark certi-divi-btn" data-divi="${certi.divi || 1}">${mapDivi(certi.divi || 1)}</button>`}
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-info certi-premium-btn" ${certi.num ? '' : 'disabled'}>
-              ${certi.divi == 2 ? '보험료' : '입력'}
-            </button>
+            ${isNew ? '' : `<button class="btn btn-sm btn-outline-info certi-premium-btn" ${certi.num ? '' : 'disabled'}>${certi.divi == 2 ? '보험료' : '입력'}</button>`}
           </td>
           <td>
-            <select class="form-select form-select-sm certi-field" data-field="gita">
-              ${gitaOptions}
-            </select>
+            ${isNew ? '' : `<select class="form-select form-select-sm certi-field" data-field="gita">${gitaOptions}</select>`}
           </td>
         </tr>
       `;
