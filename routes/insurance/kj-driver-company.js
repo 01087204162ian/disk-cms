@@ -67,5 +67,28 @@ router.get('/kj-company/managers', async (req, res) => {
   }
 });
 
+// 업체 상세 정보 조회 (모달용)
+router.get('/kj-company/:companyNum', async (req, res) => {
+  try {
+    const { companyNum } = req.params;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-detail.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: { dNum: companyNum },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-company detail proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '업체 상세 정보 API 호출 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

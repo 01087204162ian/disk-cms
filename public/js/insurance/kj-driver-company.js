@@ -82,7 +82,14 @@
         return `
           <tr>
             <td class="col-kj-company-number text-center">${displayIndex}</td>
-            <td class="col-kj-company-name">${companyName}</td>
+            <td class="col-kj-company-name">
+              <a href="#" class="driver-company-link" 
+                 data-role="open-company-modal"
+                 data-company-num="${row.num}"
+                 data-company-name="${companyName}">
+                ${companyName}
+              </a>
+            </td>
             <td class="col-kj-company-manager d-none d-lg-table-cell">${managerName}</td>
             <td class="col-kj-company-phone">${phone}</td>
             <td class="col-kj-company-date">${date}</td>
@@ -111,7 +118,16 @@
           <div class="card mb-2">
             <div class="card-body">
               <div class="d-flex justify-content-between mb-2">
-                <div><strong>${companyName}</strong></div>
+                <div>
+                  <strong>
+                    <a href="#" class="text-primary driver-company-link" 
+                       data-role="open-company-modal"
+                       data-company-num="${row.num}"
+                       data-company-name="${companyName}">
+                      ${companyName}
+                    </a>
+                  </strong>
+                </div>
                 <div class="text-muted">${memberCount}명</div>
               </div>
               <div class="small text-muted mb-1">담당자: ${managerName}</div>
@@ -242,6 +258,159 @@
     currentLimit = Number(pageSizeSelect.value);
     currentPage = 1;
     fetchList();
+  });
+
+  // ==================== 모달 관련 ====================
+
+  // 대리운전회사 모달 열기 (kj-driver-search.js와 동일한 함수)
+  const openCompanyModal = (companyNum, companyName) => {
+    const modal = new bootstrap.Modal(document.getElementById('companyInfoModal'));
+    const modalBody = document.getElementById('companyInfoModalBody');
+    
+    modalBody.innerHTML = `
+      <div class="text-center py-4">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">로딩 중...</span>
+        </div>
+        <p class="mt-2">회사 정보를 불러오는 중...</p>
+      </div>
+    `;
+    
+    modal.show();
+    
+    // API 호출
+    fetch(`/api/insurance/kj-company/${companyNum}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          renderCompanyModal(data, companyName);
+        } else {
+          throw new Error(data.error || '회사 정보를 불러올 수 없습니다.');
+        }
+      })
+      .catch(err => {
+        console.error('회사 정보 로드 오류:', err);
+        modalBody.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            회사 정보를 불러올 수 없습니다: ${err.message}
+          </div>
+        `;
+      });
+  };
+
+  // 회사 정보 모달 렌더링
+  const renderCompanyModal = (data, companyName) => {
+    const modalBody = document.getElementById('companyInfoModalBody');
+    
+    const company = data;
+    const certiData = data.data || [];
+    
+    let html = `
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="mb-3">기본 정보</h6>
+          <table class="table table-sm table-bordered">
+            <tr>
+              <th class="bg-light" style="width: 120px;">업체명</th>
+              <td>${company.company || companyName || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">대표자명</th>
+              <td>${company.Pname || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">주민번호</th>
+              <td>${company.jumin || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">핸드폰</th>
+              <td>${company.hphone || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">회사전화</th>
+              <td>${company.cphone || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">담당자</th>
+              <td>${company.name || company.damdanga || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">청구일</th>
+              <td>${company.FirstStartDay || 'N/A'}일</td>
+            </tr>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <h6 class="mb-3">주소 정보</h6>
+          <table class="table table-sm table-bordered">
+            <tr>
+              <th class="bg-light" style="width: 120px;">우편번호</th>
+              <td>${company.postNum || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">주소1</th>
+              <td>${company.address1 || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">주소2</th>
+              <td>${company.address2 || 'N/A'}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    `;
+    
+    if (certiData.length > 0) {
+      html += `
+        <hr>
+        <h6 class="mb-3">증권 정보 (최근 1년)</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th>증권번호</th>
+                <th>시작일</th>
+                <th>종료일</th>
+                <th>인원</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      certiData.forEach(certi => {
+        html += `
+          <tr>
+            <td>${certi.policyNum || 'N/A'}</td>
+            <td>${certi.startyDay || 'N/A'}</td>
+            <td>${certi.endDay || 'N/A'}</td>
+            <td>${certi.inwon || 0}명</td>
+          </tr>
+        `;
+      });
+      
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+    
+    modalBody.innerHTML = html;
+  };
+
+  // 모달 트리거 이벤트 위임 (kj-driver-search.js와 동일)
+  document.addEventListener('click', (e) => {
+    if (e.target.matches('[data-role="open-company-modal"]') || 
+        e.target.closest('[data-role="open-company-modal"]')) {
+      e.preventDefault();
+      const link = e.target.closest('[data-role="open-company-modal"]') || e.target;
+      const companyNum = link.dataset.companyNum;
+      const companyName = link.dataset.companyName;
+      if (companyNum) {
+        openCompanyModal(companyNum, companyName);
+      }
+    }
   });
 
   // ==================== 초기화 실행 ====================

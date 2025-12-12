@@ -275,7 +275,7 @@
 
   // ==================== 모달 관련 ====================
 
-  // 대리운전회사 모달 열기
+  // 대리운전회사 모달 열기 (kj-driver-company.js와 동일한 함수)
   const openCompanyModal = (companyNum, companyName) => {
     const modal = new bootstrap.Modal(document.getElementById('companyInfoModal'));
     const modalBody = document.getElementById('companyInfoModalBody');
@@ -291,24 +291,125 @@
     
     modal.show();
     
-    // TODO: API 호출
-    // fetch(`/api/insurance/kj-company/${companyNum}`)
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     modalBody.innerHTML = `회사 정보 표시 (추후 API 스펙에 맞춰 구현)`;
-    //   })
-    //   .catch(err => {
-    //     modalBody.innerHTML = `<div class="alert alert-danger">오류가 발생했습니다.</div>`;
-    //   });
+    // API 호출
+    fetch(`/api/insurance/kj-company/${companyNum}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          renderCompanyModal(data, companyName);
+        } else {
+          throw new Error(data.error || '회사 정보를 불러올 수 없습니다.');
+        }
+      })
+      .catch(err => {
+        console.error('회사 정보 로드 오류:', err);
+        modalBody.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            회사 정보를 불러올 수 없습니다: ${err.message}
+          </div>
+        `;
+      });
+  };
+
+  // 회사 정보 모달 렌더링 (kj-driver-company.js와 동일한 함수)
+  const renderCompanyModal = (data, companyName) => {
+    const modalBody = document.getElementById('companyInfoModalBody');
     
-    // 임시로 회사명만 표시
-    setTimeout(() => {
-      modalBody.innerHTML = `
-        <h6>회사명: ${companyName || 'N/A'}</h6>
-        <p class="text-muted">회사 번호: ${companyNum || 'N/A'}</p>
-        <p class="text-muted small">추후 API 스펙에 맞춰 상세 정보를 표시합니다.</p>
+    const company = data;
+    const certiData = data.data || [];
+    
+    let html = `
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="mb-3">기본 정보</h6>
+          <table class="table table-sm table-bordered">
+            <tr>
+              <th class="bg-light" style="width: 120px;">업체명</th>
+              <td>${company.company || companyName || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">대표자명</th>
+              <td>${company.Pname || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">주민번호</th>
+              <td>${company.jumin || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">핸드폰</th>
+              <td>${company.hphone || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">회사전화</th>
+              <td>${company.cphone || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">담당자</th>
+              <td>${company.name || company.damdanga || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">청구일</th>
+              <td>${company.FirstStartDay || 'N/A'}일</td>
+            </tr>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <h6 class="mb-3">주소 정보</h6>
+          <table class="table table-sm table-bordered">
+            <tr>
+              <th class="bg-light" style="width: 120px;">우편번호</th>
+              <td>${company.postNum || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">주소1</th>
+              <td>${company.address1 || 'N/A'}</td>
+            </tr>
+            <tr>
+              <th class="bg-light">주소2</th>
+              <td>${company.address2 || 'N/A'}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    `;
+    
+    if (certiData.length > 0) {
+      html += `
+        <hr>
+        <h6 class="mb-3">증권 정보 (최근 1년)</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th>증권번호</th>
+                <th>시작일</th>
+                <th>종료일</th>
+                <th>인원</th>
+              </tr>
+            </thead>
+            <tbody>
       `;
-    }, 500);
+      
+      certiData.forEach(certi => {
+        html += `
+          <tr>
+            <td>${certi.policyNum || 'N/A'}</td>
+            <td>${certi.startyDay || 'N/A'}</td>
+            <td>${certi.endDay || 'N/A'}</td>
+            <td>${certi.inwon || 0}명</td>
+          </tr>
+        `;
+      });
+      
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+    
+    modalBody.innerHTML = html;
   };
 
   // 사고 이력 모달 열기
