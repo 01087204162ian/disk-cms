@@ -299,99 +299,239 @@
       });
   };
 
-  // 회사 정보 모달 렌더링
+  // 회사 정보 모달 렌더링 (구 버전과 동일한 구조)
   const renderCompanyModal = (data, companyName) => {
     const modalBody = document.getElementById('companyInfoModalBody');
     
     const company = data;
     const certiData = data.data || [];
+    const memoData = data.memoData || [];
+    const smsData = data.smsData || [];
+    const contentData = data.content || [];
+    const inWonTotal = data.inWonTotal || 0;
+    
+    // 보험사 코드 매핑
+    const mapInsuranceCompany = (code) => {
+      const map = { 1: '흥국', 2: 'DB', 3: 'KB', 4: '현대', 5: '한화', 6: '더케이', 7: 'MG', 8: '삼성' };
+      return map[code] || '=선택=';
+    };
+    
+    // 결제 방식 매핑
+    const mapDivi = (divi) => {
+      return divi == 1 ? '정상' : (divi == 2 ? '1/12씩' : '정상');
+    };
+    
+    // 납입 상태 색상
+    const getNaStateColor = (naColor) => {
+      if (naColor == 1) return '#666666';
+      if (naColor == 2) return 'red';
+      return '#666666';
+    };
     
     let html = `
-      <div class="row">
-        <div class="col-md-6">
-          <h6 class="mb-3">기본 정보</h6>
-          <table class="table table-sm table-bordered">
-            <tr>
-              <th class="bg-light" style="width: 120px;">업체명</th>
-              <td>${company.company || companyName || 'N/A'}</td>
-            </tr>
-            <tr>
-              <th class="bg-light">대표자명</th>
-              <td>${company.Pname || 'N/A'}</td>
-            </tr>
-            <tr>
-              <th class="bg-light">주민번호</th>
-              <td>${company.jumin || 'N/A'}</td>
-            </tr>
-            <tr>
-              <th class="bg-light">핸드폰</th>
-              <td>${company.hphone || 'N/A'}</td>
-            </tr>
-            <tr>
-              <th class="bg-light">회사전화</th>
-              <td>${company.cphone || 'N/A'}</td>
-            </tr>
-            <tr>
-              <th class="bg-light">담당자</th>
-              <td>${company.name || company.damdanga || 'N/A'}</td>
-            </tr>
-            <tr>
-              <th class="bg-light">청구일</th>
-              <td>${company.FirstStartDay || 'N/A'}일</td>
-            </tr>
-          </table>
+      <div class="mb-3">
+        <h6>기본 정보</h6>
+        <div class="row">
+          <div class="col-md-6">
+            <table class="table table-sm table-bordered mb-0">
+              <tr>
+                <th class="bg-light" style="width: 30%;">주민번호</th>
+                <td>${company.jumin || ''}</td>
+                <th class="bg-light" style="width: 30%;">대리운전회사</th>
+                <td>${company.company || companyName || ''}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">성명</th>
+                <td>${company.Pname || ''}</td>
+                <th class="bg-light">핸드폰번호</th>
+                <td>${company.hphone || ''}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">전화번호</th>
+                <td>${company.cphone || ''}</td>
+                <th class="bg-light">담당자</th>
+                <td>${company.name || company.damdanga || ''}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">팩스</th>
+                <td>${company.fax || ''}</td>
+                <th class="bg-light">사업자번호</th>
+                <td>${company.cNumber || ''}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">법인번호</th>
+                <td>${company.lNumber || ''}</td>
+                <th class="bg-light">보험료 받는날</th>
+                <td>${company.FirstStart || ''}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">읽기 전용 ID</th>
+                <td>${company.mem_id || ''}${company.permit == 1 ? '허용' : (company.permit == 2 ? '차단' : '')}</td>
+                <th class="bg-light">주소</th>
+                <td>${company.postNum || ''} ${company.address1 || ''} ${company.address2 || ''}</td>
+              </tr>
+            </table>
+          </div>
         </div>
-        <div class="col-md-6">
-          <h6 class="mb-3">주소 정보</h6>
-          <table class="table table-sm table-bordered">
-            <tr>
-              <th class="bg-light" style="width: 120px;">우편번호</th>
-              <td>${company.postNum || 'N/A'}</td>
-            </tr>
-            <tr>
-              <th class="bg-light">주소1</th>
-              <td>${company.address1 || 'N/A'}</td>
-            </tr>
-            <tr>
-              <th class="bg-light">주소2</th>
-              <td>${company.address2 || 'N/A'}</td>
-            </tr>
+      </div>
+      
+      <hr>
+      
+      <div class="mb-3">
+        <h6>증권 정보</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered" style="font-size: 0.85rem;">
+            <thead class="thead-light">
+              <tr>
+                <th style="width: 4%;">순번</th>
+                <th style="width: 8%;">보험사</th>
+                <th style="width: 8%;">시작일</th>
+                <th style="width: 11%;">증권번호</th>
+                <th style="width: 5%;">분납</th>
+                <th style="width: 8%;">저장</th>
+                <th style="width: 7%;">회차</th>
+                <th style="width: 6%;">상태</th>
+                <th style="width: 6%;">인원</th>
+                <th style="width: 6%;">신규<br>입력</th>
+                <th style="width: 6%;">운전자<Br>추가</th>
+                <th style="width: 7%;">결제<Br>방식</th>
+                <th style="width: 7%;">월보험료</th>
+                <th style="width: 10%;">성격</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    // 증권 데이터 렌더링 (최대 10개)
+    for (let i = 0; i < 10; i++) {
+      const certi = certiData[i] || {};
+      const bgClass = i % 2 === 0 ? 'table-light' : '';
+      const naStateColor = certi.naColor ? getNaStateColor(certi.naColor) : '#666666';
+      const naStateText = certi.naState || '';
+      const giganText = certi.gigan ? `(${Math.floor(certi.gigan)}일)` : '';
+      
+      html += `
+        <tr class="${bgClass}">
+          <td>${i + 1}</td>
+          <td>${certi.InsuraneCompany ? mapInsuranceCompany(certi.InsuraneCompany) : '=선택='}</td>
+          <td>${certi.startyDay || ''}</td>
+          <td>${certi.policyNum || ''}</td>
+          <td>${certi.nabang || ''}</td>
+          <td>${certi.num ? '수정' + (certi.f_date || '') : ''}</td>
+          <td>${certi.nabang_1 ? certi.nabang_1 + '회차' : ''}</td>
+          <td style="color: ${naStateColor};">${naStateText}${giganText}</td>
+          <td>${certi.inwon || 0}</td>
+          <td>${certi.num ? '신규' : ''}</td>
+          <td>${certi.num ? '배서' : ''}</td>
+          <td>${certi.divi ? mapDivi(certi.divi) : ''}</td>
+          <td>${certi.divi == 2 ? '보험료' : '입력'}</td>
+          <td>${certi.gitaName || '일반'}</td>
+        </tr>
+      `;
+    }
+    
+    html += `
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="8" class="text-end"><strong>계</strong></td>
+                <td><strong>${inWonTotal.toLocaleString()}</strong></td>
+                <td colspan="5"></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
     `;
     
-    if (certiData.length > 0) {
+    // 메모 목록
+    if (memoData.length > 0 || contentData.length > 0) {
       html += `
         <hr>
-        <h6 class="mb-3">증권 정보 (최근 1년)</h6>
-        <div class="table-responsive">
-          <table class="table table-sm table-bordered">
-            <thead class="thead-light">
-              <tr>
-                <th>증권번호</th>
-                <th>시작일</th>
-                <th>종료일</th>
-                <th>인원</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div class="mb-3">
+          <h6>메모</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered" style="font-size: 0.85rem;">
+              <thead class="thead-light">
+                <tr>
+                  <th style="width: 5%;">순번</th>
+                  <th style="width: 10%;">날자</th>
+                  <th style="width: 5%;">종류</th>
+                  <th style="width: 40%;">내용</th>
+                </tr>
+              </thead>
+              <tbody>
       `;
       
-      certiData.forEach(certi => {
+      memoData.slice(0, 10).forEach((memo, idx) => {
+        const bgClass = idx % 2 === 0 ? 'table-light' : '';
+        html += `
+          <tr class="${bgClass}">
+            <td>${idx + 1}</td>
+            <td>${memo.wdate || ''}</td>
+            <td>${memo.memokindName || '일반'}</td>
+            <td>${memo.memo || ''}</td>
+          </tr>
+        `;
+      });
+      
+      // 증권별 메모 내용
+      if (contentData.length > 0) {
         html += `
           <tr>
-            <td>${certi.policyNum || 'N/A'}</td>
-            <td>${certi.startyDay || 'N/A'}</td>
-            <td>${certi.endDay || 'N/A'}</td>
-            <td>${certi.inwon || 0}명</td>
+            <td colspan="4">
+              <textarea class="form-control" rows="3" readonly>${contentData.join('\n')}</textarea>
+            </td>
+          </tr>
+        `;
+      }
+      
+      html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+    
+    // SMS 목록
+    if (smsData.length > 0) {
+      html += `
+        <hr>
+        <div class="mb-3">
+          <h6>SMS 목록</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered" style="font-size: 0.85rem;">
+              <thead class="thead-light">
+                <tr>
+                  <th style="width: 5%;">번호</th>
+                  <th style="width: 20%;">발송일</th>
+                  <th>메세지</th>
+                  <th style="width: 10%;">회사</th>
+                  <th style="width: 10%;">결과</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+      
+      smsData.slice(0, 10).forEach((sms, idx) => {
+        const bgClass = idx % 2 === 0 ? 'table-light' : '';
+        const textColor = sms.get == 2 ? '#0A8FC1' : '';
+        html += `
+          <tr class="${bgClass}">
+            <td>${idx + 1}</td>
+            <td style="color: ${textColor};">${sms.dates || ''}</td>
+            <td style="color: ${textColor};">${sms.Msg || ''}</td>
+            <td style="color: ${textColor};">${sms.comName || ''}</td>
+            <td>${sms.get == 2 ? '수신' : ''}</td>
           </tr>
         `;
       });
       
       html += `
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
       `;
     }

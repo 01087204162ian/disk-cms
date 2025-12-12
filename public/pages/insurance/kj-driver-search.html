@@ -136,20 +136,19 @@
 
   <!-- 대리운전회사 정보 모달 -->
   <div class="modal fade" id="companyInfoModal" tabindex="-1" aria-labelledby="companyInfoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl" style="max-width: 95%;">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="companyInfoModalLabel">대리운전회사 정보</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body" id="companyInfoModalBody">
+        <div class="modal-body" id="companyInfoModalBody" style="max-height: 85vh; overflow-y: auto;">
           <div class="text-center py-4">
             <div class="spinner-border" role="status">
               <span class="visually-hidden">로딩 중...</span>
             </div>
             <p class="mt-2">회사 정보를 불러오는 중...</p>
           </div>
-          <!-- 추후 API 스펙에 맞춰 내용 채움 -->
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
