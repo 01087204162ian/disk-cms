@@ -299,6 +299,28 @@
       });
   };
 
+  // 보험사/성격 옵션
+  const INSURER_OPTIONS = [
+    { value: 0, label: '=선택=' },
+    { value: 1, label: '흥국' },
+    { value: 2, label: 'DB' },
+    { value: 3, label: 'KB' },
+    { value: 4, label: '현대' },
+    { value: 5, label: '롯데' },
+    { value: 6, label: '더 케이' },
+    { value: 7, label: 'MG' },
+    { value: 8, label: '삼성' },
+    { value: 9, label: '메리츠' },
+  ];
+
+  const GITA_OPTIONS = [
+    { value: 1, label: '일반' },
+    { value: 2, label: '탁송' },
+    { value: 3, label: '일반/렌트' },
+    { value: 4, label: '탁송/렌트' },
+    { value: 5, label: '전차량' },
+  ];
+
   // 회사 정보 모달 렌더링 (구 버전과 동일한 구조)
   const renderCompanyModal = (data, companyName) => {
     const modalBody = document.getElementById('companyInfoModalBody');
@@ -328,6 +350,86 @@
       return '#666666';
     };
     
+    // 테이블 행 렌더링
+    const renderCertiRow = (certi = {}, idx = 0, isNew = false) => {
+      const bgClass = idx % 2 === 0 ? 'table-light' : '';
+      const naStateColor = certi.naColor ? getNaStateColor(certi.naColor) : '#666666';
+      const naStateText = certi.naState || '';
+      const giganText = certi.gigan ? `(${Math.floor(certi.gigan)}일)` : '';
+
+      const insurerOptions = INSURER_OPTIONS.map(opt =>
+        `<option value="${opt.value}" ${Number(certi.InsuraneCompany) === opt.value ? 'selected' : ''}>${opt.label}</option>`
+      ).join('');
+
+      const gitaOptions = GITA_OPTIONS.map(opt =>
+        `<option value="${opt.value}" ${Number(certi.gita) === opt.value || Number(certi.gitaName) === opt.value ? 'selected' : ''}>${opt.label}</option>`
+      ).join('');
+
+      const requiredFilled = Boolean(
+        Number(certi.InsuraneCompany) &&
+        certi.startyDay &&
+        certi.policyNum &&
+        certi.nabang
+      );
+
+      return `
+        <tr class="${bgClass}" data-row-index="${idx}">
+          <td>${idx + 1}</td>
+          <td>
+            <select class="form-select form-select-sm certi-field insurer-select" data-field="InsuraneCompany">
+              ${insurerOptions}
+            </select>
+          </td>
+          <td>
+            <input type="date" class="form-control form-control-sm certi-field" data-field="startyDay" value="${certi.startyDay || ''}">
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm certi-field" data-field="policyNum" value="${certi.policyNum || ''}">
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm certi-field" data-field="nabang" value="${certi.nabang || ''}">
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary certi-save-btn" ${requiredFilled ? '' : 'disabled'}>
+              ${certi.num ? '수정' : '저장'}
+            </button>
+          </td>
+          <td>
+            <select class="form-select form-select-sm certi-field" data-field="nabang_1" ${certi.num ? '' : 'disabled'}>
+              ${Array.from({ length: 10 }, (_, i) => i + 1).map(v => `<option value="${v}" ${Number(certi.nabang_1) === v ? 'selected' : ''}>${v}회차</option>`).join('')}
+            </select>
+          </td>
+          <td style="color: ${naStateColor};">
+            ${naStateText}${giganText}
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-secondary certi-member-btn" ${certi.num ? '' : 'disabled'}>인원</button>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-success certi-new-member-btn" ${certi.num ? '' : 'disabled'}>신규</button>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-warning certi-endorse-btn" ${certi.num ? '' : 'disabled'}>배서</button>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-dark certi-divi-btn" data-divi="${certi.divi || 1}">
+              ${mapDivi(certi.divi || 1)}
+            </button>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-info certi-premium-btn" ${certi.num ? '' : 'disabled'}>
+              ${certi.divi == 2 ? '보험료' : '입력'}
+            </button>
+          </td>
+          <td>
+            <select class="form-select form-select-sm certi-field" data-field="gita">
+              ${gitaOptions}
+            </select>
+          </td>
+        </tr>
+      `;
+    };
+
     let html = `
       <div class="mb-3">
         <h6>기본 정보</h6>
@@ -401,29 +503,7 @@
     // 증권 데이터 렌더링 (최대 10개)
     for (let i = 0; i < 10; i++) {
       const certi = certiData[i] || {};
-      const bgClass = i % 2 === 0 ? 'table-light' : '';
-      const naStateColor = certi.naColor ? getNaStateColor(certi.naColor) : '#666666';
-      const naStateText = certi.naState || '';
-      const giganText = certi.gigan ? `(${Math.floor(certi.gigan)}일)` : '';
-      
-      html += `
-        <tr class="${bgClass}">
-          <td>${i + 1}</td>
-          <td>${certi.InsuraneCompany ? mapInsuranceCompany(certi.InsuraneCompany) : '=선택='}</td>
-          <td>${certi.startyDay || ''}</td>
-          <td>${certi.policyNum || ''}</td>
-          <td>${certi.nabang || ''}</td>
-          <td>${certi.num ? '수정' + (certi.f_date || '') : ''}</td>
-          <td>${certi.nabang_1 ? certi.nabang_1 + '회차' : ''}</td>
-          <td style="color: ${naStateColor};">${naStateText}${giganText}</td>
-          <td>${certi.inwon || 0}</td>
-          <td>${certi.num ? '신규' : ''}</td>
-          <td>${certi.num ? '배서' : ''}</td>
-          <td>${certi.divi ? mapDivi(certi.divi) : ''}</td>
-          <td>${certi.divi == 2 ? '보험료' : '입력'}</td>
-          <td>${certi.gitaName || '일반'}</td>
-        </tr>
-      `;
+      html += renderCertiRow(certi, i, !certi.num);
     }
     
     html += `
