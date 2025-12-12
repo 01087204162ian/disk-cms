@@ -17,76 +17,109 @@
   let currentLimit = 20;
   let currentPagination = { page: 1, limit: 20, total: 0, totalPages: 1 };
 
-  // ==================== 매핑 함수 ====================
+  // ==================== 공통 매핑 함수 ====================
 
-  // push 상태 라벨 매핑
+  // 상태(push) → 라벨
   const mapPushLabel = (push) => {
-    const p = String(push);
-    switch (p) {
-      case '1': return '청약중';
-      case '2': return '해지';
-      case '4': return '정상';
-      case '5': return '거절';
-      case '6': return '취소';
-      case '7': return '실효';
+    const v = Number(push);
+    switch (v) {
+      case 1: return '청약중';
+      case 2: return '해지';
+      case 4: return '정상';
+      case 5: return '거절';
+      case 6: return '취소';
+      case 7: return '실효';
       default: return '기타';
     }
   };
 
-  // etag 증권성격 매핑
+  // etag → 텍스트
   const mapEtagLabel = (etag) => {
-    const e = String(etag || '1');
-    switch (e) {
-      case '1': return '일반';
-      case '2': return '탁송';
-      case '3': return '일반/렌트';
-      case '4': return '탁송/렌트';
-      case '5': return '전차량';
-      default: return '일반';
+    const v = Number(etag);
+    switch (v) {
+      case 1: return '일반';
+      case 2: return '탁송';
+      case 3: return '일반/렌트';
+      case 4: return '탁송/렌트';
+      case 5: return '전차량';
+      default: return '';
     }
   };
 
-  // sago 사고 매핑
+  // sago → 텍스트
   const mapSagoLabel = (sago) => {
-    const s = String(sago || '1');
-    return s === '2' ? '사고있음' : '사고없음';
+    const v = Number(sago);
+    switch (v) {
+      case 1: return '사고없음';
+      case 2: return '사고있음';
+      default: return '';
+    }
   };
 
   // ==================== 렌더링 헬퍼 ====================
 
   // 상태 컬럼 렌더링 (push=4면 select, 그 외 텍스트)
   const renderStatusCell = (row) => {
-    const push = String(row.push || '');
-    if (push === '4') {
-      // 정상인 경우 select로 표시 (변경 가능)
+    const push = Number(row.push);
+    
+    // 정상일 때만 select 제공
+    if (push === 4) {
       return `
-        <select class="form-select form-select-sm" data-num="${row.num}" data-role="status-select">
-          <option value="4" selected>정상</option>
+        <select class="form-select form-select-sm driver-status-select"
+                data-num="${row.num}"
+                data-current="${push}">
+          <option value="4" ${push === 4 ? 'selected' : ''}>정상</option>
           <option value="2">해지</option>
         </select>
       `;
-    } else {
-      // 그 외는 텍스트만
-      return `<span>${mapPushLabel(push)}</span>`;
     }
+    
+    // 그 외는 읽기 전용 텍스트
+    return `<span>${mapPushLabel(push)}</span>`;
   };
 
   // 증권성격 select 렌더링
   const renderEtagSelect = (row) => {
-    const currentEtag = String(row.etag || '1');
+    const etag = Number(row.etag || row.Etag || 0);
     const options = [
-      { value: '1', label: '일반' },
-      { value: '2', label: '탁송' },
-      { value: '3', label: '일반/렌트' },
-      { value: '4', label: '탁송/렌트' },
-      { value: '5', label: '전차량' }
+      { value: 1, label: '일반' },
+      { value: 2, label: '탁송' },
+      { value: 3, label: '일반/렌트' },
+      { value: 4, label: '탁송/렌트' },
+      { value: 5, label: '전차량' },
     ];
-    const optionsHtml = options.map(opt => 
-      `<option value="${opt.value}" ${opt.value === currentEtag ? 'selected' : ''}>${opt.label}</option>`
-    ).join('');
+    
+    const optsHtml = options
+      .map(opt => `<option value="${opt.value}" ${opt.value === etag ? 'selected' : ''}>${opt.label}</option>`)
+      .join('');
+    
     return `
-      <select class="form-select form-select-sm" data-num="${row.num}" data-role="etag-select">
-        ${optionsHtml}
+      <select class="form-select form-select-sm driver-etag-select"
+              data-num="${row.num}">
+        ${optsHtml}
+      </select>
+    `;
+  };
+
+  // 핸드폰 컬럼 렌더링
+  const renderPhoneCell = (row) => {
+    const phone = row.Hphone || '';
+    return `
+      <input type="text"
+             class="form-control form-control-sm driver-phone-input"
+             data-num="${row.num}"
+             value="${phone}">
+    `;
+  };
+
+  // 사고 select 렌더링
+  const renderSagoSelect = (row) => {
+    const sago = Number(row.sago || 0);
+    return `
+      <select class="form-select form-select-sm driver-sago-select"
+              data-num="${row.num}">
+        <option value="1" ${sago === 1 ? 'selected' : ''}>사고없음</option>
+        <option value="2" ${sago === 2 ? 'selected' : ''}>사고있음</option>
       </select>
     `;
   };
@@ -97,78 +130,50 @@
     if (!rows || rows.length === 0) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="12" class="text-center py-4">데이터가 없습니다.</td>
+          <td colspan="13" class="text-center py-4">데이터가 없습니다.</td>
         </tr>`;
       return;
     }
 
-    const startNum = (pagination.page - 1) * pagination.limit + 1;
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || Number(pageSizeSelect.value) || 20;
+    const startIndex = (page - 1) * limit;
 
-    tableBody.innerHTML = rows
-      .map((row, idx) => {
-        const rowNum = startNum + idx;
-        const juminWithAge = `${row.Jumin || ''}${row.age ? `(${row.age}세)` : ''}`;
-        const companyDisplay = row.companyName 
-          ? `${row.companyName} (${row.companyNum || ''})`
-          : (row.companyNum || '');
-        const insuranceDisplay = row.insuranceCompanyName || row.InsuranceCompany || '';
-        const rateDisplay = row.personRateFactor != null 
-          ? `${row.personRateFactor}${row.personRateName ? ` (${row.personRateName})` : ''}`
-          : '';
-        const outputDay = row.OutPutDay || '-';
-        const sagoLabel = mapSagoLabel(row.sago);
-        const sagoClickable = String(row.sago || '1') === '2';
+    tableBody.innerHTML = rows.map((row, idx) => {
+      const displayIndex = startIndex + idx + 1;
+      const juminText = (row.Jumin || '') + (row.age ? `(${row.age}세)` : '');
+      const companyText = (row.companyName || '') + (row.companyNum ? ` (${row.companyNum})` : '');
+      const insurerText = row.insuranceCompanyName || row.InsuranceCompany || '';
+      const discountText = (row.personRateFactor != null ? row.personRateFactor : '') +
+        (row.personRateName ? ` (${row.personRateName})` : '');
+      const inputDay = row.InputDay || '';
+      const outputDay = row.OutPutDay || '-';
 
-        return `
-          <tr>
-            <td>${rowNum}</td>
-            <td>${row.Name || ''}</td>
-            <td class="d-none d-lg-table-cell">${juminWithAge}</td>
-            <td>${renderStatusCell(row)}</td>
-            <td class="d-none d-lg-table-cell">${renderEtagSelect(row)}</td>
-            <td>
-              <a href="#" class="text-primary" 
-                 data-role="open-company-modal" 
-                 data-company-num="${row.companyNum || ''}" 
-                 data-company-name="${row.companyName || ''}">
-                ${companyDisplay}
-              </a>
-            </td>
-            <td>${insuranceDisplay}</td>
-            <td>${row.policyNum || ''}</td>
-            <td>${rateDisplay}</td>
-            <td>${row.InputDay || ''}</td>
-            <td>${outputDay}</td>
-            <td>
-              ${sagoClickable 
-                ? `<a href="#" class="text-danger" data-role="open-accident-modal" data-num="${row.num}" data-jumin="${row.Jumin || ''}" data-policy="${row.policyNum || ''}">${sagoLabel}</a>`
-                : sagoLabel
-              }
-            </td>
-          </tr>
-        `;
-      })
-      .join('');
-
-    // 이벤트 위임: 상태 select 변경
-    tableBody.querySelectorAll('[data-role="status-select"]').forEach(select => {
-      select.addEventListener('change', (e) => {
-        const num = e.target.dataset.num;
-        const newPush = e.target.value;
-        console.log(`상태 변경: num=${num}, push=${newPush}`);
-        // TODO: API 호출로 상태 업데이트
-      });
-    });
-
-    // 이벤트 위임: 증권성격 select 변경
-    tableBody.querySelectorAll('[data-role="etag-select"]').forEach(select => {
-      select.addEventListener('change', (e) => {
-        const num = e.target.dataset.num;
-        const newEtag = e.target.value;
-        console.log(`증권성격 변경: num=${num}, etag=${newEtag}`);
-        // TODO: API 호출로 증권성격 업데이트
-      });
-    });
+      return `
+        <tr>
+          <td class="text-center">${displayIndex}</td>
+          <td>${row.Name ?? ''}</td>
+          <td class="d-none d-lg-table-cell">${juminText}</td>
+          <td>${renderStatusCell(row)}</td>
+          <td class="d-none d-lg-table-cell">${renderEtagSelect(row)}</td>
+          <td>
+            <a href="#" class="driver-company-link"
+               data-role="open-company-modal"
+               data-company-num="${row.companyNum}"
+               data-company-name="${row.companyName || ''}">
+               ${companyText}
+            </a>
+          </td>
+          <td>${insurerText}</td>
+          <td>${row.policyNum ?? ''}</td>
+          <td>${discountText}</td>
+          <td class="d-none d-lg-table-cell">${renderPhoneCell(row)}</td>
+          <td class="d-none d-lg-table-cell">${inputDay}</td>
+          <td class="d-none d-lg-table-cell">${outputDay}</td>
+          <td>${renderSagoSelect(row)}</td>
+        </tr>
+      `;
+    }).join('');
   };
 
   // ==================== 모바일 카드 렌더링 ====================
@@ -190,15 +195,14 @@
           ? `${row.personRateFactor} (${row.personRateName || ''})`
           : '';
         const outputDay = row.OutPutDay || '-';
-        const sagoLabel = mapSagoLabel(row.sago);
-        const sagoClickable = String(row.sago || '1') === '2';
+        const pushLabel = mapPushLabel(row.push);
 
         return `
           <div class="card mb-2">
             <div class="card-body">
               <div class="d-flex justify-content-between mb-2">
                 <div><strong>${row.Name || ''}</strong></div>
-                <div class="text-muted">${mapPushLabel(row.push)}</div>
+                <div class="text-muted">${pushLabel}</div>
               </div>
               <div class="small text-muted mb-1">주민번호: ${juminWithAge}</div>
               <div class="small mb-1">증권번호: ${row.policyNum || ''}</div>
@@ -207,13 +211,9 @@
                 보험사: ${insuranceDisplay}
               </div>
               <div class="text-muted small mb-1">할인할증: ${rateDisplay}</div>
+              <div class="text-muted small mb-1">핸드폰: ${row.Hphone || ''}</div>
               <div class="text-muted small mb-1">등록일: ${row.InputDay || ''} / 해지일: ${outputDay}</div>
-              <div class="text-muted small">
-                사고: ${sagoClickable 
-                  ? `<a href="#" class="text-danger" data-role="open-accident-modal" data-num="${row.num}" data-jumin="${row.Jumin || ''}" data-policy="${row.policyNum || ''}">${sagoLabel}</a>`
-                  : sagoLabel
-                }
-              </div>
+              <div class="text-muted small">사고: ${mapSagoLabel(row.sago)}</div>
             </div>
           </div>
         `;
@@ -331,7 +331,100 @@
     }, 500);
   };
 
-  // 이벤트 위임: 모달 트리거
+  // ==================== 이벤트 핸들러 ====================
+
+  // 상태 select 변경 이벤트
+  tableBody.addEventListener('change', async (e) => {
+    const target = e.target;
+    
+    // 상태 select
+    if (target.classList.contains('driver-status-select')) {
+      const num = target.dataset.num;
+      const before = Number(target.dataset.current);
+      const after = Number(target.value);
+      
+      // 정상 → 해지일 때만 서버 전송
+      if (before === 4 && after === 2) {
+        if (!confirm('해당 기사의 상태를 "해지"로 변경하시겠습니까?')) {
+          target.value = String(before);
+          return;
+        }
+        
+        try {
+          const res = await fetch('/api/insurance/kj-driver/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ num, status: after })
+          });
+          const json = await res.json();
+          if (!json.success) throw new Error(json.error || '상태 변경 실패');
+          
+          target.dataset.current = String(after);
+          alert('상태가 해지로 변경되었습니다.');
+        } catch (err) {
+          console.error(err);
+          alert('상태 변경 중 오류가 발생했습니다.');
+          target.value = String(before); // 롤백
+        }
+      } else {
+        // 그 외 변경은 아직 허용하지 않으므로 UI 롤백
+        alert('현재는 "정상 → 해지" 변경만 지원합니다.');
+        target.value = String(before);
+      }
+    }
+    
+    // 사고 select 변경
+    else if (target.classList.contains('driver-sago-select')) {
+      const num = target.dataset.num;
+      const sago = Number(target.value);
+      
+      try {
+        const res = await fetch('/api/insurance/kj-driver/sago', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ num, sago })
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || '사고 상태 저장 실패');
+      } catch (err) {
+        console.error(err);
+        alert('사고 상태 저장 중 오류가 발생했습니다.');
+      }
+    }
+  });
+
+  // 핸드폰 입력 blur 이벤트
+  tableBody.addEventListener('blur', async (e) => {
+    const target = e.target;
+    if (target.classList.contains('driver-phone-input')) {
+      const num = target.dataset.num;
+      const value = target.value.trim();
+      
+      try {
+        const res = await fetch('/api/insurance/kj-driver/phone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ num, phone: value })
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || '핸드폰 수정 실패');
+        // 성공 시 별도 알림은 생략
+      } catch (err) {
+        console.error(err);
+        alert('핸드폰 번호 저장 중 오류가 발생했습니다.');
+      }
+    }
+  }, true);
+
+  // 핸드폰 입력 Enter 키 처리
+  tableBody.addEventListener('keyup', (e) => {
+    const target = e.target;
+    if (target.classList.contains('driver-phone-input') && e.key === 'Enter') {
+      target.blur();
+    }
+  });
+
+  // 모달 트리거 이벤트 위임
   document.addEventListener('click', (e) => {
     if (e.target.matches('[data-role="open-company-modal"]')) {
       e.preventDefault();
@@ -366,7 +459,7 @@
 
     tableBody.innerHTML = `
       <tr>
-        <td colspan="12" class="text-center py-4">데이터를 불러오는 중...</td>
+        <td colspan="13" class="text-center py-4">데이터를 불러오는 중...</td>
       </tr>`;
     mobileCards.innerHTML = `<div class="text-center py-4">데이터를 불러오는 중...</div>`;
 
@@ -392,7 +485,7 @@
       console.error(err);
       tableBody.innerHTML = `
         <tr>
-          <td colspan="12" class="text-center text-danger py-4">오류가 발생했습니다.</td>
+          <td colspan="13" class="text-center text-danger py-4">오류가 발생했습니다.</td>
         </tr>`;
       mobileCards.innerHTML = `<div class="text-center text-danger py-4">오류가 발생했습니다.</div>`;
       paginationInfo.textContent = '';
@@ -427,7 +520,7 @@
   // 초기 로드에서는 자동 호출하지 않음
   tableBody.innerHTML = `
     <tr>
-      <td colspan="12" class="text-center py-4">검색어를 입력해 주세요.</td>
+      <td colspan="13" class="text-center py-4">검색어를 입력해 주세요.</td>
     </tr>`;
   mobileCards.innerHTML = `<div class="text-center py-4">검색어를 입력해 주세요.</div>`;
   paginationInfo.textContent = '';
