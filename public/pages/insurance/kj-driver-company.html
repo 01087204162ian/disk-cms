@@ -40,28 +40,26 @@
             <!-- 통합 검색/필터 영역 -->
             <div class="search-filter-row">
               <div class="row align-items-end">
-                <!-- 지역 필터 -->
+                <!-- 날짜 필터 (1-31일) -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <select id="regionFilter" class="form-control">
-                    <option value="">전체 지역</option>
-                    <option value="서울/수도권">서울/수도권</option>
-                    <option value="충청/강원">충청/강원</option>
-                    <option value="영남">영남</option>
-                    <option value="호남/제주">호남/제주</option>
+                  <label class="form-label small mb-1">청구일</label>
+                  <select id="dateFilter" class="form-control">
+                    <!-- JavaScript에서 동적으로 생성 -->
                   </select>
                 </div>
                 
-                <!-- 상태 필터 -->
+                <!-- 담당자 필터 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <select id="statusFilter" class="form-control">
-                    <option value="">전체 상태</option>
-                    <option value="활성">활성</option>
-                    <option value="중단">중단</option>
+                  <label class="form-label small mb-1">담당자</label>
+                  <select id="managerFilter" class="form-control">
+                    <option value="">전체</option>
+                    <!-- JavaScript에서 동적으로 로드 -->
                   </select>
                 </div>
                 
                 <!-- 페이지 크기 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                  <label class="form-label small mb-1">페이지 크기</label>
                   <select id="pageSize" class="form-control">
                     <option value="20" selected>20개</option>
                     <option value="50">50개</option>
@@ -71,8 +69,9 @@
                 
                 <!-- 검색 영역 -->
                 <div class="col-md-6">
+                  <label class="form-label small mb-1">검색</label>
                   <div class="input-group">
-                    <input type="text" id="search_word" class="form-control" placeholder="업체명, 사업자번호로 검색">
+                    <input type="text" id="search_word" class="form-control" placeholder="업체명으로 검색">
                     <div class="input-group-append">
                       <button class="btn btn-primary" type="button" id="search_btn">
                         <i class="fas fa-search"></i> <span class="d-none d-sm-inline">검색</span>
@@ -101,18 +100,17 @@
                 <table class="table table-bordered table-hover table-sm">
                   <thead class="thead-light">
                     <tr>
-                      <th class="col-number">#</th>
-                      <th class="col-company-name">업체명</th>
-                      <th class="col-business-number">사업자번호</th>
-                      <th class="col-manager d-none d-lg-table-cell">담당자</th>
-                      <th class="col-phone">연락처</th>
-                      <th class="col-region d-none d-lg-table-cell">지역</th>
-                      <th class="col-status">상태</th>
+                      <th class="col-kj-company-number">#</th>
+                      <th class="col-kj-company-name">업체명</th>
+                      <th class="col-kj-company-manager d-none d-lg-table-cell">담당자</th>
+                      <th class="col-kj-company-phone">연락처</th>
+                      <th class="col-kj-company-date">날짜</th>
+                      <th class="col-kj-company-count">인원</th>
                     </tr>
                   </thead>
                   <tbody id="driver_company_table_body">
                     <tr>
-                      <td colspan="7" class="text-center py-4">데이터를 불러오는 중...</td>
+                      <td colspan="6" class="text-center py-4">날짜를 선택해 주세요.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -147,6 +145,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- SJ 템플릿 로더 -->
   <script src="/js/sj-template-loader.js"></script>
+  <!-- 페이지 전용 스크립트 -->
+  <script src="/js/insurance/kj-driver-company.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async function() {
       await window.sjTemplateLoader.initializePage('kj-driver-company');

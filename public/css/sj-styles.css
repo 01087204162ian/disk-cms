@@ -2733,3 +2733,11 @@ body {
 .col-kj-phone      { width: 150px; }
 .col-kj-date       { width: 150px; }
 .col-kj-accident   { width: 140px; text-align: center; }
+
+/* ========== KJ 대리운전 업체 목록 테이블 컬럼 폭 ========== */
+.col-kj-company-number { width: 50px;  text-align: center; }
+.col-kj-company-name   { width: 250px; }
+.col-kj-company-manager { width: 120px; }
+.col-kj-company-phone  { width: 150px; }
+.col-kj-company-date   { width: 120px; }
+.col-kj-company-count  { width: 100px; text-align: center; }

@@ -32,6 +32,7 @@ const workersCompConsultationsRoutes = require('./routes/workers-comp/consultati
 
 // 보험상품 (KJ 대리운전 등)
 const kjDriverSearchRoutes = require('./routes/insurance/kj-driver-search');
+const kjDriverCompanyRoutes = require('./routes/insurance/kj-driver-company');
 
 const fieldPracticeRoutes = require('./routes/field-practice/applications'); // 현장실습보험 신청
 const fieldPracticeClaimsRoutes = require('./routes/field-practice/claims'); // 현장실습보험 클레임리스트
@@ -91,6 +92,7 @@ app.use('/api/pharmacy-reports', pharmacyReportsRoutes); // 🆕 실적
 
 // 보험상품 (KJ 대리운전 등)
 app.use('/api/insurance', kjDriverSearchRoutes);
+app.use('/api/insurance', kjDriverCompanyRoutes);
 
 // 근재보험 관련 (새로 추가)
 app.use('/api/workers-comp', workersCompApplicationsRoutes);
