@@ -25,7 +25,7 @@
     if (!rows || rows.length === 0) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="12" class="text-center py-4">데이터가 없습니다.</td>
+          <td colspan="12" class="text-center py-4">데이터가 없습니다!!.</td>
         </tr>`;
       return;
     }
