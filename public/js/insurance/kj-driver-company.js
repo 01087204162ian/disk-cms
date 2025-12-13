@@ -263,9 +263,20 @@
   // ==================== 모달 관련 ====================
 
   // 대리운전회사 모달 열기 (kj-driver-search.js와 동일한 함수)
-  const openCompanyModal = (companyNum, companyName) => {
-    const modal = new bootstrap.Modal(document.getElementById('companyInfoModal'));
+  const openCompanyModal = (companyNum, companyName, skipShow = false) => {
+    const modalElement = document.getElementById('companyInfoModal');
+    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
     const modalBody = document.getElementById('companyInfoModalBody');
+    
+    // 모달이 이미 열려있고 같은 회사 정보를 로드하는 경우 스킵
+    if (!skipShow && modalElement.classList.contains('show')) {
+      const currentCompanyNum = modalElement.dataset.currentCompanyNum;
+      if (currentCompanyNum === String(companyNum)) {
+        return; // 이미 같은 회사 정보가 로드되어 있음
+      }
+    }
+    
+    modalElement.dataset.currentCompanyNum = String(companyNum);
     
     modalBody.innerHTML = `
       <div class="text-center py-4">
@@ -276,14 +287,16 @@
       </div>
     `;
     
-    modal.show();
+    if (!skipShow) {
+      modal.show();
+    }
     
     // API 호출
     fetch(`/api/insurance/kj-company/${companyNum}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          renderCompanyModal(data, companyName);
+          renderCompanyModal(data, companyName, companyNum);
         } else {
           throw new Error(data.error || '회사 정보를 불러올 수 없습니다.');
         }
@@ -322,7 +335,7 @@
   ];
 
   // 회사 정보 모달 렌더링 (구 버전과 동일한 구조)
-  const renderCompanyModal = (data, companyName) => {
+  const renderCompanyModal = (data, companyName, companyNum) => {
     const modalBody = document.getElementById('companyInfoModalBody');
     
     const company = data;
@@ -703,10 +716,27 @@
           throw new Error(result.error || '저장 실패');
         }
         
-        alert(result.message || (isNew ? '저장되었습니다.' : '수정되었습니다.'));
+        // 성공 메시지 표시 (alert 대신 더 나은 UX)
+        const successMsg = result.message || (isNew ? '저장되었습니다.' : '수정되었습니다.');
         
-        // 모달 재조회
-        openCompanyModal(companyNum, companyName);
+        // 모달 재조회 (이미 열려있는 모달이므로 skipShow=true)
+        // 약간의 지연을 두어 사용자에게 피드백 제공
+        setTimeout(() => {
+          openCompanyModal(companyNum, companyName, true);
+        }, 300);
+        
+        // 임시 성공 메시지 표시
+        const tempMsg = document.createElement('div');
+        tempMsg.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+        tempMsg.style.zIndex = '9999';
+        tempMsg.innerHTML = `
+          <i class="fas fa-check-circle"></i> ${successMsg}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.body.appendChild(tempMsg);
+        setTimeout(() => {
+          tempMsg.remove();
+        }, 2000);
         
       } catch (err) {
         console.error('증권 정보 저장 오류:', err);
@@ -718,18 +748,39 @@
   };
 
   // 모달 트리거 이벤트 위임 (kj-driver-search.js와 동일)
+  // 성능 최적화: 이벤트 위임을 더 구체적으로 처리
   document.addEventListener('click', (e) => {
-    if (e.target.matches('[data-role="open-company-modal"]') || 
-        e.target.closest('[data-role="open-company-modal"]')) {
+    const trigger = e.target.closest('[data-role="open-company-modal"]');
+    if (trigger) {
       e.preventDefault();
-      const link = e.target.closest('[data-role="open-company-modal"]') || e.target;
-      const companyNum = link.dataset.companyNum;
-      const companyName = link.dataset.companyName;
+      e.stopPropagation();
+      const companyNum = trigger.dataset.companyNum;
+      const companyName = trigger.dataset.companyName;
       if (companyNum) {
         openCompanyModal(companyNum, companyName);
       }
     }
   });
+
+  // 모달 닫기 시 포커스 관리 개선 (접근성 문제 해결)
+  const modalElement = document.getElementById('companyInfoModal');
+  if (modalElement) {
+    modalElement.addEventListener('hidden.bs.modal', function () {
+      // 모달이 완전히 닫힌 후 포커스 정리
+      const activeElement = document.activeElement;
+      if (activeElement && activeElement.classList.contains('btn-close')) {
+        // 포커스를 모달을 열었던 트리거로 이동
+        const trigger = document.querySelector('[data-role="open-company-modal"]:focus, [data-role="open-company-modal"]');
+        if (trigger) {
+          setTimeout(() => {
+            trigger.focus();
+          }, 100);
+        }
+      }
+      // 모달 데이터 정리
+      delete modalElement.dataset.currentCompanyNum;
+    });
+  }
 
   // ==================== 초기화 실행 ====================
 
