@@ -591,10 +591,15 @@
   // ==================== 대리기사 리스트 모달 ====================
 
   // 대리기사 리스트 모달 열기
-  const openMemberListModal = (certiTableNum) => {
+  const openMemberListModal = (certiTableNum, page = 1, limit = 20) => {
     const modalElement = document.getElementById('memberListModal');
     const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
     const modalBody = document.getElementById('memberListModalBody');
+    
+    // 현재 증권 번호와 페이지 정보 저장
+    modalElement.dataset.certiTableNum = certiTableNum;
+    modalElement.dataset.currentPage = page;
+    modalElement.dataset.currentLimit = limit;
     
     modalBody.innerHTML = `
       <div class="text-center py-4">
@@ -608,11 +613,11 @@
     modal.show();
     
     // API 호출
-    fetch(`/api/insurance/kj-certi/member-list?certiTableNum=${certiTableNum}`)
+    fetch(`/api/insurance/kj-certi/member-list?certiTableNum=${certiTableNum}&page=${page}&limit=${limit}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          renderMemberListModal(data);
+          renderMemberListModal(data, certiTableNum);
         } else {
           throw new Error(data.error || '대리기사 정보를 불러올 수 없습니다.');
         }
@@ -629,10 +634,12 @@
   };
 
   // 대리기사 리스트 모달 렌더링
-  const renderMemberListModal = (data) => {
+  const renderMemberListModal = (data, certiTableNum) => {
     const modalBody = document.getElementById('memberListModalBody');
+    const modalElement = document.getElementById('memberListModal');
     const members = data.data || [];
-    const count = data.count || 0;
+    const pagination = data.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 };
+    const { page, limit, total, totalPages } = pagination;
     
     if (members.length === 0) {
       modalBody.innerHTML = `
@@ -644,9 +651,123 @@
       return;
     }
     
+    // 상태 매핑 함수
+    const mapPushLabel = (push) => {
+      const v = Number(push);
+      switch (v) {
+        case 1: return '청약중';
+        case 2: return '해지';
+        case 4: return '정상';
+        case 5: return '거절';
+        case 6: return '취소';
+        case 7: return '실효';
+        default: return '기타';
+      }
+    };
+    
+    // 보험사 코드 매핑
+    const mapInsuranceCompany = (code) => {
+      const v = Number(code);
+      switch (v) {
+        case 1: return '흥국';
+        case 2: return 'DB';
+        case 3: return 'KB';
+        case 4: return '현대';
+        case 5: return '한화';
+        case 6: return '더케이';
+        case 7: return 'MG';
+        case 8: return '삼성';
+        case 9: return '메리츠';
+        default: return '';
+      }
+    };
+    
+    // 증권성격 매핑 (기사 조회 결과와 동일)
+    const mapEtagLabel = (etag) => {
+      const v = Number(etag);
+      switch (v) {
+        case 1: return '일반';
+        case 2: return '탁송';
+        case 3: return '일반/렌트';
+        case 4: return '탁송/렌트';
+        case 5: return '전차량';
+        default: return '';
+      }
+    };
+    
+    // 페이지네이션 렌더링
+    const renderPagination = () => {
+      if (totalPages <= 1) return '';
+      
+      let paginationHtml = `
+        <div class="row mt-3">
+          <div class="col-md-6 col-12 mb-2">
+            <div class="dataTables_info">총 ${total}명 / ${page}/${totalPages} 페이지</div>
+          </div>
+          <div class="col-md-6 col-12">
+            <nav aria-label="Page navigation">
+              <ul class="pagination pagination-sm justify-content-center justify-content-md-end mb-0" id="memberListPagination">
+      `;
+      
+      // 이전 버튼
+      paginationHtml += `
+        <li class="page-item ${page === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" data-page="${page - 1}" ${page === 1 ? 'tabindex="-1" aria-disabled="true"' : ''}>‹</a>
+        </li>
+      `;
+      
+      // 페이지 번호 버튼
+      const startPage = Math.max(1, page - 2);
+      const endPage = Math.min(totalPages, page + 2);
+      
+      if (startPage > 1) {
+        paginationHtml += `
+          <li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>
+        `;
+        if (startPage > 2) {
+          paginationHtml += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+      }
+      
+      for (let p = startPage; p <= endPage; p++) {
+        paginationHtml += `
+          <li class="page-item ${p === page ? 'active' : ''}">
+            <a class="page-link" href="#" data-page="${p}">${p}</a>
+          </li>
+        `;
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          paginationHtml += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+        paginationHtml += `
+          <li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>
+        `;
+      }
+      
+      // 다음 버튼
+      paginationHtml += `
+        <li class="page-item ${page === totalPages ? 'disabled' : ''}">
+          <a class="page-link" href="#" data-page="${page + 1}" ${page === totalPages ? 'tabindex="-1" aria-disabled="true"' : ''}>›</a>
+        </li>
+      `;
+      
+      paginationHtml += `
+              </ul>
+            </nav>
+          </div>
+        </div>
+      `;
+      
+      return paginationHtml;
+    };
+    
+    const startIndex = (page - 1) * limit;
+    
     let html = `
       <div class="mb-3">
-        <h6>총 ${count}명</h6>
+        <h6>총 ${total}명</h6>
       </div>
       <div class="table-responsive">
         <table class="table table-sm table-bordered table-hover" style="font-size: 0.9rem;">
@@ -678,53 +799,12 @@
       // 주민번호 마스킹 제거 (내부 직원용)
       const juminDisplay = jumin || '';
       
-      // 상태 매핑 (기사 조회 결과와 동일)
-      const mapPushLabel = (push) => {
-        const v = Number(push);
-        switch (v) {
-          case 1: return '청약중';
-          case 2: return '해지';
-          case 4: return '정상';
-          case 5: return '거절';
-          case 6: return '취소';
-          case 7: return '실효';
-          default: return '기타';
-        }
-      };
-      
-      // 보험사 코드 매핑
-      const mapInsuranceCompany = (code) => {
-        const v = Number(code);
-        switch (v) {
-          case 1: return '흥국';
-          case 2: return 'DB';
-          case 3: return 'KB';
-          case 4: return '현대';
-          case 5: return '한화';
-          case 6: return '더케이';
-          case 7: return 'MG';
-          case 8: return '삼성';
-          case 9: return '메리츠';
-          default: return '';
-        }
-      };
-      
-      // 증권성격 매핑 (기사 조회 결과와 동일)
-      const mapEtagLabel = (etag) => {
-        const v = Number(etag);
-        switch (v) {
-          case 1: return '일반';
-          case 2: return '탁송';
-          case 3: return '일반/렌트';
-          case 4: return '탁송/렌트';
-          case 5: return '전차량';
-          default: return '';
-        }
-      };
+      // 표시 번호 (전체 순번)
+      const displayIndex = startIndex + idx + 1;
       
       html += `
         <tr class="${bgClass}">
-          <td class="text-center">${idx + 1}</td>
+          <td class="text-center">${displayIndex}</td>
           <td>${name}</td>
           <td class="text-center">${nai || ''}</td>
           <td>${juminDisplay}</td>
@@ -740,9 +820,27 @@
           </tbody>
         </table>
       </div>
+      ${renderPagination()}
     `;
     
     modalBody.innerHTML = html;
+    
+    // 페이지네이션 이벤트 핸들러
+    const paginationEl = document.getElementById('memberListPagination');
+    if (paginationEl) {
+      paginationEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        const pageLink = e.target.closest('.page-link');
+        if (!pageLink || pageLink.closest('.disabled')) return;
+        
+        const newPage = parseInt(pageLink.dataset.page);
+        if (newPage && newPage !== page) {
+          const currentCertiTableNum = modalElement.dataset.certiTableNum;
+          const currentLimit = parseInt(modalElement.dataset.currentLimit || 20);
+          openMemberListModal(currentCertiTableNum, newPage, currentLimit);
+        }
+      });
+    }
   };
 
   // ==================== 전역 노출 ====================

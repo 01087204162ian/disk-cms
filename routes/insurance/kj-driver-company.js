@@ -146,7 +146,7 @@ router.get('/kj-certi/update-nabang', async (req, res) => {
 // 증권별 대리기사 리스트 조회
 router.get('/kj-certi/member-list', async (req, res) => {
   try {
-    const { certiTableNum } = req.query;
+    const { certiTableNum, page = 1, limit = 20 } = req.query;
     
     if (!certiTableNum) {
       return res.status(400).json({
@@ -158,7 +158,7 @@ router.get('/kj-certi/member-list', async (req, res) => {
     const apiUrl = `${PHP_API_BASE_URL}/kj-certi-member-list.php`;
 
     const response = await axios.get(apiUrl, {
-      params: { certiTableNum },
+      params: { certiTableNum, page, limit },
       timeout: DEFAULT_TIMEOUT,
       headers: getDefaultHeaders(),
     });
