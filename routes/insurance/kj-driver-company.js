@@ -143,5 +143,36 @@ router.get('/kj-certi/update-nabang', async (req, res) => {
   }
 });
 
+// 증권별 대리기사 리스트 조회
+router.get('/kj-certi/member-list', async (req, res) => {
+  try {
+    const { certiTableNum } = req.query;
+    
+    if (!certiTableNum) {
+      return res.status(400).json({
+        success: false,
+        error: '증권 번호가 필요합니다.',
+      });
+    }
+
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-member-list.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: { certiTableNum },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-certi member-list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '대리기사 리스트 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

@@ -109,7 +109,7 @@
           ${isNew ? '' : `${naStateText}${giganText}`}
         </td>
         <td>
-          ${isNew ? '' : `<button class="btn btn-sm btn-outline-secondary certi-member-btn" ${certi.num ? '' : 'disabled'}>인원</button>`}
+          ${isNew ? '' : `<button class="btn btn-sm btn-outline-secondary certi-member-btn" ${certi.num ? '' : 'disabled'} data-certi-num="${certi.num || ''}" data-inwon="${certi.inwon || 0}">${certi.inwon || 0}명</button>`}
         </td>
         <td>
           ${isNew ? '' : `<button class="btn btn-sm btn-outline-success certi-new-member-btn" ${certi.num ? '' : 'disabled'}>신규</button>`}
@@ -457,6 +457,18 @@
       }
     });
 
+    // 클릭 이벤트: 인원 버튼
+    modalBody.addEventListener('click', async (e) => {
+      const memberBtn = e.target.closest('.certi-member-btn');
+      if (memberBtn && !memberBtn.disabled) {
+        const certiNum = memberBtn.dataset.certiNum;
+        if (certiNum) {
+          openMemberListModal(certiNum);
+        }
+        return;
+      }
+    });
+
     // 클릭 이벤트: 저장/수정 버튼
     modalBody.addEventListener('click', async (e) => {
       const btn = e.target.closest('.certi-save-btn');
@@ -576,12 +588,126 @@
       });
   };
 
+  // ==================== 대리기사 리스트 모달 ====================
+
+  // 대리기사 리스트 모달 열기
+  const openMemberListModal = (certiTableNum) => {
+    const modalElement = document.getElementById('memberListModal');
+    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    const modalBody = document.getElementById('memberListModalBody');
+    
+    modalBody.innerHTML = `
+      <div class="text-center py-4">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">로딩 중...</span>
+        </div>
+        <p class="mt-2">대리기사 정보를 불러오는 중...</p>
+      </div>
+    `;
+    
+    modal.show();
+    
+    // API 호출
+    fetch(`/api/insurance/kj-certi/member-list?certiTableNum=${certiTableNum}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          renderMemberListModal(data);
+        } else {
+          throw new Error(data.error || '대리기사 정보를 불러올 수 없습니다.');
+        }
+      })
+      .catch(err => {
+        console.error('대리기사 정보 로드 오류:', err);
+        modalBody.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            대리기사 정보를 불러올 수 없습니다: ${err.message}
+          </div>
+        `;
+      });
+  };
+
+  // 대리기사 리스트 모달 렌더링
+  const renderMemberListModal = (data) => {
+    const modalBody = document.getElementById('memberListModalBody');
+    const members = data.data || [];
+    const count = data.count || 0;
+    
+    if (members.length === 0) {
+      modalBody.innerHTML = `
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle"></i>
+          등록된 대리기사가 없습니다.
+        </div>
+      `;
+      return;
+    }
+    
+    let html = `
+      <div class="mb-3">
+        <h6>총 ${count}명</h6>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover" style="font-size: 0.9rem;">
+          <thead class="thead-light">
+            <tr>
+              <th style="width: 5%;">번호</th>
+              <th style="width: 15%;">이름</th>
+              <th style="width: 10%;">나이</th>
+              <th style="width: 20%;">주민번호</th>
+              <th style="width: 15%;">연락처</th>
+              <th style="width: 10%;">상태</th>
+              <th style="width: 10%;">취소</th>
+              <th style="width: 15%;">기타</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    members.forEach((member, idx) => {
+      const bgClass = idx % 2 === 0 ? 'table-light' : '';
+      const name = member.Name || '';
+      const nai = member.nai || '';
+      const jumin = member.Jumin || '';
+      const hphone = member.Hphone || '';
+      const push = member.push || '';
+      const cancel = member.cancel || '';
+      const etag = member.etag || '';
+      
+      // 주민번호 마스킹 (앞 6자리만 표시)
+      const maskedJumin = jumin ? (jumin.length > 6 ? jumin.substring(0, 6) + '-*******' : jumin) : '';
+      
+      html += `
+        <tr class="${bgClass}">
+          <td class="text-center">${idx + 1}</td>
+          <td>${name}</td>
+          <td class="text-center">${nai || ''}</td>
+          <td>${maskedJumin}</td>
+          <td>${hphone || ''}</td>
+          <td class="text-center">${push || ''}</td>
+          <td class="text-center">${cancel || ''}</td>
+          <td class="text-center">${etag || ''}</td>
+        </tr>
+      `;
+    });
+    
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    modalBody.innerHTML = html;
+  };
+
   // ==================== 전역 노출 ====================
 
   // window 객체에 모듈 노출
   window.KJCompanyModal = {
     openCompanyModal: openCompanyModal,
-    renderCompanyModal: renderCompanyModal
+    renderCompanyModal: renderCompanyModal,
+    openMemberListModal: openMemberListModal
   };
 
   // ==================== 모달 닫기 시 포커스 관리 ====================
