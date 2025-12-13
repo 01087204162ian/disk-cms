@@ -868,8 +868,65 @@
   // ==================== 배서 모달 ====================
 
   // 배서 모달 열기
+  // 배서 모달 동적 생성
+  const createEndorseModal = () => {
+    // 이미 존재하면 반환
+    let modalElement = document.getElementById('endorseModal');
+    if (modalElement) {
+      return modalElement;
+    }
+    
+    // 모달 HTML 동적 생성
+    const modalHTML = `
+      <div class="modal fade" id="endorseModal" tabindex="-1" aria-labelledby="endorseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" style="max-width: 80%;">
+          <div class="modal-content">
+            <div class="modal-header" style="background-color: #e8f5e9;">
+              <div class="d-flex justify-content-between align-items-center w-100">
+                <div>
+                  <button type="button" class="btn btn-sm btn-primary me-2" id="endorseExcelUpBtn">ExcelUp</button>
+                  <span id="endorseModalTitle" class="ms-2 fw-bold"></span>
+                </div>
+                <div class="d-flex align-items-center">
+                  <label for="endorseDate" class="me-2 mb-0 fw-bold">배서기준일</label>
+                  <input type="date" id="endorseDate" class="form-control form-control-sm" style="width: 150px;">
+                </div>
+              </div>
+            </div>
+            <div class="modal-body" id="endorseModalBody" style="max-height: 70vh; overflow-y: auto;">
+              <!-- 배서 입력 테이블이 여기에 렌더링됩니다 -->
+            </div>
+            <div class="modal-footer" style="background-color: #e8f5e9;">
+              <button type="button" class="btn btn-primary" id="endorseSaveBtn">저장</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // body에 모달 추가
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    modalElement = document.getElementById('endorseModal');
+    
+    // 이벤트 리스너 설정
+    setupEndorseModalEvents(modalElement);
+    
+    return modalElement;
+  };
+
+  // 배서 모달 이벤트 설정 (이벤트 위임 방식으로 처리하므로 여기서는 모달만 생성)
+  const setupEndorseModalEvents = (modalElement) => {
+    // 이벤트는 파일 하단의 이벤트 위임으로 처리됨
+    // 모달 생성만 수행
+  };
+
   const openEndorseModal = (certiTableNum, insurerCode, policyNum, gita) => {
-    const modalElement = document.getElementById('endorseModal');
+    // 모달이 없으면 생성
+    let modalElement = document.getElementById('endorseModal');
+    if (!modalElement) {
+      modalElement = createEndorseModal();
+    }
+    
     const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
     const modalBody = document.getElementById('endorseModalBody');
     const modalTitle = document.getElementById('endorseModalTitle');
@@ -924,7 +981,7 @@
               <th style="width: 20%;">성명</th>
               <th style="width: 25%;">주민번호</th>
               <th style="width: 20%;">핸드폰번호</th>
-              <th style="width: 30%;">탁송여부</th>
+              <th style="width: 30%;">증권성격</th>
             </tr>
           </thead>
           <tbody>
@@ -934,17 +991,17 @@
     for (let i = 0; i < 10; i++) {
       html += `
         <tr style="background-color: #ffffff;" data-endorse-row="${i}">
-          <td class="text-center">${i + 1}</td>
-          <td>
-            <input type="text" class="form-control form-control-sm endorse-name-input" data-row="${i}" placeholder="성명" style="background-color: #ffffff; border-color: #ffffff;">
+          <td class="text-center" style="padding: 0;">${i + 1}</td>
+          <td style="padding: 0;">
+            <input type="text" class="form-control form-control-sm endorse-name-input" data-row="${i}" placeholder="성명" style="background-color: #ffffff; border-color: #ffffff; border: none; width: 100%;">
           </td>
-          <td>
-            <input type="text" class="form-control form-control-sm endorse-jumin-input" data-row="${i}" placeholder="주민번호" style="background-color: #ffffff; border-color: #ffffff;">
+          <td style="padding: 0;">
+            <input type="text" class="form-control form-control-sm endorse-jumin-input" data-row="${i}" placeholder="주민번호" style="background-color: #ffffff; border-color: #ffffff; border: none; width: 100%;">
           </td>
-          <td>
-            <input type="text" class="form-control form-control-sm endorse-phone-input" data-row="${i}" placeholder="핸드폰번호" style="background-color: #ffffff; border-color: #ffffff;">
+          <td style="padding: 0;">
+            <input type="text" class="form-control form-control-sm endorse-phone-input" data-row="${i}" placeholder="핸드폰번호" style="background-color: #ffffff; border-color: #ffffff; border: none; width: 100%;">
           </td>
-          <td>
+          <td style="padding: 0;">
             <span class="form-control-plaintext">${gitaLabel}</span>
           </td>
         </tr>
