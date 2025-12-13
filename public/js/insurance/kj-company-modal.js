@@ -930,8 +930,8 @@
           <tbody>
     `;
     
-    // 15개 행 생성
-    for (let i = 0; i < 15; i++) {
+    // 10개 행 생성
+    for (let i = 0; i < 10; i++) {
       const bgClass = i % 2 === 0 ? 'table-light' : '';
       html += `
         <tr class="${bgClass}" data-endorse-row="${i}">
