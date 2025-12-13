@@ -467,6 +467,28 @@
         }
         return;
       }
+      
+      // 배서 버튼 클릭
+      const endorseBtn = e.target.closest('.certi-endorse-btn');
+      if (endorseBtn && !endorseBtn.disabled) {
+        const row = endorseBtn.closest('tr[data-row-index]');
+        if (!row) return;
+        
+        const certiNum = row.dataset.certiNum;
+        if (!certiNum) return;
+        
+        // 증권 정보 가져오기
+        const insurerSelect = row.querySelector('[data-field="InsuraneCompany"]');
+        const policyInput = row.querySelector('[data-field="policyNum"]');
+        const gitaSelect = row.querySelector('[data-field="gita"]');
+        
+        const insurerCode = insurerSelect ? Number(insurerSelect.value) : 0;
+        const policyNum = policyInput ? policyInput.value : '';
+        const gita = gitaSelect ? Number(gitaSelect.value) : 1;
+        
+        openEndorseModal(certiNum, insurerCode, policyNum, gita);
+        return;
+      }
     });
 
     // 클릭 이벤트: 저장/수정 버튼
@@ -843,13 +865,110 @@
     }
   };
 
+  // ==================== 배서 모달 ====================
+
+  // 배서 모달 열기
+  const openEndorseModal = (certiTableNum, insurerCode, policyNum, gita) => {
+    const modalElement = document.getElementById('endorseModal');
+    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    const modalBody = document.getElementById('endorseModalBody');
+    const modalTitle = document.getElementById('endorseModalTitle');
+    const endorseDateInput = document.getElementById('endorseDate');
+    
+    // 증권 정보 저장
+    modalElement.dataset.certiTableNum = certiTableNum;
+    modalElement.dataset.insurerCode = insurerCode;
+    modalElement.dataset.policyNum = policyNum;
+    modalElement.dataset.gita = gita;
+    
+    // 보험사 이름 가져오기
+    const insurerName = mapInsuranceCompany(insurerCode);
+    
+    // 모달 제목 설정
+    modalTitle.textContent = `[${insurerName}][${policyNum}]`;
+    
+    // 배서기준일 기본값: 오늘 날짜
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    endorseDateInput.value = todayStr;
+    
+    // 배서 입력 테이블 렌더링
+    renderEndorseModal(modalBody, gita);
+    
+    modal.show();
+  };
+
+  // 배서 모달 렌더링
+  const renderEndorseModal = (modalBody, gita) => {
+    // 증권성격 매핑
+    const mapGitaLabel = (gita) => {
+      const v = Number(gita);
+      switch (v) {
+        case 1: return '일반';
+        case 2: return '탁송';
+        case 3: return '일반/렌트';
+        case 4: return '탁송/렌트';
+        case 5: return '전차량';
+        default: return '일반';
+      }
+    };
+    
+    const gitaLabel = mapGitaLabel(gita);
+    
+    let html = `
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm" style="font-size: 0.9rem;">
+          <thead class="thead-light">
+            <tr>
+              <th style="width: 5%;">순번</th>
+              <th style="width: 20%;">성명</th>
+              <th style="width: 25%;">주민번호</th>
+              <th style="width: 20%;">핸드폰번호</th>
+              <th style="width: 30%;">탁송여부</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    // 15개 행 생성
+    for (let i = 0; i < 15; i++) {
+      const bgClass = i % 2 === 0 ? 'table-light' : '';
+      html += `
+        <tr class="${bgClass}" data-endorse-row="${i}">
+          <td class="text-center">${i + 1}</td>
+          <td>
+            <input type="text" class="form-control form-control-sm endorse-name-input" data-row="${i}" placeholder="성명">
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm endorse-jumin-input" data-row="${i}" placeholder="주민번호">
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm endorse-phone-input" data-row="${i}" placeholder="핸드폰번호">
+          </td>
+          <td>
+            <span class="form-control-plaintext">${gitaLabel}</span>
+          </td>
+        </tr>
+      `;
+    }
+    
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    modalBody.innerHTML = html;
+  };
+
   // ==================== 전역 노출 ====================
 
   // window 객체에 모듈 노출
   window.KJCompanyModal = {
     openCompanyModal: openCompanyModal,
     renderCompanyModal: renderCompanyModal,
-    openMemberListModal: openMemberListModal
+    openMemberListModal: openMemberListModal,
+    openEndorseModal: openEndorseModal
   };
 
   // ==================== 모달 닫기 시 포커스 관리 ====================
@@ -885,6 +1004,68 @@
       if (companyNum) {
         openCompanyModal(companyNum, companyName);
       }
+    }
+  });
+
+  // ==================== 배서 모달 이벤트 핸들러 ====================
+
+  // ExcelUp 버튼 클릭 (추후 구현)
+  document.addEventListener('click', (e) => {
+    if (e.target.id === 'endorseExcelUpBtn') {
+      e.preventDefault();
+      // TODO: Excel 파일 업로드 기능 구현
+      alert('ExcelUp 기능은 추후 구현 예정입니다.');
+    }
+  });
+
+  // 저장 버튼 클릭 (추후 구현)
+  document.addEventListener('click', (e) => {
+    if (e.target.id === 'endorseSaveBtn') {
+      e.preventDefault();
+      const modalElement = document.getElementById('endorseModal');
+      const modalBody = document.getElementById('endorseModalBody');
+      const endorseDateInput = document.getElementById('endorseDate');
+      
+      const certiTableNum = modalElement.dataset.certiTableNum;
+      const endorseDate = endorseDateInput.value;
+      
+      // 입력 데이터 수집
+      const rows = modalBody.querySelectorAll('tr[data-endorse-row]');
+      const members = [];
+      
+      rows.forEach((row, idx) => {
+        const nameInput = row.querySelector('.endorse-name-input');
+        const juminInput = row.querySelector('.endorse-jumin-input');
+        const phoneInput = row.querySelector('.endorse-phone-input');
+        
+        const name = nameInput ? nameInput.value.trim() : '';
+        const jumin = juminInput ? juminInput.value.trim() : '';
+        const phone = phoneInput ? phoneInput.value.trim() : '';
+        
+        // 입력된 행만 수집
+        if (name || jumin || phone) {
+          members.push({
+            rowIndex: idx + 1,
+            name: name,
+            jumin: jumin,
+            phone: phone
+          });
+        }
+      });
+      
+      if (members.length === 0) {
+        alert('입력된 대리기사 정보가 없습니다.');
+        return;
+      }
+      
+      // TODO: API 호출 구현
+      console.log('배서 저장 데이터:', {
+        certiTableNum,
+        endorseDate,
+        members
+      });
+      
+      alert(`배서 저장 기능은 추후 구현 예정입니다.\n입력된 대리기사: ${members.length}명`);
     }
   });
 
