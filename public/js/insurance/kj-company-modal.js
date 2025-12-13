@@ -930,20 +930,19 @@
           <tbody>
     `;
     
-    // 10개 행 생성
+    // 10개 행 생성 (배경색 하얀색으로 통일)
     for (let i = 0; i < 10; i++) {
-      const bgClass = i % 2 === 0 ? 'table-light' : '';
       html += `
-        <tr class="${bgClass}" data-endorse-row="${i}">
+        <tr style="background-color: #ffffff;" data-endorse-row="${i}">
           <td class="text-center">${i + 1}</td>
           <td>
-            <input type="text" class="form-control form-control-sm endorse-name-input" data-row="${i}" placeholder="성명">
+            <input type="text" class="form-control form-control-sm endorse-name-input" data-row="${i}" placeholder="성명" style="background-color: #ffffff; border-color: #ffffff;">
           </td>
           <td>
-            <input type="text" class="form-control form-control-sm endorse-jumin-input" data-row="${i}" placeholder="주민번호">
+            <input type="text" class="form-control form-control-sm endorse-jumin-input" data-row="${i}" placeholder="주민번호" style="background-color: #ffffff; border-color: #ffffff;">
           </td>
           <td>
-            <input type="text" class="form-control form-control-sm endorse-phone-input" data-row="${i}" placeholder="핸드폰번호">
+            <input type="text" class="form-control form-control-sm endorse-phone-input" data-row="${i}" placeholder="핸드폰번호" style="background-color: #ffffff; border-color: #ffffff;">
           </td>
           <td>
             <span class="form-control-plaintext">${gitaLabel}</span>
