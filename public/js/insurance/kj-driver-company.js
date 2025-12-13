@@ -626,7 +626,8 @@
     
     modalBody.innerHTML = html;
 
-    const companyNum = company.num || company.dNum || data.num || '';
+    // companyNum은 함수 파라미터로 이미 전달받음
+    // const companyNum = company.num || company.dNum || data.num || '';
 
     const toggleSaveState = (rowEl) => {
       if (!rowEl) return;
