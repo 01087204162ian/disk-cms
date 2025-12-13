@@ -424,7 +424,7 @@
           </td>
           <td>
             ${isNew ? '' : `
-              <select class="form-select form-select-sm certi-field" data-field="nabang_1" ${certi.num ? '' : 'disabled'}>
+              <select class="form-select form-select-sm certi-field" data-field="nabang_1" data-original-value="${certi.nabang_1 || ''}" ${certi.num ? '' : 'disabled'}>
                 ${Array.from({ length: 10 }, (_, i) => i + 1).map(v => `<option value="${v}" ${Number(certi.nabang_1) === v ? 'selected' : ''}>${v}회차</option>`).join('')}
               </select>
             `}
@@ -673,9 +673,82 @@
         toggleSaveState(row);
       }
     });
-    modalBody.addEventListener('change', (e) => {
+    modalBody.addEventListener('change', async (e) => {
       const row = e.target.closest('tr[data-row-index]');
       if (!row) return;
+      
+      // 회차 변경 처리
+      if (e.target.classList.contains('certi-field') && e.target.dataset.field === 'nabang_1') {
+        const certiNum = row.dataset.certiNum;
+        const nabsunso = e.target.value;
+        const sunso = row.dataset.rowIndex;
+        
+        if (!certiNum || !nabsunso) return;
+        
+        // 회차 변경 확인
+        if (!confirm(`${nabsunso}회차로 변경하시겠습니까?`)) {
+          // 원래 값으로 복원
+          const originalValue = e.target.dataset.originalValue || '';
+          e.target.value = originalValue;
+          return;
+        }
+        
+        // 원래 값 저장
+        if (!e.target.dataset.originalValue) {
+          e.target.dataset.originalValue = e.target.value;
+        }
+        
+        // 버튼 비활성화
+        e.target.disabled = true;
+        
+        try {
+          const response = await fetch(`/api/insurance/kj-certi/update-nabang?nabsunso=${nabsunso}&certiTableNum=${certiNum}&sunso=${sunso}`);
+          const result = await response.json();
+          
+          if (!result.success) {
+            throw new Error(result.error || '회차 변경 실패');
+          }
+          
+          // 성공 시 해당 행의 상태 업데이트
+          const naColor = result.naColor || '1';
+          const naState = result.naState || '';
+          const stateCell = row.querySelector('td:nth-child(8)'); // 상태 셀
+          
+          if (stateCell) {
+            const naStateColor = naColor == 1 ? '#666666' : (naColor == 2 ? 'red' : '#666666');
+            stateCell.style.color = naStateColor;
+            stateCell.textContent = naState;
+          }
+          
+          // 성공 메시지 표시
+          const tempMsg = document.createElement('div');
+          tempMsg.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+          tempMsg.style.zIndex = '9999';
+          tempMsg.innerHTML = `
+            <i class="fas fa-check-circle"></i> ${result.message || `${nabsunso}회차로 변경되었습니다.`}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          `;
+          document.body.appendChild(tempMsg);
+          setTimeout(() => {
+            tempMsg.remove();
+          }, 2000);
+          
+          // 원래 값 업데이트
+          e.target.dataset.originalValue = nabsunso;
+          
+        } catch (err) {
+          console.error('회차 변경 오류:', err);
+          alert('회차 변경 중 오류가 발생했습니다: ' + (err.message || '알 수 없는 오류'));
+          // 원래 값으로 복원
+          e.target.value = e.target.dataset.originalValue || '';
+        } finally {
+          e.target.disabled = false;
+        }
+        
+        return;
+      }
+      
+      // 저장 버튼 상태 토글
       if (e.target.classList.contains('certi-field') || e.target.classList.contains('insurer-select')) {
         toggleSaveState(row);
       }

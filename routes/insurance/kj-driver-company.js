@@ -111,5 +111,37 @@ router.post('/kj-certi/save', async (req, res) => {
   }
 });
 
+// 회차 변경 (납입 회차 업데이트)
+router.get('/kj-certi/update-nabang', async (req, res) => {
+  try {
+    const { nabsunso, certiTableNum, sunso } = req.query;
+    
+    if (!nabsunso || !certiTableNum) {
+      return res.status(400).json({
+        success: false,
+        error: '필수 파라미터가 누락되었습니다. (nabsunso, certiTableNum)',
+      });
+    }
+
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-update-nabang.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: { nabsunso, certiTableNum, sunso },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    // JSON 응답 그대로 전달
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-certi update-nabang proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '회차 변경 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 
