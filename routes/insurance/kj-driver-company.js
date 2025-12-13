@@ -90,5 +90,26 @@ router.get('/kj-company/:companyNum', async (req, res) => {
   }
 });
 
+// 증권 정보 저장/수정
+router.post('/kj-certi/save', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-save.php`;
+
+    const response = await axios.post(apiUrl, req.body, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-certi save proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권 정보 저장 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

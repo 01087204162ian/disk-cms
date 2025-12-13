@@ -386,7 +386,7 @@
       );
 
       return `
-        <tr class="${bgClass}" data-row-index="${idx}">
+        <tr class="${bgClass}" data-row-index="${idx}" data-certi-num="${certi.num || ''}">
           <td>${idx + 1}</td>
           <td>
             <select class="form-select form-select-sm certi-field insurer-select" data-field="InsuraneCompany">
@@ -667,14 +667,67 @@
       }
     });
 
-    // 저장/수정 클릭 후 재로딩 (실제 저장 API 연동 시 성공 콜백에 배치)
-    modalBody.addEventListener('click', (e) => {
+    // 저장/수정 클릭 시 API 호출
+    modalBody.addEventListener('click', async (e) => {
       const btn = e.target.closest('.certi-save-btn');
       if (!btn) return;
       if (btn.disabled) return;
       if (!companyNum) return;
-      // TODO: 저장 API 연동 필요. 현재는 저장 후 재조회만 수행.
-      openCompanyModal(companyNum, companyName);
+      
+      const row = btn.closest('tr[data-row-index]');
+      if (!row) return;
+      
+      const insurer = row.querySelector('[data-field="InsuraneCompany"]');
+      const starty = row.querySelector('[data-field="startyDay"]');
+      const policy = row.querySelector('[data-field="policyNum"]');
+      const nabang = row.querySelector('[data-field="nabang"]');
+      
+      if (!insurer || !starty || !policy || !nabang) return;
+      
+      const certiNum = row.dataset.certiNum || '';
+      const isNew = btn.dataset.isNew === 'true';
+      
+      // 저장 전 확인
+      if (!confirm(isNew ? '증권 정보를 저장하시겠습니까?' : '증권 정보를 수정하시겠습니까?')) {
+        return;
+      }
+      
+      // 버튼 비활성화
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = '저장 중...';
+      
+      try {
+        const response = await fetch('/api/insurance/kj-certi/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            certiNum: certiNum || undefined,
+            companyNum: companyNum,
+            InsuraneCompany: insurer.value,
+            startyDay: starty.value,
+            policyNum: policy.value,
+            nabang: nabang.value
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || '저장 실패');
+        }
+        
+        alert(result.message || (isNew ? '저장되었습니다.' : '수정되었습니다.'));
+        
+        // 모달 재조회
+        openCompanyModal(companyNum, companyName);
+        
+      } catch (err) {
+        console.error('증권 정보 저장 오류:', err);
+        alert('저장 중 오류가 발생했습니다: ' + (err.message || '알 수 없는 오류'));
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     });
   };
 
