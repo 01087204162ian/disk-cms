@@ -658,7 +658,7 @@
               <th style="width: 20%;">주민번호</th>
               <th style="width: 15%;">연락처</th>
               <th style="width: 10%;">상태</th>
-              <th style="width: 10%;">취소</th>
+              <th style="width: 10%;">보험사</th>
               <th style="width: 15%;">기타</th>
             </tr>
           </thead>
@@ -671,23 +671,67 @@
       const nai = member.nai || '';
       const jumin = member.Jumin || '';
       const hphone = member.Hphone || '';
-      const push = member.push || '';
-      const cancel = member.cancel || '';
-      const etag = member.etag || '';
+      const push = Number(member.push || 0);
+      const insuranceCompany = Number(member.InsuranceCompany || 0);
+      const etag = Number(member.etag || 0);
       
-      // 주민번호 마스킹 (앞 6자리만 표시)
-      const maskedJumin = jumin ? (jumin.length > 6 ? jumin.substring(0, 6) + '-*******' : jumin) : '';
+      // 주민번호 마스킹 제거 (내부 직원용)
+      const juminDisplay = jumin || '';
+      
+      // 상태 매핑 (기사 조회 결과와 동일)
+      const mapPushLabel = (push) => {
+        const v = Number(push);
+        switch (v) {
+          case 1: return '청약중';
+          case 2: return '해지';
+          case 4: return '정상';
+          case 5: return '거절';
+          case 6: return '취소';
+          case 7: return '실효';
+          default: return '기타';
+        }
+      };
+      
+      // 보험사 코드 매핑
+      const mapInsuranceCompany = (code) => {
+        const v = Number(code);
+        switch (v) {
+          case 1: return '흥국';
+          case 2: return 'DB';
+          case 3: return 'KB';
+          case 4: return '현대';
+          case 5: return '한화';
+          case 6: return '더케이';
+          case 7: return 'MG';
+          case 8: return '삼성';
+          case 9: return '메리츠';
+          default: return '';
+        }
+      };
+      
+      // 증권성격 매핑 (기사 조회 결과와 동일)
+      const mapEtagLabel = (etag) => {
+        const v = Number(etag);
+        switch (v) {
+          case 1: return '일반';
+          case 2: return '탁송';
+          case 3: return '일반/렌트';
+          case 4: return '탁송/렌트';
+          case 5: return '전차량';
+          default: return '';
+        }
+      };
       
       html += `
         <tr class="${bgClass}">
           <td class="text-center">${idx + 1}</td>
           <td>${name}</td>
           <td class="text-center">${nai || ''}</td>
-          <td>${maskedJumin}</td>
+          <td>${juminDisplay}</td>
           <td>${hphone || ''}</td>
-          <td class="text-center">${push || ''}</td>
-          <td class="text-center">${cancel || ''}</td>
-          <td class="text-center">${etag || ''}</td>
+          <td class="text-center">${mapPushLabel(push)}</td>
+          <td class="text-center">${mapInsuranceCompany(insuranceCompany)}</td>
+          <td class="text-center">${mapEtagLabel(etag)}</td>
         </tr>
       `;
     });
