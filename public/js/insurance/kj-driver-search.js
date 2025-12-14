@@ -62,13 +62,14 @@
   const renderStatusCell = (row) => {
     const push = Number(row.push);
     const cancel = row.cancel;
+    const sangtae = row.sangtae;
     
-    // push=4이고 cancel=42이면 "해지중" 표시
-    if (push === 4 && cancel === '42') {
+    // push=4이고 cancel=42이고 sangtae=1이면 "해지중" 표시 (배서 신청 상태)
+    if (push === 4 && cancel === '42' && sangtae === '1') {
       return `<span>해지중</span>`;
     }
     
-    // 정상일 때만 select 제공
+    // 정상일 때만 select 제공 (sangtae가 1이 아니거나 cancel이 42가 아닌 경우)
     if (push === 4) {
       return `
         <select class="form-select form-select-sm driver-status-select"
