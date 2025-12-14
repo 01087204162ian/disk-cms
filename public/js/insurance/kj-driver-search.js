@@ -10,6 +10,7 @@
   const searchTypeFilter = document.getElementById('searchTypeFilter');
   const statusFilter = document.getElementById('statusFilter');
   const pageSizeSelect = document.getElementById('pageSize');
+  const terminationDateInput = document.getElementById('terminationDate');
   const searchInput = document.getElementById('search_word');
   const searchBtn = document.getElementById('search_btn');
 
@@ -362,9 +363,14 @@
           const insuranceCompany = row.dataset.insuranceCompany;
           const policyNum = row.dataset.policyNum;
           
-          // 오늘 날짜 (YYYY-MM-DD)
-          const today = new Date();
-          const endorseDay = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          // 해지기준일 가져오기 (사용자가 선택한 날짜)
+          let endorseDay = terminationDateInput.value;
+          
+          // 해지기준일이 선택되지 않았으면 오늘 날짜 사용
+          if (!endorseDay) {
+            const today = new Date();
+            endorseDay = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          }
           
           // 로그인 사용자 이름 가져오기
           const userName = (window.sjTemplateLoader && window.sjTemplateLoader.user && window.sjTemplateLoader.user.name) 
@@ -607,6 +613,13 @@
     currentPage = 1;
     fetchList();
   });
+
+  // 해지기준일 기본값 설정 (오늘 날짜)
+  if (terminationDateInput) {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    terminationDateInput.value = todayStr;
+  }
 
   // 초기 로드에서는 자동 호출하지 않음
   tableBody.innerHTML = `
