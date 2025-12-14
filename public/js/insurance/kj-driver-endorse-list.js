@@ -116,7 +116,7 @@
     // 로딩 상태 표시
     tableBody.innerHTML = `
       <tr>
-        <td colspan="11" class="text-center py-4">
+        <td colspan="19" class="text-center py-4">
           <div class="spinner-border spinner-border-sm" role="status">
             <span class="visually-hidden">로딩 중...</span>
           </div>
@@ -159,7 +159,7 @@
       console.error(err);
       tableBody.innerHTML = `
         <tr>
-          <td colspan="11" class="text-center text-danger py-4">오류가 발생했습니다: ${err.message}</td>
+          <td colspan="19" class="text-center text-danger py-4">오류가 발생했습니다: ${err.message}</td>
         </tr>`;
       mobileCards.innerHTML = `<div class="text-center text-danger py-4">오류가 발생했습니다: ${err.message}</div>`;
       paginationInfo.textContent = '';
@@ -180,7 +180,7 @@
     if (rows.length === 0) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="11" class="text-center py-4">조회된 데이터가 없습니다.</td>
+          <td colspan="19" class="text-center py-4">조회된 데이터가 없습니다.</td>
         </tr>
       `;
       return;
@@ -197,16 +197,24 @@
       html += `
         <tr>
           <td class="text-center">${rowNum}</td>
-          <td>${row.policyNum || row.policy_num || ''}</td>
-          <td>${row.endorseNum || row.endorse_num || ''}</td>
-          <td>${row.insuranceCom || row.insurance_com || ''}</td>
-          <td>${row.endorseDay || row.endorse_day || ''}</td>
-          <td class="${statusClass}">${statusText}</td>
-          <td>${row.manager || row.writer || ''}</td>
+          <td>${row.manager || row.damdanja || row.writer || ''}</td>
           <td>${row.companyName || row.company_name || row.dName || ''}</td>
           <td>${row.name || row.Name || ''}</td>
           <td>${row.jumin || row.Jumin || ''}</td>
           <td>${row.phone || row.Hphone || ''}</td>
+          <td>${row.progressStep || row.progress_step || row.sangtae || ''}</td>
+          <td>${row.manager || row.manager_name || ''}</td>
+          <td>${row.standardDate || row.standard_date || row.endorseDay || row.endorse_day || ''}</td>
+          <td>${row.applicationDate || row.application_date || row.wdate || ''}</td>
+          <td>${row.policyNum || row.policy_num || ''}</td>
+          <td>${row.certiType || row.certi_type || row.etag || ''}</td>
+          <td>${row.rate || row.yoryul || ''}</td>
+          <td class="${statusClass}">${statusText}</td>
+          <td>${row.endorseProcess || row.endorse_process || ''}</td>
+          <td>${row.insuranceCom || row.insurance_com || ''}</td>
+          <td>${row.premium || row.보험료 || ''}</td>
+          <td>${row.cPremium || row.c_premium || row.c보험료 || ''}</td>
+          <td>${row.duplicate || row.duplicate_yn || row.중복여부 || ''}</td>
         </tr>
       `;
     });
