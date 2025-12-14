@@ -61,6 +61,12 @@
   // 상태 컬럼 렌더링 (push=4면 select, 그 외 텍스트)
   const renderStatusCell = (row) => {
     const push = Number(row.push);
+    const cancel = row.cancel;
+    
+    // push=4이고 cancel=42이면 "해지중" 표시
+    if (push === 4 && cancel === '42') {
+      return `<span>해지중</span>`;
+    }
     
     // 정상일 때만 select 제공
     if (push === 4) {
