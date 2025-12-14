@@ -1854,6 +1854,36 @@
             return; // 저장 중단
           }
           
+          // 주민번호 유효성 검사
+          if (jumin.length === 13) {
+            const validateFunc = typeof validateJumin === 'function' ? validateJumin : 
+                                (typeof window !== 'undefined' && typeof window.validateJumin === 'function' ? window.validateJumin : null);
+            
+            if (validateFunc) {
+              // 하이픈이 포함된 원본 값으로 검증
+              const juminWithHyphen = juminInput.value.trim();
+              const validation = validateFunc(juminWithHyphen);
+              
+              if (!validation.valid) {
+                alert(`"${name}"님의 주민번호가 유효하지 않습니다.\n${validation.message}\n\n저장할 수 없습니다.`);
+                if (juminInput) {
+                  juminInput.focus();
+                  juminInput.select();
+                }
+                return; // 저장 중단
+              }
+            } else {
+              console.warn('[배서 저장] validateJumin 함수를 찾을 수 없습니다. 주민번호 유효성 검사를 건너뜁니다.');
+            }
+          } else {
+            alert(`"${name}"님의 주민번호가 13자리가 아닙니다.\n\n저장할 수 없습니다.`);
+            if (juminInput) {
+              juminInput.focus();
+              juminInput.select();
+            }
+            return; // 저장 중단
+          }
+          
           members.push({
             name: name,
             juminNo: jumin,
