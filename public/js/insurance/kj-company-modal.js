@@ -1204,33 +1204,56 @@
             
             if (validation.valid) {
               console.log('[주민번호 입력] 유효한 주민번호 - 초록색 표시 및 다음 필드로 이동');
-              e.target.style.borderColor = '#28a745'; // 초록색으로 표시
+              // 스타일 강제 적용
+              e.target.style.setProperty('border-color', '#28a745', 'important');
+              e.target.style.setProperty('border-width', '2px', 'important');
+              e.target.style.setProperty('border-style', 'solid', 'important');
               e.target.title = '';
+              e.target.classList.add('is-valid');
+              e.target.classList.remove('is-invalid');
               
               // 다음 입력 필드(전화번호)로 포커스 이동
               const row = e.target.closest('tr[data-endorse-row]');
               console.log('[주민번호 입력] 현재 행 찾기:', row);
+              console.log('[주민번호 입력] 현재 행의 data-endorse-row:', row ? row.getAttribute('data-endorse-row') : '없음');
               
               if (row) {
                 const phoneInput = row.querySelector('.endorse-phone-input');
                 console.log('[주민번호 입력] 전화번호 입력 필드 찾기:', phoneInput);
+                console.log('[주민번호 입력] 전화번호 입력 필드 클래스:', phoneInput ? phoneInput.className : '없음');
                 
                 if (phoneInput) {
-                  console.log('[주민번호 입력] 전화번호 입력 필드로 포커스 이동 예정');
+                  console.log('[주민번호 입력] 전화번호 입력 필드로 포커스 이동 예정 (150ms 후)');
+                  // input 이벤트가 완전히 처리된 후 포커스 이동
                   setTimeout(() => {
-                    phoneInput.focus();
-                    console.log('[주민번호 입력] 전화번호 입력 필드로 포커스 이동 완료');
-                  }, 100);
+                    try {
+                      phoneInput.focus();
+                      console.log('[주민번호 입력] ✅ 전화번호 입력 필드로 포커스 이동 완료');
+                      console.log('[주민번호 입력] 현재 포커스된 요소:', document.activeElement);
+                    } catch (err) {
+                      console.error('[주민번호 입력] 포커스 이동 실패:', err);
+                    }
+                  }, 150);
                 } else {
-                  console.warn('[주민번호 입력] 전화번호 입력 필드를 찾을 수 없습니다.');
+                  console.warn('[주민번호 입력] ⚠️ 전화번호 입력 필드를 찾을 수 없습니다.');
+                  console.warn('[주민번호 입력] 행 내부 요소들:', row.querySelectorAll('input'));
                 }
               } else {
-                console.warn('[주민번호 입력] 현재 행을 찾을 수 없습니다.');
+                console.warn('[주민번호 입력] ⚠️ 현재 행을 찾을 수 없습니다.');
+                console.warn('[주민번호 입력] e.target:', e.target);
+                console.warn('[주민번호 입력] e.target.parentElement:', e.target.parentElement);
               }
             } else {
               console.log('[주민번호 입력] 무효한 주민번호 - 빨간색 표시:', validation.message);
-              e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
+              // 스타일 강제 적용
+              e.target.style.setProperty('border-color', '#dc3545', 'important');
+              e.target.style.setProperty('border-width', '2px', 'important');
+              e.target.style.setProperty('border-style', 'solid', 'important');
               e.target.title = validation.message;
+              e.target.classList.add('is-invalid');
+              e.target.classList.remove('is-valid');
+              console.log('[주민번호 입력] 스타일 적용 확인 - borderColor:', e.target.style.borderColor);
+              console.log('[주민번호 입력] 스타일 적용 확인 - computedStyle:', window.getComputedStyle(e.target).borderColor);
             }
           } else {
             console.error('[주민번호 입력] validateJumin 함수를 찾을 수 없습니다.');
@@ -1244,21 +1267,33 @@
           const juminParts = value.split('-');
           if (juminParts[0].length === 6 && juminParts[1].length === 7) {
             // 형식은 맞지만 아직 입력 중
-            e.target.style.borderColor = '';
+            e.target.style.removeProperty('border-color');
+            e.target.style.removeProperty('border-width');
+            e.target.style.removeProperty('border-style');
             e.target.title = '';
+            e.target.classList.remove('is-valid', 'is-invalid');
           } else {
             // 잘못된 형식
-            e.target.style.borderColor = '#dc3545';
+            e.target.style.setProperty('border-color', '#dc3545', 'important');
+            e.target.style.setProperty('border-width', '2px', 'important');
+            e.target.style.setProperty('border-style', 'solid', 'important');
             e.target.title = '주민번호 형식이 올바르지 않습니다.';
+            e.target.classList.add('is-invalid');
           }
         } else if (value.length > 0 && value.length < 14) {
           // 입력 중
-          e.target.style.borderColor = '';
+          e.target.style.removeProperty('border-color');
+          e.target.style.removeProperty('border-width');
+          e.target.style.removeProperty('border-style');
           e.target.title = '';
+          e.target.classList.remove('is-valid', 'is-invalid');
         } else if (value.length === 0) {
           // 빈 값
-          e.target.style.borderColor = '';
+          e.target.style.removeProperty('border-color');
+          e.target.style.removeProperty('border-width');
+          e.target.style.removeProperty('border-style');
           e.target.title = '';
+          e.target.classList.remove('is-valid', 'is-invalid');
         }
       });
       
@@ -1268,8 +1303,11 @@
         
         // 빈 값이면 검증하지 않음
         if (!value) {
-          e.target.style.borderColor = '';
+          e.target.style.removeProperty('border-color');
+          e.target.style.removeProperty('border-width');
+          e.target.style.removeProperty('border-style');
           e.target.title = '';
+          e.target.classList.remove('is-valid', 'is-invalid');
           return;
         }
         
@@ -1278,8 +1316,12 @@
         
         // 13자리가 아니면 오류
         if (digits.length !== 13) {
-          e.target.style.borderColor = '#dc3545';
+          console.log('[주민번호 blur] 13자리가 아님:', digits.length);
+          e.target.style.setProperty('border-color', '#dc3545', 'important');
+          e.target.style.setProperty('border-width', '2px', 'important');
+          e.target.style.setProperty('border-style', 'solid', 'important');
           e.target.title = '주민번호는 13자리여야 합니다.';
+          e.target.classList.add('is-invalid');
           return;
         }
         
@@ -1297,12 +1339,24 @@
           
           if (validation.valid) {
             console.log('[주민번호 blur] 유효한 주민번호 - 초록색 표시');
-            e.target.style.borderColor = '#28a745'; // 초록색으로 표시
+            // 스타일 강제 적용
+            e.target.style.setProperty('border-color', '#28a745', 'important');
+            e.target.style.setProperty('border-width', '2px', 'important');
+            e.target.style.setProperty('border-style', 'solid', 'important');
             e.target.title = '';
+            e.target.classList.add('is-valid');
+            e.target.classList.remove('is-invalid');
           } else {
             console.log('[주민번호 blur] 무효한 주민번호 - 빨간색 표시:', validation.message);
-            e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
+            // 스타일 강제 적용
+            e.target.style.setProperty('border-color', '#dc3545', 'important');
+            e.target.style.setProperty('border-width', '2px', 'important');
+            e.target.style.setProperty('border-style', 'solid', 'important');
             e.target.title = validation.message;
+            e.target.classList.add('is-invalid');
+            e.target.classList.remove('is-valid');
+            console.log('[주민번호 blur] 스타일 적용 확인 - borderColor:', e.target.style.borderColor);
+            console.log('[주민번호 blur] 스타일 적용 확인 - computedStyle:', window.getComputedStyle(e.target).borderColor);
           }
         } else {
           console.error('[주민번호 blur] validateJumin 함수를 찾을 수 없습니다.');
