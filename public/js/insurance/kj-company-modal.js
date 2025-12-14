@@ -501,6 +501,58 @@
         return;
       }
       
+      // 저장 버튼 상태 토글
+      if (e.target.classList.contains('certi-field') || e.target.classList.contains('insurer-select')) {
+        toggleSaveState(row);
+      }
+    });
+
+    // 클릭 이벤트: 인원 버튼
+    modalBody.addEventListener('click', async (e) => {
+      const memberBtn = e.target.closest('.certi-member-btn');
+      if (memberBtn && !memberBtn.disabled) {
+        const certiNum = memberBtn.dataset.certiNum;
+        if (certiNum) {
+          openMemberListModal(certiNum);
+        }
+        return;
+      }
+      
+      // 배서 버튼 클릭
+      const endorseBtn = e.target.closest('.certi-endorse-btn');
+      if (endorseBtn && !endorseBtn.disabled) {
+        const row = endorseBtn.closest('tr[data-row-index]');
+        if (!row) return;
+        
+        const certiNum = row.dataset.certiNum;
+        if (!certiNum) return;
+        
+        // 증권 정보 가져오기
+        const insurerSelect = row.querySelector('[data-field="InsuraneCompany"]');
+        const policyInput = row.querySelector('[data-field="policyNum"]');
+        const gitaSelect = row.querySelector('[data-field="gita"]');
+        
+        const insurerCode = insurerSelect ? Number(insurerSelect.value) : 0;
+        const policyNum = policyInput ? policyInput.value : '';
+        const gita = gitaSelect ? Number(gitaSelect.value) : 1;
+        
+        openEndorseModal(certiNum, insurerCode, policyNum, gita);
+        return;
+      }
+      
+      // 월보험료 버튼 클릭
+      const premiumBtn = e.target.closest('.certi-premium-btn');
+      if (premiumBtn && !premiumBtn.disabled) {
+        const row = premiumBtn.closest('tr[data-row-index]');
+        if (!row) return;
+        
+        const certiNum = row.dataset.certiNum;
+        if (!certiNum) return;
+        
+        openPremiumModal(certiNum);
+        return;
+      }
+      
       // 결제방식 버튼 클릭 (토글)
       const diviBtn = e.target.closest('.certi-divi-btn');
       if (diviBtn && !diviBtn.disabled) {
@@ -553,58 +605,6 @@
           diviBtn.disabled = false;
         }
         
-        return;
-      }
-      
-      // 저장 버튼 상태 토글
-      if (e.target.classList.contains('certi-field') || e.target.classList.contains('insurer-select')) {
-        toggleSaveState(row);
-      }
-    });
-
-    // 클릭 이벤트: 인원 버튼
-    modalBody.addEventListener('click', async (e) => {
-      const memberBtn = e.target.closest('.certi-member-btn');
-      if (memberBtn && !memberBtn.disabled) {
-        const certiNum = memberBtn.dataset.certiNum;
-        if (certiNum) {
-          openMemberListModal(certiNum);
-        }
-        return;
-      }
-      
-      // 배서 버튼 클릭
-      const endorseBtn = e.target.closest('.certi-endorse-btn');
-      if (endorseBtn && !endorseBtn.disabled) {
-        const row = endorseBtn.closest('tr[data-row-index]');
-        if (!row) return;
-        
-        const certiNum = row.dataset.certiNum;
-        if (!certiNum) return;
-        
-        // 증권 정보 가져오기
-        const insurerSelect = row.querySelector('[data-field="InsuraneCompany"]');
-        const policyInput = row.querySelector('[data-field="policyNum"]');
-        const gitaSelect = row.querySelector('[data-field="gita"]');
-        
-        const insurerCode = insurerSelect ? Number(insurerSelect.value) : 0;
-        const policyNum = policyInput ? policyInput.value : '';
-        const gita = gitaSelect ? Number(gitaSelect.value) : 1;
-        
-        openEndorseModal(certiNum, insurerCode, policyNum, gita);
-        return;
-      }
-      
-      // 월보험료 버튼 클릭
-      const premiumBtn = e.target.closest('.certi-premium-btn');
-      if (premiumBtn && !premiumBtn.disabled) {
-        const row = premiumBtn.closest('tr[data-row-index]');
-        if (!row) return;
-        
-        const certiNum = row.dataset.certiNum;
-        if (!certiNum) return;
-        
-        openPremiumModal(certiNum);
         return;
       }
     });
