@@ -50,35 +50,19 @@
                   </select>
                 </div>
                 
-                <!-- 두 번째 필터: 배서기준일 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <label class="form-label small mb-1">배서기준일</label>
-                  <input type="date" id="endorseDateFilter" class="form-control" value="">
-                </div>
-                
-                <!-- 세 번째 필터: 증권번호 (배서기준일 선택 후 동적 로드) -->
+                <!-- 두 번째 필터: 증권번호 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <label class="form-label small mb-1">증권번호</label>
-                  <select id="policyNumFilter" class="form-control" disabled>
+                  <select id="policyNumFilter" class="form-control">
                     <option value="">-- 증권 선택 --</option>
                   </select>
                 </div>
                 
-                <!-- 네 번째 필터: 대리운전회사 -->
+                <!-- 세 번째 필터: 대리운전회사 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <label class="form-label small mb-1">대리운전회사</label>
                   <select id="companyFilter" class="form-control" disabled>
                     <option value="">-- 대리운전회사 선택 --</option>
-                  </select>
-                </div>
-                
-                <!-- 다섯 번째 필터: 배서 종류 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <label class="form-label small mb-1">배서 종류</label>
-                  <select id="endorseTypeFilter" class="form-control">
-                    <option value="">전체</option>
-                    <option value="신규">신규</option>
-                    <option value="배서">배서</option>
                   </select>
                 </div>
                 
@@ -91,32 +75,18 @@
                     <option value="100">100개</option>
                   </select>
                 </div>
-              </div>
-              
-              <!-- 검색 버튼 -->
-              <div class="row mt-2">
-                <div class="col-12 text-end">
-                  <button class="btn btn-primary" type="button" id="searchBtn">
-                    <i class="fas fa-search"></i> 검색
-                  </button>
-                  <button class="btn btn-secondary" type="button" id="resetBtn">
-                    <i class="fas fa-redo"></i> 초기화
-                  </button>
+                
+                <!-- 통계 정보 (같은 행에 배치) -->
+                <div class="col-md-4 col-sm-12 mb-2 mb-md-0">
+                  <div class="alert alert-info mb-0 py-2" id="statsInfo">
+                    <strong>청약:</strong><span id="statsSubscription">0</span>, 
+                    <strong>해지:</strong><span id="statsCancellation">0</span>, 
+                    <strong>계:</strong><span id="statsTotal">0</span>
+                  </div>
                 </div>
               </div>
             </div>
             <!-- 통합 검색/필터 영역 끝 -->
-
-            <!-- 통계 정보 -->
-            <div class="row mt-3 mb-3">
-              <div class="col-12">
-                <div class="alert alert-info mb-0" id="statsInfo">
-                  <strong>청약:</strong><span id="statsSubscription">0</span>, 
-                  <strong>해지:</strong><span id="statsCancellation">0</span>, 
-                  <strong>계:</strong><span id="statsTotal">0</span>
-                </div>
-              </div>
-            </div>
 
             <!-- 데스크톱 테이블 -->
             <div class="desktop-table">
@@ -139,7 +109,7 @@
                   </thead>
                   <tbody id="endorseListTableBody">
                     <tr>
-                      <td colspan="11" class="text-center py-4">필터를 선택하고 검색 버튼을 클릭하세요.</td>
+                      <td colspan="11" class="text-center py-4">필터를 선택하세요.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -148,7 +118,7 @@
 
             <!-- 모바일 카드 -->
             <div class="mobile-cards" id="endorseListMobileCards">
-              <div class="text-center py-4">필터를 선택하고 검색 버튼을 클릭하세요.</div>
+              <div class="text-center py-4">필터를 선택하세요.</div>
             </div>
 
             <!-- 페이징 -->

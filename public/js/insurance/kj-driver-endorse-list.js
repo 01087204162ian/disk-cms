@@ -12,13 +12,9 @@
 
   // 필터 요소
   const statusFilter = document.getElementById('statusFilter');
-  const endorseDateFilter = document.getElementById('endorseDateFilter');
   const policyNumFilter = document.getElementById('policyNumFilter');
   const companyFilter = document.getElementById('companyFilter');
-  const endorseTypeFilter = document.getElementById('endorseTypeFilter');
   const pageSizeSelect = document.getElementById('pageSize');
-  const searchBtn = document.getElementById('searchBtn');
-  const resetBtn = document.getElementById('resetBtn');
 
   // 통계 정보
   const statsSubscription = document.getElementById('statsSubscription');
@@ -32,31 +28,14 @@
 
   // ==================== 초기화 ====================
 
-  // 배서기준일 기본값 설정 (오늘 날짜)
-  const initEndorseDate = () => {
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    endorseDateFilter.value = todayStr;
-    // 배서기준일이 설정되면 증권번호 목록 로드
-    loadPolicyNumList();
-  };
-
-  // 배서기준일 변경 시 증권번호 목록 로드
+  // 증권번호 목록 로드 (초기 로드)
   const loadPolicyNumList = async () => {
-    const endorseDay = endorseDateFilter.value;
-    if (!endorseDay) {
-      policyNumFilter.innerHTML = '<option value="">-- 증권 선택 --</option>';
-      policyNumFilter.disabled = true;
-      companyFilter.disabled = true;
-      return;
-    }
-
     try {
       policyNumFilter.disabled = true;
       policyNumFilter.innerHTML = '<option value="">로딩 중...</option>';
 
-      // API 호출: 배서기준일로 신청된 증권번호 목록 조회
-      const response = await fetch(`/api/insurance/kj-endorse/policy-list?endorseDay=${endorseDay}`);
+      // API 호출: 증권번호 목록 조회
+      const response = await fetch(`/api/insurance/kj-endorse/policy-list`);
       const json = await response.json();
 
       if (!json.success) {
@@ -77,29 +56,18 @@
         policyNumFilter.innerHTML = '<option value="">-- 증권 없음 --</option>';
         policyNumFilter.disabled = true;
       }
-
-      // 증권번호가 없으면 대리운전회사 필터도 비활성화
-      if (json.data && json.data.length === 0) {
-        companyFilter.disabled = true;
-        companyFilter.innerHTML = '<option value="">-- 대리운전회사 선택 --</option>';
-      } else {
-        // 증권번호가 있으면 대리운전회사 목록도 로드
-        loadCompanyList();
-      }
     } catch (error) {
       console.error('증권번호 목록 로드 오류:', error);
       policyNumFilter.innerHTML = '<option value="">-- 오류 발생 --</option>';
       policyNumFilter.disabled = true;
-      companyFilter.disabled = true;
     }
   };
 
   // 증권번호 선택 시 대리운전회사 목록 로드
   const loadCompanyList = async () => {
-    const endorseDay = endorseDateFilter.value;
     const policyNum = policyNumFilter.value;
 
-    if (!endorseDay || !policyNum) {
+    if (!policyNum) {
       companyFilter.innerHTML = '<option value="">-- 대리운전회사 선택 --</option>';
       companyFilter.disabled = true;
       return;
@@ -109,8 +77,8 @@
       companyFilter.disabled = true;
       companyFilter.innerHTML = '<option value="">로딩 중...</option>';
 
-      // API 호출: 배서기준일과 증권번호로 대리운전회사 목록 조회
-      const response = await fetch(`/api/insurance/kj-endorse/company-list?endorseDay=${endorseDay}&policyNum=${policyNum}`);
+      // API 호출: 증권번호로 대리운전회사 목록 조회
+      const response = await fetch(`/api/insurance/kj-endorse/company-list?policyNum=${policyNum}`);
       const json = await response.json();
 
       if (!json.success) {
@@ -142,16 +110,8 @@
 
   const fetchList = async () => {
     const push = statusFilter.value || '';
-    const endorseDay = endorseDateFilter.value || '';
     const policyNum = policyNumFilter.value || '';
     const companyNum = companyFilter.value || '';
-    const endorseType = endorseTypeFilter.value || '';
-
-    // 필수 필터 검증
-    if (!endorseDay) {
-      alert('배서기준일을 선택해주세요.');
-      return;
-    }
 
     // 로딩 상태 표시
     tableBody.innerHTML = `
@@ -171,10 +131,8 @@
     params.append('page', currentPage);
     params.append('limit', currentLimit);
     if (push) params.append('push', push);
-    if (endorseDay) params.append('endorseDay', endorseDay);
     if (policyNum) params.append('policyNum', policyNum);
     if (companyNum) params.append('companyNum', companyNum);
-    if (endorseType) params.append('endorseType', endorseType);
 
     try {
       const res = await fetch(`/api/insurance/kj-endorse/list?${params.toString()}`);
@@ -365,47 +323,30 @@
 
   // ==================== 이벤트 바인딩 ====================
 
-  // 배서기준일 변경 시 증권번호 목록 로드
-  endorseDateFilter?.addEventListener('change', () => {
-    loadPolicyNumList();
-    // 증권번호가 변경되면 대리운전회사도 초기화
-    companyFilter.innerHTML = '<option value="">-- 대리운전회사 선택 --</option>';
-    companyFilter.disabled = true;
-  });
-
-  // 증권번호 변경 시 대리운전회사 목록 로드
-  policyNumFilter?.addEventListener('change', () => {
-    loadCompanyList();
-  });
-
-  // 검색 버튼
-  searchBtn?.addEventListener('click', () => {
+  // 상태 필터 변경 시 자동 검색
+  statusFilter?.addEventListener('change', () => {
     currentPage = 1;
     fetchList();
   });
 
-  // 초기화 버튼
-  resetBtn?.addEventListener('click', () => {
-    statusFilter.value = '';
-    initEndorseDate();
-    policyNumFilter.innerHTML = '<option value="">-- 증권 선택 --</option>';
-    policyNumFilter.disabled = true;
+  // 증권번호 변경 시 대리운전회사 목록 로드 및 자동 검색
+  policyNumFilter?.addEventListener('change', () => {
+    // 대리운전회사 초기화
     companyFilter.innerHTML = '<option value="">-- 대리운전회사 선택 --</option>';
     companyFilter.disabled = true;
-    endorseTypeFilter.value = '';
-    pageSizeSelect.value = '20';
-    currentPage = 1;
-    currentLimit = 20;
     
-    tableBody.innerHTML = `
-      <tr>
-        <td colspan="11" class="text-center py-4">필터를 선택하고 검색 버튼을 클릭하세요.</td>
-      </tr>
-    `;
-    mobileCards.innerHTML = `<div class="text-center py-4">필터를 선택하고 검색 버튼을 클릭하세요.</div>`;
-    paginationInfo.textContent = '';
-    paginationControls.innerHTML = '';
-    updateStats({ subscription: 0, cancellation: 0, total: 0 });
+    if (policyNumFilter.value) {
+      loadCompanyList();
+    }
+    
+    currentPage = 1;
+    fetchList();
+  });
+
+  // 대리운전회사 변경 시 자동 검색
+  companyFilter?.addEventListener('change', () => {
+    currentPage = 1;
+    fetchList();
   });
 
   // 페이지 크기 변경
@@ -415,7 +356,7 @@
     fetchList();
   });
 
-  // 초기화
-  initEndorseDate();
+  // 초기화: 증권번호 목록 로드
+  loadPolicyNumList();
 })();
 
