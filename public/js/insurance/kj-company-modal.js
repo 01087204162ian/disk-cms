@@ -1262,8 +1262,28 @@
           const nextRow = modalBody.querySelector(`tr[data-premium-row="${rowIndex + 1}"]`);
           if (nextRow) {
             const nextAgeStart = nextRow.querySelector(`.premium-age-start[data-row="${rowIndex + 1}"]`);
-            if (nextAgeStart && !nextAgeStart.value) {
-              nextAgeStart.value = ageEnd + 1;
+            if (nextAgeStart) {
+              // 다음 행의 시작이 비어있거나 현재 행의 끝+1과 다르면 자동 설정
+              const nextStartValue = parseInt(nextAgeStart.value);
+              const expectedNextStart = ageEnd + 1;
+              if (!nextAgeStart.value || nextStartValue !== expectedNextStart) {
+                nextAgeStart.value = expectedNextStart;
+              }
+            }
+          }
+        } else if (!ageEnd || isNaN(ageEnd)) {
+          // 나이 끝이 비어있거나 유효하지 않으면 다음 행의 시작도 비우기
+          if (rowIndex < 6) {
+            const nextRow = modalBody.querySelector(`tr[data-premium-row="${rowIndex + 1}"]`);
+            if (nextRow) {
+              const nextAgeStart = nextRow.querySelector(`.premium-age-start[data-row="${rowIndex + 1}"]`);
+              if (nextAgeStart) {
+                // 다음 행의 시작이 현재 행의 끝+1과 같으면 비우기
+                const currentStart = parseInt(row.querySelector('.premium-age-start')?.value);
+                if (currentStart && nextAgeStart.value == currentStart + 1) {
+                  nextAgeStart.value = '';
+                }
+              }
             }
           }
         }
