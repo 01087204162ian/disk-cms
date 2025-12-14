@@ -1109,8 +1109,14 @@
           const policyNum = data.policyNum || '';
           modalTitle.textContent = `${companyName} 증권번호 ${policyNum}`;
           
+          // 데이터 유무 확인 (저장 버튼 레이블용)
+          const hasData = data.data && data.data.some(row => 
+            row.ageStart || row.ageEnd || row.monthlyBasic || row.monthlySpecial || 
+            row.yearlyBasic || row.yearlySpecial
+          );
+          
           // 테이블 렌더링
-          renderPremiumModal(modalBody, data.data || []);
+          renderPremiumModal(modalBody, data.data || [], hasData);
         } else {
           throw new Error(data.error || '보험료 정보를 불러올 수 없습니다.');
         }
@@ -1127,7 +1133,12 @@
   };
 
   // 월보험료 모달 렌더링
-  const renderPremiumModal = (modalBody, premiumData) => {
+  const renderPremiumModal = (modalBody, premiumData, hasData = false) => {
+    // 저장 버튼 레이블 변경
+    const saveBtn = document.getElementById('premiumSaveBtn');
+    if (saveBtn) {
+      saveBtn.textContent = hasData ? '수정' : '저장';
+    }
     let html = `
       <div class="table-responsive">
         <table class="table table-bordered table-sm" style="font-size: 0.9rem;">
@@ -1152,17 +1163,32 @@
           <tbody>
     `;
     
+    // 숫자 포맷팅 함수 (천단위 컴마)
+    const formatNumber = (value) => {
+      if (!value && value !== 0) return '';
+      const num = typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) : value;
+      return isNaN(num) ? '' : num.toLocaleString();
+    };
+    
+    // 숫자 값 추출 함수 (컴마 제거)
+    const getNumberValue = (value) => {
+      if (!value && value !== 0) return '';
+      const num = typeof value === 'string' ? value.replace(/,/g, '') : value;
+      return num;
+    };
+    
     // 7개 행 생성 (6개 데이터 + 1개 빈 행)
     for (let i = 0; i < 7; i++) {
       const rowData = premiumData[i] || {};
       const ageStart = rowData.ageStart || '';
-      const ageEnd = rowData.ageEnd || '';
-      const monthlyBasic = rowData.monthlyBasic || '';
-      const monthlySpecial = rowData.monthlySpecial || '';
-      const monthlyTotal = rowData.monthlyTotal || '';
-      const yearlyBasic = rowData.yearlyBasic || '';
-      const yearlySpecial = rowData.yearlySpecial || '';
-      const yearlyTotal = rowData.yearlyTotal || '';
+      // 999는 표시하지 않음
+      const ageEnd = (rowData.ageEnd && rowData.ageEnd != 999) ? rowData.ageEnd : '';
+      const monthlyBasic = formatNumber(rowData.monthlyBasic);
+      const monthlySpecial = formatNumber(rowData.monthlySpecial);
+      const monthlyTotal = formatNumber(rowData.monthlyTotal);
+      const yearlyBasic = formatNumber(rowData.yearlyBasic);
+      const yearlySpecial = formatNumber(rowData.yearlySpecial);
+      const yearlyTotal = formatNumber(rowData.yearlyTotal);
       
       html += `
         <tr data-premium-row="${i}" style="background-color: #ffffff;">
@@ -1174,22 +1200,22 @@
             <input type="number" class="form-control form-control-sm premium-age-end" data-row="${i}" value="${ageEnd}" placeholder="끝" style="background-color: #ffffff; border: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-monthly-basic" data-row="${i}" value="${monthlyBasic}" placeholder="월기본" style="background-color: #ffffff; border: none; width: 100%;">
+            <input type="text" class="form-control form-control-sm premium-monthly-basic" data-row="${i}" value="${monthlyBasic}" placeholder="월기본" style="background-color: #ffffff; border: none; width: 100%; text-align: right;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-monthly-special" data-row="${i}" value="${monthlySpecial}" placeholder="월특약" style="background-color: #ffffff; border: none; width: 100%;">
+            <input type="text" class="form-control form-control-sm premium-monthly-special" data-row="${i}" value="${monthlySpecial}" placeholder="월특약" style="background-color: #ffffff; border: none; width: 100%; text-align: right;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-monthly-total" data-row="${i}" value="${monthlyTotal}" placeholder="합계" readonly style="background-color: #ffffff; border: none; width: 100%;">
+            <input type="text" class="form-control form-control-sm premium-monthly-total" data-row="${i}" value="${monthlyTotal}" placeholder="합계" readonly style="background-color: #ffffff; border: none; width: 100%; text-align: right;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-yearly-basic" data-row="${i}" value="${yearlyBasic}" placeholder="년기본" style="background-color: #ffffff; border: none; width: 100%;">
+            <input type="text" class="form-control form-control-sm premium-yearly-basic" data-row="${i}" value="${yearlyBasic}" placeholder="년기본" style="background-color: #ffffff; border: none; width: 100%; text-align: right;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-yearly-special" data-row="${i}" value="${yearlySpecial}" placeholder="년특약" style="background-color: #ffffff; border: none; width: 100%;">
+            <input type="text" class="form-control form-control-sm premium-yearly-special" data-row="${i}" value="${yearlySpecial}" placeholder="년특약" style="background-color: #ffffff; border: none; width: 100%; text-align: right;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-yearly-total" data-row="${i}" value="${yearlyTotal}" placeholder="년계" readonly style="background-color: #ffffff; border: none; width: 100%;">
+            <input type="text" class="form-control form-control-sm premium-yearly-total" data-row="${i}" value="${yearlyTotal}" placeholder="년계" readonly style="background-color: #ffffff; border: none; width: 100%; text-align: right;">
           </td>
         </tr>
       `;
@@ -1203,26 +1229,69 @@
     
     modalBody.innerHTML = html;
     
-    // 합계 자동 계산 이벤트 리스너 추가
+    // 합계 자동 계산 및 나이 연속 입력 이벤트 리스너 추가
     setupPremiumCalculation(modalBody);
   };
 
   // 월보험료 합계 자동 계산 설정
   const setupPremiumCalculation = (modalBody) => {
-    // 월보험료 합계 계산
+    // 숫자 포맷팅 함수 (천단위 컴마)
+    const formatNumber = (value) => {
+      if (!value && value !== 0) return '';
+      const num = typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) : value;
+      return isNaN(num) ? '' : num.toLocaleString();
+    };
+    
+    // 숫자 값 추출 함수 (컴마 제거)
+    const getNumberValue = (value) => {
+      if (!value && value !== 0) return '';
+      const num = typeof value === 'string' ? value.replace(/,/g, '') : value;
+      return num;
+    };
+    
     modalBody.addEventListener('input', (e) => {
       const row = e.target.closest('tr[data-premium-row]');
       if (!row) return;
       
-      const rowIndex = e.target.dataset.row;
+      const rowIndex = parseInt(e.target.dataset.row);
+      
+      // 나이 끝 입력 시 다음 행의 시작 자동 설정
+      if (e.target.classList.contains('premium-age-end')) {
+        const ageEnd = parseInt(e.target.value);
+        if (ageEnd && !isNaN(ageEnd) && rowIndex < 6) {
+          const nextRow = modalBody.querySelector(`tr[data-premium-row="${rowIndex + 1}"]`);
+          if (nextRow) {
+            const nextAgeStart = nextRow.querySelector(`.premium-age-start[data-row="${rowIndex + 1}"]`);
+            if (nextAgeStart && !nextAgeStart.value) {
+              nextAgeStart.value = ageEnd + 1;
+            }
+          }
+        }
+      }
+      
+      // 보험료 입력 시 천단위 컴마 포맷팅
+      if (e.target.classList.contains('premium-monthly-basic') || 
+          e.target.classList.contains('premium-monthly-special') ||
+          e.target.classList.contains('premium-yearly-basic') ||
+          e.target.classList.contains('premium-yearly-special')) {
+        const value = e.target.value.replace(/,/g, '');
+        if (value) {
+          const num = parseFloat(value);
+          if (!isNaN(num)) {
+            e.target.value = num.toLocaleString();
+          }
+        }
+      }
+      
+      // 월보험료 합계 계산
       const monthlyBasic = row.querySelector(`.premium-monthly-basic[data-row="${rowIndex}"]`);
       const monthlySpecial = row.querySelector(`.premium-monthly-special[data-row="${rowIndex}"]`);
       const monthlyTotal = row.querySelector(`.premium-monthly-total[data-row="${rowIndex}"]`);
       
       if (monthlyBasic && monthlySpecial && monthlyTotal) {
-        const basic = parseFloat(monthlyBasic.value) || 0;
-        const special = parseFloat(monthlySpecial.value) || 0;
-        monthlyTotal.value = (basic + special).toLocaleString();
+        const basic = parseFloat(getNumberValue(monthlyBasic.value)) || 0;
+        const special = parseFloat(getNumberValue(monthlySpecial.value)) || 0;
+        monthlyTotal.value = formatNumber(basic + special);
       }
       
       // 년보험료 합계 계산
@@ -1231,9 +1300,9 @@
       const yearlyTotal = row.querySelector(`.premium-yearly-total[data-row="${rowIndex}"]`);
       
       if (yearlyBasic && yearlySpecial && yearlyTotal) {
-        const basic = parseFloat(yearlyBasic.value) || 0;
-        const special = parseFloat(yearlySpecial.value) || 0;
-        yearlyTotal.value = (basic + special).toLocaleString();
+        const basic = parseFloat(getNumberValue(yearlyBasic.value)) || 0;
+        const special = parseFloat(getNumberValue(yearlySpecial.value)) || 0;
+        yearlyTotal.value = formatNumber(basic + special);
       }
     });
   };
@@ -1362,6 +1431,12 @@
       const rows = modalBody.querySelectorAll('tr[data-premium-row]');
       const premiumData = [];
       
+      // 컴마 제거 함수
+      const removeComma = (value) => {
+        if (!value) return '';
+        return String(value).replace(/,/g, '');
+      };
+      
       rows.forEach((row, idx) => {
         const ageStart = row.querySelector('.premium-age-start');
         const ageEnd = row.querySelector('.premium-age-end');
@@ -1372,19 +1447,19 @@
         const yearlySpecial = row.querySelector('.premium-yearly-special');
         const yearlyTotal = row.querySelector('.premium-yearly-total');
         
-        // 입력된 행만 수집
+        // 입력된 행만 수집 (컴마 제거)
         if (ageStart?.value || ageEnd?.value || monthlyBasic?.value || monthlySpecial?.value || 
             yearlyBasic?.value || yearlySpecial?.value) {
           premiumData.push({
             rowIndex: idx + 1,
             ageStart: ageStart?.value || '',
             ageEnd: ageEnd?.value || '',
-            monthlyBasic: monthlyBasic?.value || '',
-            monthlySpecial: monthlySpecial?.value || '',
-            monthlyTotal: monthlyTotal?.value || '',
-            yearlyBasic: yearlyBasic?.value || '',
-            yearlySpecial: yearlySpecial?.value || '',
-            yearlyTotal: yearlyTotal?.value || ''
+            monthlyBasic: removeComma(monthlyBasic?.value) || '',
+            monthlySpecial: removeComma(monthlySpecial?.value) || '',
+            monthlyTotal: removeComma(monthlyTotal?.value) || '',
+            yearlyBasic: removeComma(yearlyBasic?.value) || '',
+            yearlySpecial: removeComma(yearlySpecial?.value) || '',
+            yearlyTotal: removeComma(yearlyTotal?.value) || ''
           });
         }
       });
