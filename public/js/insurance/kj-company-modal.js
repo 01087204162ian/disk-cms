@@ -1710,7 +1710,7 @@
       const rows = modalBody.querySelectorAll('tr[data-endorse-row]');
       const members = [];
       
-      rows.forEach((row, idx) => {
+      for (const row of rows) {
         const nameInput = row.querySelector('.endorse-name-input');
         const juminInput = row.querySelector('.endorse-jumin-input');
         const phoneInput = row.querySelector('.endorse-phone-input');
@@ -1723,13 +1723,35 @@
         
         // 이름이 있는 경우만 수집 (이름은 필수)
         if (name) {
+          // 이름이 있으면 주민번호와 전화번호 둘 다 있어야 함
+          if (!jumin || !phone) {
+            if (!jumin && !phone) {
+              alert(`"${name}"님의 주민번호와 전화번호를 모두 입력해주세요.`);
+              // 주민번호 입력 필드로 포커스 이동
+              if (juminInput) {
+                juminInput.focus();
+              }
+            } else if (!jumin) {
+              alert(`"${name}"님의 주민번호를 입력해주세요.`);
+              if (juminInput) {
+                juminInput.focus();
+              }
+            } else if (!phone) {
+              alert(`"${name}"님의 전화번호를 입력해주세요.`);
+              if (phoneInput) {
+                phoneInput.focus();
+              }
+            }
+            return; // 저장 중단
+          }
+          
           members.push({
             name: name,
             juminNo: jumin,
             phoneNo: phone
           });
         }
-      });
+      }
       
       if (members.length === 0) {
         alert('입력된 대리기사 정보가 없습니다. 최소 1명의 이름을 입력해주세요.');
