@@ -879,7 +879,7 @@
     // 모달 HTML 동적 생성
     const modalHTML = `
       <div class="modal fade" id="endorseModal" tabindex="-1" aria-labelledby="endorseModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable" style="max-width: 80%;">
+        <div class="modal-dialog modal-dialog-scrollable" style="max-width: 40%;">
           <div class="modal-content">
             <div class="modal-header" style="background-color: #e8f5e9;">
               <div class="d-flex justify-content-between align-items-center w-100">
