@@ -1447,6 +1447,23 @@
       
       const certiNum = modalElement.dataset.certiNum;
       
+      if (!certiNum) {
+        alert('증권 번호가 없습니다.');
+        return;
+      }
+      
+      // 저장 확인
+      const saveBtn = e.target;
+      const isUpdate = saveBtn.textContent === '수정';
+      if (!confirm(isUpdate ? '보험료 정보를 수정하시겠습니까?' : '보험료 정보를 저장하시겠습니까?')) {
+        return;
+      }
+      
+      // 버튼 비활성화
+      saveBtn.disabled = true;
+      const originalText = saveBtn.textContent;
+      saveBtn.textContent = '저장 중...';
+      
       // 입력 데이터 수집
       const rows = modalBody.querySelectorAll('tr[data-premium-row]');
       const premiumData = [];
@@ -1467,30 +1484,60 @@
         const yearlySpecial = row.querySelector('.premium-yearly-special');
         const yearlyTotal = row.querySelector('.premium-yearly-total');
         
-        // 입력된 행만 수집 (컴마 제거)
+        // 입력된 행만 수집 (컴마 제거, 필드명 매핑)
         if (ageStart?.value || ageEnd?.value || monthlyBasic?.value || monthlySpecial?.value || 
             yearlyBasic?.value || yearlySpecial?.value) {
           premiumData.push({
-            rowIndex: idx + 1,
-            ageStart: ageStart?.value || '',
-            ageEnd: ageEnd?.value || '',
-            monthlyBasic: removeComma(monthlyBasic?.value) || '',
-            monthlySpecial: removeComma(monthlySpecial?.value) || '',
-            monthlyTotal: removeComma(monthlyTotal?.value) || '',
-            yearlyBasic: removeComma(yearlyBasic?.value) || '',
-            yearlySpecial: removeComma(yearlySpecial?.value) || '',
-            yearlyTotal: removeComma(yearlyTotal?.value) || ''
+            cNum: certiNum,
+            rowNum: idx + 1,
+            start_month: ageStart?.value || null,
+            end_month: ageEnd?.value || null,
+            monthly_premium1: removeComma(monthlyBasic?.value) || null,
+            monthly_premium2: removeComma(monthlySpecial?.value) || null,
+            monthly_premium_total: removeComma(monthlyTotal?.value) || null,
+            payment10_premium1: removeComma(yearlyBasic?.value) || null,
+            payment10_premium2: removeComma(yearlySpecial?.value) || null,
+            payment10_premium_total: removeComma(yearlyTotal?.value) || null
           });
         }
       });
       
-      // TODO: API 호출 구현
-      console.log('월보험료 저장 데이터:', {
-        certiNum,
-        premiumData
-      });
+      if (premiumData.length === 0) {
+        alert('입력된 보험료 정보가 없습니다.');
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        return;
+      }
       
-      alert(`월보험료 저장 기능은 추후 구현 예정입니다.\n입력된 행: ${premiumData.length}개`);
+      // API 호출
+      fetch('/api/insurance/kj-premium/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          data: premiumData
+        })
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          showSuccessMessage(result.message || `${premiumData.length}개 행이 저장되었습니다.`);
+          
+          // 모달 재조회 (데이터 새로고침)
+          setTimeout(() => {
+            openPremiumModal(certiNum);
+          }, 500);
+        } else {
+          throw new Error(result.error || '저장 실패');
+        }
+      })
+      .catch(err => {
+        console.error('월보험료 저장 오류:', err);
+        alert('저장 중 오류가 발생했습니다: ' + (err.message || '알 수 없는 오류'));
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      });
     }
   });
 
