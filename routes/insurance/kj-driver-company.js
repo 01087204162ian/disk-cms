@@ -273,5 +273,43 @@ router.get('/kj-certi/update-gita', async (req, res) => {
   }
 });
 
+// 결제방식 변경 (토글)
+router.get('/kj-certi/update-divi', async (req, res) => {
+  try {
+    const { cNum, divi } = req.query;
+    
+    if (!cNum) {
+      return res.status(400).json({
+        success: false,
+        error: '증권 번호(cNum)가 필요합니다.',
+      });
+    }
+
+    if (!divi) {
+      return res.status(400).json({
+        success: false,
+        error: '결제방식(divi)이 필요합니다.',
+      });
+    }
+
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-update-divi.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: { cNum, divi },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-certi update-divi proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '결제방식 변경 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

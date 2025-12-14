@@ -41,7 +41,7 @@
 
   // 결제 방식 매핑
   const mapDivi = (divi) => {
-    return divi == 1 ? '정상' : (divi == 2 ? '1/12씩' : '정상');
+    return divi == 1 ? '정상' : (divi == 2 ? '월납' : '정상');
   };
 
   // 납입 상태 색상
@@ -237,11 +237,11 @@
               <tr>
                 <th style="width: 4%;">순번</th>
                 <th style="width: 8%;">보험사</th>
-                <th style="width: 7%;">시작일</th>
+                <th style="width: 6%;">시작일</th>
                 <th style="width: 10%;">증권번호</th>
                 <th style="width: 5%;">분납</th>
                 <th style="width: 7%;">저장</th>
-                <th style="width: 8%;">회차</th>
+                <th style="width: 9%;">회차</th>
                 <th style="width: 6%;">상태</th>
                 <th style="width: 6%;">인원</th>
                 <th style="width: 6%;">신규<br>입력</th>
@@ -496,6 +496,61 @@
           e.target.value = e.target.dataset.originalValue || '';
         } finally {
           e.target.disabled = false;
+        }
+        
+        return;
+      }
+      
+      // 결제방식 버튼 클릭 (토글)
+      const diviBtn = e.target.closest('.certi-divi-btn');
+      if (diviBtn && !diviBtn.disabled) {
+        const row = diviBtn.closest('tr[data-row-index]');
+        if (!row) return;
+        
+        const certiNum = row.dataset.certiNum;
+        if (!certiNum) return;
+        
+        const currentDivi = parseInt(diviBtn.dataset.divi) || 1;
+        const newDivi = currentDivi == 1 ? 2 : 1;
+        const diviName = newDivi == 1 ? '정상납' : '월납';
+        
+        // 변경 확인
+        if (!confirm(`결제방식을 "${diviName}"로 변경하시겠습니까?`)) {
+          return;
+        }
+        
+        // 버튼 비활성화
+        diviBtn.disabled = true;
+        const originalText = diviBtn.textContent;
+        diviBtn.textContent = '변경 중...';
+        
+        try {
+          const response = await fetch(`/api/insurance/kj-certi/update-divi?cNum=${certiNum}&divi=${currentDivi}`);
+          const result = await response.json();
+          
+          if (!result.success) {
+            throw new Error(result.error || '결제방식 변경 실패');
+          }
+          
+          // 버튼 업데이트
+          diviBtn.dataset.divi = result.divi;
+          diviBtn.textContent = result.diviName || mapDivi(result.divi);
+          
+          // 월보험료 버튼 텍스트 업데이트
+          const premiumBtn = row.querySelector('.certi-premium-btn');
+          if (premiumBtn) {
+            premiumBtn.textContent = result.divi == 2 ? '보험료' : '입력';
+          }
+          
+          // 성공 메시지 표시
+          showSuccessMessage(result.message || `결제방식이 "${result.diviName}"로 변경되었습니다.`);
+          
+        } catch (err) {
+          console.error('결제방식 변경 오류:', err);
+          alert('결제방식 변경 중 오류가 발생했습니다: ' + (err.message || '알 수 없는 오류'));
+          diviBtn.textContent = originalText;
+        } finally {
+          diviBtn.disabled = false;
         }
         
         return;
