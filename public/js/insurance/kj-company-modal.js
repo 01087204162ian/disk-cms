@@ -1825,10 +1825,9 @@
         const phoneInput = row.querySelector('.endorse-phone-input');
         
         const name = nameInput ? nameInput.value.trim() : '';
-        // 주민번호에서 하이픈 제거
-        const jumin = juminInput ? juminInput.value.trim().replace(/-/g, '') : '';
-        // 전화번호에서 하이픈 제거
-        const phone = phoneInput ? phoneInput.value.trim().replace(/-/g, '') : '';
+        // 주민번호와 전화번호는 하이픈 포함하여 저장
+        const jumin = juminInput ? juminInput.value.trim() : '';
+        const phone = phoneInput ? phoneInput.value.trim() : '';
         
         // 이름이 있는 경우만 수집 (이름은 필수)
         if (name) {
@@ -1854,15 +1853,16 @@
             return; // 저장 중단
           }
           
-          // 주민번호 유효성 검사
-          if (jumin.length === 13) {
+          // 주민번호 유효성 검사 (하이픈 포함 값으로 검증)
+          // 숫자만 추출하여 길이 확인
+          const juminDigits = jumin.replace(/[^0-9]/g, '');
+          if (juminDigits.length === 13) {
             const validateFunc = typeof validateJumin === 'function' ? validateJumin : 
                                 (typeof window !== 'undefined' && typeof window.validateJumin === 'function' ? window.validateJumin : null);
             
             if (validateFunc) {
               // 하이픈이 포함된 원본 값으로 검증
-              const juminWithHyphen = juminInput.value.trim();
-              const validation = validateFunc(juminWithHyphen);
+              const validation = validateFunc(jumin);
               
               if (!validation.valid) {
                 alert(`"${name}"님의 주민번호가 유효하지 않습니다.\n${validation.message}\n\n저장할 수 없습니다.`);
@@ -1884,10 +1884,11 @@
             return; // 저장 중단
           }
           
+          // 하이픈 포함하여 저장
           members.push({
             name: name,
-            juminNo: jumin,
-            phoneNo: phone
+            juminNo: jumin,  // 하이픈 포함
+            phoneNo: phone   // 하이픈 포함
           });
         }
       }
