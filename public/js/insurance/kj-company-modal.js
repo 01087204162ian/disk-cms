@@ -1146,8 +1146,23 @@
   // 주민번호 유효성 검사 함수는 별도 파일에서 로드
   // /js/utils/jumin-validator.js 파일의 validateJumin 함수 사용
   // validateJumin 함수가 없으면 에러 처리
+  console.log('[kj-company-modal] 초기화 - validateJumin 함수 확인');
+  console.log('[kj-company-modal] typeof validateJumin:', typeof validateJumin);
+  console.log('[kj-company-modal] window.validateJumin:', typeof window !== 'undefined' ? typeof window.validateJumin : 'window 없음');
+  
+  // window 객체에서도 확인
+  if (typeof window !== 'undefined' && typeof window.validateJumin === 'function') {
+    console.log('[kj-company-modal] window.validateJumin 함수 발견, 전역 변수로 설정');
+    if (typeof validateJumin === 'undefined') {
+      // 전역 변수로 설정
+      var validateJumin = window.validateJumin;
+    }
+  }
+  
   if (typeof validateJumin === 'undefined') {
-    console.error('validateJumin 함수를 찾을 수 없습니다. /js/utils/jumin-validator.js 파일을 로드해주세요.');
+    console.error('[kj-company-modal] validateJumin 함수를 찾을 수 없습니다. /js/utils/jumin-validator.js 파일을 로드해주세요.');
+  } else {
+    console.log('[kj-company-modal] validateJumin 함수 확인됨');
   }
   
   // 배서 모달 입력 필드 포맷팅 설정
@@ -1172,31 +1187,55 @@
         
         // 13자리 입력 완료 시 즉시 체크섬 검증 및 다음 필드로 이동
         const digits = value.replace(/[^0-9]/g, '');
+        console.log('[주민번호 입력] 현재 값:', value, '숫자만:', digits, '길이:', digits.length);
+        
         if (digits.length === 13) {
+          console.log('[주민번호 입력] 13자리 입력 완료, 유효성 검사 시작');
+          
           // 주민번호 유효성 검사 (체크섬 포함)
-          if (typeof validateJumin === 'function') {
-            const validation = validateJumin(value);
+          // window 객체에서도 확인
+          const validateFunc = typeof validateJumin === 'function' ? validateJumin : 
+                              (typeof window !== 'undefined' && typeof window.validateJumin === 'function' ? window.validateJumin : null);
+          
+          if (validateFunc) {
+            console.log('[주민번호 입력] validateJumin 함수 존재 확인됨');
+            const validation = validateFunc(value);
+            console.log('[주민번호 입력] 유효성 검사 결과:', validation);
             
             if (validation.valid) {
+              console.log('[주민번호 입력] 유효한 주민번호 - 초록색 표시 및 다음 필드로 이동');
               e.target.style.borderColor = '#28a745'; // 초록색으로 표시
               e.target.title = '';
               
               // 다음 입력 필드(전화번호)로 포커스 이동
               const row = e.target.closest('tr[data-endorse-row]');
+              console.log('[주민번호 입력] 현재 행 찾기:', row);
+              
               if (row) {
                 const phoneInput = row.querySelector('.endorse-phone-input');
+                console.log('[주민번호 입력] 전화번호 입력 필드 찾기:', phoneInput);
+                
                 if (phoneInput) {
+                  console.log('[주민번호 입력] 전화번호 입력 필드로 포커스 이동 예정');
                   setTimeout(() => {
                     phoneInput.focus();
+                    console.log('[주민번호 입력] 전화번호 입력 필드로 포커스 이동 완료');
                   }, 100);
+                } else {
+                  console.warn('[주민번호 입력] 전화번호 입력 필드를 찾을 수 없습니다.');
                 }
+              } else {
+                console.warn('[주민번호 입력] 현재 행을 찾을 수 없습니다.');
               }
             } else {
+              console.log('[주민번호 입력] 무효한 주민번호 - 빨간색 표시:', validation.message);
               e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
               e.target.title = validation.message;
             }
           } else {
-            console.error('validateJumin 함수를 찾을 수 없습니다.');
+            console.error('[주민번호 입력] validateJumin 함수를 찾을 수 없습니다.');
+            console.error('[주민번호 입력] typeof validateJumin:', typeof validateJumin);
+            console.error('[주민번호 입력] window.validateJumin:', typeof window !== 'undefined' ? typeof window.validateJumin : 'window 없음');
             e.target.style.borderColor = '#ffc107'; // 경고 색상
             e.target.title = '주민번호 검증 함수를 로드할 수 없습니다.';
           }
@@ -1245,18 +1284,30 @@
         }
         
         // 주민번호 유효성 검사
-        if (typeof validateJumin === 'function') {
-          const validation = validateJumin(value);
+        console.log('[주민번호 blur] 유효성 검사 시작, 값:', value);
+        
+        // window 객체에서도 확인
+        const validateFunc = typeof validateJumin === 'function' ? validateJumin : 
+                            (typeof window !== 'undefined' && typeof window.validateJumin === 'function' ? window.validateJumin : null);
+        
+        if (validateFunc) {
+          console.log('[주민번호 blur] validateJumin 함수 존재 확인됨');
+          const validation = validateFunc(value);
+          console.log('[주민번호 blur] 유효성 검사 결과:', validation);
           
           if (validation.valid) {
+            console.log('[주민번호 blur] 유효한 주민번호 - 초록색 표시');
             e.target.style.borderColor = '#28a745'; // 초록색으로 표시
             e.target.title = '';
           } else {
+            console.log('[주민번호 blur] 무효한 주민번호 - 빨간색 표시:', validation.message);
             e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
             e.target.title = validation.message;
           }
         } else {
-          console.error('validateJumin 함수를 찾을 수 없습니다.');
+          console.error('[주민번호 blur] validateJumin 함수를 찾을 수 없습니다.');
+          console.error('[주민번호 blur] typeof validateJumin:', typeof validateJumin);
+          console.error('[주민번호 blur] window.validateJumin:', typeof window !== 'undefined' ? typeof window.validateJumin : 'window 없음');
           e.target.style.borderColor = '#ffc107'; // 경고 색상
           e.target.title = '주민번호 검증 함수를 로드할 수 없습니다.';
         }
