@@ -1143,49 +1143,12 @@
     setupEndorseInputFormatting(modalBody);
   };
   
-  // 주민번호 유효성 검사 함수
-  const validateJumin = (jumin) => {
-    // 숫자만 추출
-    const digits = jumin.replace(/[^0-9]/g, '');
-    
-    // 13자리가 아니면 false
-    if (digits.length !== 13) {
-      return { valid: false, message: '주민번호는 13자리여야 합니다.' };
-    }
-    
-    // 앞 6자리: 생년월일 검증
-    const year = parseInt(digits.substring(0, 2));
-    const month = parseInt(digits.substring(2, 4));
-    const day = parseInt(digits.substring(4, 6));
-    
-    // 월 검증 (1-12)
-    if (month < 1 || month > 12) {
-      return { valid: false, message: '월이 올바르지 않습니다.' };
-    }
-    
-    // 일 검증 (1-31, 간단한 검증)
-    if (day < 1 || day > 31) {
-      return { valid: false, message: '일이 올바르지 않습니다.' };
-    }
-    
-    // 체크섬 검증
-    const checkDigit = parseInt(digits.charAt(12));
-    const multipliers = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
-    let sum = 0;
-    
-    for (let i = 0; i < 12; i++) {
-      sum += parseInt(digits.charAt(i)) * multipliers[i];
-    }
-    
-    const remainder = sum % 11;
-    const calculatedCheckDigit = (11 - remainder) % 10;
-    
-    if (calculatedCheckDigit !== checkDigit) {
-      return { valid: false, message: '주민번호 체크섬이 올바르지 않습니다.' };
-    }
-    
-    return { valid: true, message: '' };
-  };
+  // 주민번호 유효성 검사 함수는 별도 파일에서 로드
+  // /js/utils/jumin-validator.js 파일의 validateJumin 함수 사용
+  // validateJumin 함수가 없으면 에러 처리
+  if (typeof validateJumin === 'undefined') {
+    console.error('validateJumin 함수를 찾을 수 없습니다. /js/utils/jumin-validator.js 파일을 로드해주세요.');
+  }
   
   // 배서 모달 입력 필드 포맷팅 설정
   const setupEndorseInputFormatting = (modalBody) => {
