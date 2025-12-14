@@ -1058,7 +1058,6 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
               <button type="button" class="btn btn-success" id="premiumSaveBtn">저장</button>
             </div>
           </div>
@@ -1166,31 +1165,31 @@
       const yearlyTotal = rowData.yearlyTotal || '';
       
       html += `
-        <tr data-premium-row="${i}">
-          <td class="text-center" style="vertical-align: middle;">${i + 1}</td>
+        <tr data-premium-row="${i}" style="background-color: #ffffff;">
+          <td class="text-center" style="vertical-align: middle; padding: 0;">${i + 1}</td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-age-start" data-row="${i}" value="${ageStart}" placeholder="시작">
+            <input type="number" class="form-control form-control-sm premium-age-start" data-row="${i}" value="${ageStart}" placeholder="시작" style="background-color: #ffffff; border: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-age-end" data-row="${i}" value="${ageEnd}" placeholder="끝">
+            <input type="number" class="form-control form-control-sm premium-age-end" data-row="${i}" value="${ageEnd}" placeholder="끝" style="background-color: #ffffff; border: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-monthly-basic" data-row="${i}" value="${monthlyBasic}" placeholder="월기본">
+            <input type="number" class="form-control form-control-sm premium-monthly-basic" data-row="${i}" value="${monthlyBasic}" placeholder="월기본" style="background-color: #ffffff; border: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-monthly-special" data-row="${i}" value="${monthlySpecial}" placeholder="월특약">
+            <input type="number" class="form-control form-control-sm premium-monthly-special" data-row="${i}" value="${monthlySpecial}" placeholder="월특약" style="background-color: #ffffff; border: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-monthly-total" data-row="${i}" value="${monthlyTotal}" placeholder="합계" readonly>
+            <input type="number" class="form-control form-control-sm premium-monthly-total" data-row="${i}" value="${monthlyTotal}" placeholder="합계" readonly style="background-color: #ffffff; border: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-yearly-basic" data-row="${i}" value="${yearlyBasic}" placeholder="년기본">
+            <input type="number" class="form-control form-control-sm premium-yearly-basic" data-row="${i}" value="${yearlyBasic}" placeholder="년기본" style="background-color: #ffffff; border: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-yearly-special" data-row="${i}" value="${yearlySpecial}" placeholder="년특약">
+            <input type="number" class="form-control form-control-sm premium-yearly-special" data-row="${i}" value="${yearlySpecial}" placeholder="년특약" style="background-color: #ffffff; border: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="number" class="form-control form-control-sm premium-yearly-total" data-row="${i}" value="${yearlyTotal}" placeholder="년계" readonly>
+            <input type="number" class="form-control form-control-sm premium-yearly-total" data-row="${i}" value="${yearlyTotal}" placeholder="년계" readonly style="background-color: #ffffff; border: none; width: 100%;">
           </td>
         </tr>
       `;
