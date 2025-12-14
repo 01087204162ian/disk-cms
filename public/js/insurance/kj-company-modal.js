@@ -536,7 +536,11 @@
         const policyNum = policyInput ? policyInput.value : '';
         const gita = gitaSelect ? Number(gitaSelect.value) : 1;
         
-        openEndorseModal(certiNum, insurerCode, policyNum, gita);
+        // 회사번호 가져오기 (회사 정보 모달에서)
+        const companyInfoModal = document.getElementById('companyInfoModal');
+        const companyNum = companyInfoModal ? (companyInfoModal.dataset.currentCompanyNum || companyInfoModal.dataset.companyNum) : null;
+        
+        openEndorseModal(certiNum, insurerCode, policyNum, gita, companyNum);
         return;
       }
       
@@ -1038,7 +1042,7 @@
     // 모달 생성만 수행
   };
 
-  const openEndorseModal = (certiTableNum, insurerCode, policyNum, gita) => {
+  const openEndorseModal = (certiTableNum, insurerCode, policyNum, gita, companyNum) => {
     // 모달이 없으면 생성
     let modalElement = document.getElementById('endorseModal');
     if (!modalElement) {
@@ -1055,6 +1059,7 @@
     modalElement.dataset.insurerCode = insurerCode;
     modalElement.dataset.policyNum = policyNum;
     modalElement.dataset.gita = gita;
+    modalElement.dataset.companyNum = companyNum || '';
     
     // 보험사 이름 가져오기
     const insurerName = mapInsuranceCompany(insurerCode);
@@ -1498,16 +1503,32 @@
     }
   });
 
-  // 저장 버튼 클릭 (추후 구현)
-  document.addEventListener('click', (e) => {
+  // 배서 저장 버튼 클릭
+  document.addEventListener('click', async (e) => {
     if (e.target.id === 'endorseSaveBtn') {
       e.preventDefault();
       const modalElement = document.getElementById('endorseModal');
       const modalBody = document.getElementById('endorseModalBody');
       const endorseDateInput = document.getElementById('endorseDate');
+      const saveBtn = e.target;
+      
+      if (!modalElement) {
+        alert('배서 모달을 찾을 수 없습니다.');
+        return;
+      }
       
       const certiTableNum = modalElement.dataset.certiTableNum;
+      const insurerCode = modalElement.dataset.insurerCode;
+      const policyNum = modalElement.dataset.policyNum;
+      const gita = modalElement.dataset.gita;
+      const companyNum = modalElement.dataset.companyNum;
       const endorseDate = endorseDateInput.value;
+      
+      // 필수 정보 확인
+      if (!certiTableNum || !companyNum || !endorseDate) {
+        alert('필수 정보가 누락되었습니다.');
+        return;
+      }
       
       // 입력 데이터 수집
       const rows = modalBody.querySelectorAll('tr[data-endorse-row]');
@@ -1522,30 +1543,85 @@
         const jumin = juminInput ? juminInput.value.trim() : '';
         const phone = phoneInput ? phoneInput.value.trim() : '';
         
-        // 입력된 행만 수집
-        if (name || jumin || phone) {
+        // 이름이 있는 경우만 수집 (이름은 필수)
+        if (name) {
           members.push({
-            rowIndex: idx + 1,
             name: name,
-            jumin: jumin,
-            phone: phone
+            juminNo: jumin,
+            phoneNo: phone
           });
         }
       });
       
       if (members.length === 0) {
-        alert('입력된 대리기사 정보가 없습니다.');
+        alert('입력된 대리기사 정보가 없습니다. 최소 1명의 이름을 입력해주세요.');
         return;
       }
       
-      // TODO: API 호출 구현
-      console.log('배서 저장 데이터:', {
-        certiTableNum,
-        endorseDate,
-        members
-      });
+      // 저장 확인
+      if (!confirm(`총 ${members.length}명의 배서 정보를 저장하시겠습니까?`)) {
+        return;
+      }
       
-      alert(`배서 저장 기능은 추후 구현 예정입니다.\n입력된 대리기사: ${members.length}명`);
+      // 버튼 비활성화
+      saveBtn.disabled = true;
+      const originalText = saveBtn.textContent;
+      saveBtn.textContent = '저장 중...';
+      
+      try {
+        // API 호출 데이터 준비
+        const requestData = {
+          data: members,
+          cNum: certiTableNum,
+          dNum: companyNum,
+          InsuraneCompany: insurerCode,
+          endorseDay: endorseDate,
+          policyNum: policyNum,
+          gita: gita,
+          userName: 'system' // TODO: 실제 사용자명으로 변경 필요
+        };
+        
+        const response = await fetch('/api/insurance/kj-endorse/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || '배서 저장 실패');
+        }
+        
+        // 성공 메시지 표시
+        showSuccessMessage(result.message || `배서 정보가 성공적으로 저장되었습니다. (총 ${result.data?.count || members.length}명)`);
+        
+        // 모달 닫기
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.hide();
+        }
+        
+        // 입력 필드 초기화 (선택사항)
+        rows.forEach((row) => {
+          const nameInput = row.querySelector('.endorse-name-input');
+          const juminInput = row.querySelector('.endorse-jumin-input');
+          const phoneInput = row.querySelector('.endorse-phone-input');
+          
+          if (nameInput) nameInput.value = '';
+          if (juminInput) juminInput.value = '';
+          if (phoneInput) phoneInput.value = '';
+        });
+        
+      } catch (err) {
+        console.error('배서 저장 오류:', err);
+        alert('배서 저장 중 오류가 발생했습니다: ' + (err.message || '알 수 없는 오류'));
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      }
     }
   });
 
