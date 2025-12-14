@@ -191,8 +191,42 @@
 
     rows.forEach((row, index) => {
       const rowNum = startNum + index;
-      const statusText = row.push == 4 ? '청약' : (row.push == 2 ? '해지' : '');
-      const statusClass = row.push == 4 ? 'text-primary' : (row.push == 2 ? 'text-danger' : '');
+      const push = parseInt(row.push) || 0;
+      const sangtae = parseInt(row.progressStep) || 0;
+      const cancel = parseInt(row.cancel) || 0;
+      
+      // 상태 판단: push=1, sangtae=1 → 청약 / push=4, sangtae=1, cancel=42 → 해지
+      const isSubscription = (push === 1 && sangtae === 1);
+      const isCancellation = (push === 4 && sangtae === 1 && cancel === 42);
+      
+      const statusText = push == 4 ? '청약' : (push == 2 ? '해지' : '');
+      const statusClass = push == 4 ? 'text-primary' : (push == 2 ? 'text-danger' : '');
+      
+      // 배서처리 select 옵션 생성
+      let endorseProcessSelect = '';
+      if (isSubscription) {
+        // 청약: 청약, 취소, 거절
+        const currentValue = row.endorseProcess || '청약';
+        endorseProcessSelect = `
+          <select class="form-select form-select-sm" data-num="${row.num}" data-push="${push}" data-sangtae="${sangtae}">
+            <option value="청약" ${currentValue === '청약' ? 'selected' : ''}>청약</option>
+            <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
+            <option value="거절" ${currentValue === '거절' ? 'selected' : ''}>거절</option>
+          </select>
+        `;
+      } else if (isCancellation) {
+        // 해지: 해지, 취소
+        const currentValue = row.endorseProcess || '해지';
+        endorseProcessSelect = `
+          <select class="form-select form-select-sm" data-num="${row.num}" data-push="${push}" data-sangtae="${sangtae}" data-cancel="${cancel}">
+            <option value="해지" ${currentValue === '해지' ? 'selected' : ''}>해지</option>
+            <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
+          </select>
+        `;
+      } else {
+        // 기타: 빈 값 또는 현재 값 표시
+        endorseProcessSelect = `<span>${row.endorseProcess || ''}</span>`;
+      }
 
       html += `
         <tr>
@@ -210,7 +244,7 @@
           <td>${row.certiType || ''}</td>
           <td>${row.rate || ''}</td>
           <td class="${statusClass}">${statusText}</td>
-          <td>${row.endorseProcess || ''}</td>
+          <td>${endorseProcessSelect}</td>
           <td>${row.insuranceCom || ''}</td>
           <td>${row.premium || ''}</td>
           <td>${row.cPremium || ''}</td>
@@ -220,6 +254,22 @@
     });
 
     tableBody.innerHTML = html;
+    
+    // 배서처리 select 박스 change 이벤트 리스너 추가
+    const endorseProcessSelects = tableBody.querySelectorAll('select[data-num]');
+    endorseProcessSelects.forEach(select => {
+      select.addEventListener('change', (e) => {
+        const num = e.target.getAttribute('data-num');
+        const value = e.target.value;
+        const push = e.target.getAttribute('data-push');
+        const sangtae = e.target.getAttribute('data-sangtae');
+        const cancel = e.target.getAttribute('data-cancel');
+        
+        console.log('배서처리 변경:', { num, value, push, sangtae, cancel });
+        // TODO: API 호출하여 배서처리 업데이트
+        // updateEndorseProcess(num, value, push, sangtae, cancel);
+      });
+    });
   };
 
   const renderMobile = (rows) => {
