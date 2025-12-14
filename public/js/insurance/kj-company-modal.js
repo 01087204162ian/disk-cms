@@ -1138,6 +1138,182 @@
     `;
     
     modalBody.innerHTML = html;
+    
+    // 주민번호 및 전화번호 하이픈 자동 입력 및 유효성 검사
+    setupEndorseInputFormatting(modalBody);
+  };
+  
+  // 주민번호 유효성 검사 함수
+  const validateJumin = (jumin) => {
+    // 숫자만 추출
+    const digits = jumin.replace(/[^0-9]/g, '');
+    
+    // 13자리가 아니면 false
+    if (digits.length !== 13) {
+      return { valid: false, message: '주민번호는 13자리여야 합니다.' };
+    }
+    
+    // 앞 6자리: 생년월일 검증
+    const year = parseInt(digits.substring(0, 2));
+    const month = parseInt(digits.substring(2, 4));
+    const day = parseInt(digits.substring(4, 6));
+    
+    // 월 검증 (1-12)
+    if (month < 1 || month > 12) {
+      return { valid: false, message: '월이 올바르지 않습니다.' };
+    }
+    
+    // 일 검증 (1-31, 간단한 검증)
+    if (day < 1 || day > 31) {
+      return { valid: false, message: '일이 올바르지 않습니다.' };
+    }
+    
+    // 체크섬 검증
+    const checkDigit = parseInt(digits.charAt(12));
+    const multipliers = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
+    let sum = 0;
+    
+    for (let i = 0; i < 12; i++) {
+      sum += parseInt(digits.charAt(i)) * multipliers[i];
+    }
+    
+    const remainder = sum % 11;
+    const calculatedCheckDigit = (11 - remainder) % 10;
+    
+    if (calculatedCheckDigit !== checkDigit) {
+      return { valid: false, message: '주민번호 체크섬이 올바르지 않습니다.' };
+    }
+    
+    return { valid: true, message: '' };
+  };
+  
+  // 배서 모달 입력 필드 포맷팅 설정
+  const setupEndorseInputFormatting = (modalBody) => {
+    // 주민번호 입력 필드 이벤트
+    const juminInputs = modalBody.querySelectorAll('.endorse-jumin-input');
+    juminInputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 추출
+        
+        // 13자리까지만 입력
+        if (value.length > 13) {
+          value = value.substring(0, 13);
+        }
+        
+        // 하이픈 자동 추가: 6자리 이상이면 하이픈 추가
+        if (value.length > 6) {
+          value = value.substring(0, 6) + '-' + value.substring(6);
+        }
+        
+        e.target.value = value;
+        
+        // 유효성 검사 (13자리 숫자 확인)
+        if (value.length === 14 && value.includes('-')) {
+          const juminParts = value.split('-');
+          if (juminParts[0].length === 6 && juminParts[1].length === 7) {
+            // 형식은 맞지만 체크섬 검증은 blur에서 수행
+            e.target.style.borderColor = '';
+          } else {
+            // 잘못된 형식
+            e.target.style.borderColor = '#dc3545';
+          }
+        } else if (value.length > 0 && value.length < 14) {
+          // 입력 중
+          e.target.style.borderColor = '';
+        } else if (value.length === 0) {
+          // 빈 값
+          e.target.style.borderColor = '';
+        }
+      });
+      
+      // 포커스 아웃 시 최종 검증
+      input.addEventListener('blur', (e) => {
+        let value = e.target.value.trim();
+        
+        // 빈 값이면 검증하지 않음
+        if (!value) {
+          e.target.style.borderColor = '';
+          return;
+        }
+        
+        // 숫자만 추출
+        const digits = value.replace(/[^0-9]/g, '');
+        
+        // 13자리가 아니면 오류
+        if (digits.length !== 13) {
+          e.target.style.borderColor = '#dc3545';
+          e.target.title = '주민번호는 13자리여야 합니다.';
+          return;
+        }
+        
+        // 주민번호 유효성 검사
+        const validation = validateJumin(value);
+        
+        if (validation.valid) {
+          e.target.style.borderColor = '#28a745'; // 초록색으로 표시
+          e.target.title = '';
+        } else {
+          e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
+          e.target.title = validation.message;
+        }
+      });
+      
+      // 포커스 인 시 테두리 색상 초기화
+      input.addEventListener('focus', (e) => {
+        e.target.style.borderColor = '';
+        e.target.title = '';
+      });
+    });
+    
+    // 전화번호 입력 필드 이벤트
+    const phoneInputs = modalBody.querySelectorAll('.endorse-phone-input');
+    phoneInputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 추출
+        
+        // 11자리까지만 입력
+        if (value.length > 11) {
+          value = value.substring(0, 11);
+        }
+        
+        // 하이픈 자동 추가
+        if (value.length > 10) {
+          // 010-XXXX-XXXX 형식
+          value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+        } else if (value.length > 7) {
+          // 010-XXXX-XXX 형식
+          value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+        } else if (value.length > 3) {
+          // 010-XXXX 형식
+          value = value.substring(0, 3) + '-' + value.substring(3);
+        }
+        
+        e.target.value = value;
+        
+        // 유효성 검사 (11자리 숫자 확인)
+        const digitsOnly = value.replace(/[^0-9]/g, '');
+        if (digitsOnly.length === 11) {
+          // 유효한 형식
+          e.target.style.borderColor = '';
+        } else if (digitsOnly.length > 0 && digitsOnly.length < 11) {
+          // 입력 중
+          e.target.style.borderColor = '';
+        } else if (digitsOnly.length === 0) {
+          // 빈 값
+          e.target.style.borderColor = '';
+        }
+      });
+      
+      // 포커스 아웃 시 최종 검증
+      input.addEventListener('blur', (e) => {
+        const digitsOnly = e.target.value.replace(/[^0-9]/g, '');
+        if (digitsOnly.length > 0 && digitsOnly.length !== 11) {
+          e.target.style.borderColor = '#dc3545';
+        } else if (digitsOnly.length === 11) {
+          e.target.style.borderColor = '';
+        }
+      });
+    });
   };
 
   // ==================== 월보험료 모달 ====================
@@ -1540,8 +1716,10 @@
         const phoneInput = row.querySelector('.endorse-phone-input');
         
         const name = nameInput ? nameInput.value.trim() : '';
-        const jumin = juminInput ? juminInput.value.trim() : '';
-        const phone = phoneInput ? phoneInput.value.trim() : '';
+        // 주민번호에서 하이픈 제거
+        const jumin = juminInput ? juminInput.value.trim().replace(/-/g, '') : '';
+        // 전화번호에서 하이픈 제거
+        const phone = phoneInput ? phoneInput.value.trim().replace(/-/g, '') : '';
         
         // 이름이 있는 경우만 수집 (이름은 필수)
         if (name) {
