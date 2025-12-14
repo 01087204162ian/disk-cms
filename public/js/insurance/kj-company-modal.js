@@ -1909,6 +1909,14 @@
       saveBtn.textContent = '저장 중...';
       
       try {
+        // 로그인 사용자 이름 가져오기
+        const userName = (window.sjTemplateLoader && window.sjTemplateLoader.user && window.sjTemplateLoader.user.name) 
+          || sessionStorage.getItem('userName') 
+          || localStorage.getItem('userName') 
+          || 'system';
+        
+        console.log('[배서 저장] 로그인 사용자 이름:', userName);
+        
         // API 호출 데이터 준비
         const requestData = {
           data: members,
@@ -1918,7 +1926,7 @@
           endorseDay: endorseDate,
           policyNum: policyNum,
           gita: gita,
-          userName: 'system' // TODO: 실제 사용자명으로 변경 필요
+          userName: userName // 로그인 사용자 이름
         };
         
         const response = await fetch('/api/insurance/kj-endorse/save', {
