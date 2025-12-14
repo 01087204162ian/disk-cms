@@ -1170,18 +1170,35 @@
         
         e.target.value = value;
         
-        // 13자리 입력 완료 시 즉시 체크섬 검증
+        // 13자리 입력 완료 시 즉시 체크섬 검증 및 다음 필드로 이동
         const digits = value.replace(/[^0-9]/g, '');
         if (digits.length === 13) {
           // 주민번호 유효성 검사 (체크섬 포함)
-          const validation = validateJumin(value);
-          
-          if (validation.valid) {
-            e.target.style.borderColor = '#28a745'; // 초록색으로 표시
-            e.target.title = '';
+          if (typeof validateJumin === 'function') {
+            const validation = validateJumin(value);
+            
+            if (validation.valid) {
+              e.target.style.borderColor = '#28a745'; // 초록색으로 표시
+              e.target.title = '';
+              
+              // 다음 입력 필드(전화번호)로 포커스 이동
+              const row = e.target.closest('tr[data-endorse-row]');
+              if (row) {
+                const phoneInput = row.querySelector('.endorse-phone-input');
+                if (phoneInput) {
+                  setTimeout(() => {
+                    phoneInput.focus();
+                  }, 100);
+                }
+              }
+            } else {
+              e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
+              e.target.title = validation.message;
+            }
           } else {
-            e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
-            e.target.title = validation.message;
+            console.error('validateJumin 함수를 찾을 수 없습니다.');
+            e.target.style.borderColor = '#ffc107'; // 경고 색상
+            e.target.title = '주민번호 검증 함수를 로드할 수 없습니다.';
           }
         } else if (value.length === 14 && value.includes('-')) {
           // 형식은 맞지만 13자리가 아닌 경우
@@ -1213,6 +1230,7 @@
         // 빈 값이면 검증하지 않음
         if (!value) {
           e.target.style.borderColor = '';
+          e.target.title = '';
           return;
         }
         
@@ -1227,14 +1245,20 @@
         }
         
         // 주민번호 유효성 검사
-        const validation = validateJumin(value);
-        
-        if (validation.valid) {
-          e.target.style.borderColor = '#28a745'; // 초록색으로 표시
-          e.target.title = '';
+        if (typeof validateJumin === 'function') {
+          const validation = validateJumin(value);
+          
+          if (validation.valid) {
+            e.target.style.borderColor = '#28a745'; // 초록색으로 표시
+            e.target.title = '';
+          } else {
+            e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
+            e.target.title = validation.message;
+          }
         } else {
-          e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
-          e.target.title = validation.message;
+          console.error('validateJumin 함수를 찾을 수 없습니다.');
+          e.target.style.borderColor = '#ffc107'; // 경고 색상
+          e.target.title = '주민번호 검증 함수를 로드할 수 없습니다.';
         }
       });
       

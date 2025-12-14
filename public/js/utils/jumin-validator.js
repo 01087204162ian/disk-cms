@@ -72,7 +72,14 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 // 전역 함수로도 사용 가능 (script 태그로 로드 시)
-if (typeof window !== 'undefined') {
-  window.validateJumin = validateJumin;
-}
+// IIFE로 감싸서 즉시 실행
+(function() {
+  if (typeof window !== 'undefined') {
+    window.validateJumin = validateJumin;
+  }
+  // 전역 스코프에도 등록 (더 호환성 높음)
+  if (typeof globalThis !== 'undefined') {
+    globalThis.validateJumin = validateJumin;
+  }
+})();
 
