@@ -1087,6 +1087,13 @@
     // 증권 번호 저장
     modalElement.dataset.certiNum = certiNum;
     
+    // 저장 버튼 활성화
+    const saveBtn = document.getElementById('premiumSaveBtn');
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = '저장';
+    }
+    
     // 로딩 표시
     modalBody.innerHTML = `
       <div class="text-center py-4">
@@ -1134,9 +1141,10 @@
 
   // 월보험료 모달 렌더링
   const renderPremiumModal = (modalBody, premiumData, hasData = false) => {
-    // 저장 버튼 레이블 변경
+    // 저장 버튼 레이블 변경 및 활성화
     const saveBtn = document.getElementById('premiumSaveBtn');
     if (saveBtn) {
+      saveBtn.disabled = false;
       saveBtn.textContent = hasData ? '수정' : '저장';
     }
     let html = `
