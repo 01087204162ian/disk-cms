@@ -333,7 +333,7 @@ router.post('/kj-endorse/save', async (req, res) => {
 });
 
 // 배서 해지 신청 API
-router.post('/kj-endorse/cancel', async (req, res) => {
+router.post('/kj-endorse/termination', async (req, res) => {
   try {
     const apiUrl = `${PHP_API_BASE_URL}/kj-endorse-termination.php`;
 

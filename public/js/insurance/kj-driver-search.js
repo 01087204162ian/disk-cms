@@ -367,7 +367,7 @@
           }
           
           // 배서신청 API 호출
-          const res = await fetch('/api/insurance/kj-endorse/cancel', {
+          const res = await fetch('/api/insurance/kj-endorse/termination', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
