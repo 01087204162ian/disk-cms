@@ -235,5 +235,43 @@ router.post('/kj-premium/save', async (req, res) => {
   }
 });
 
+// 증권성격 변경
+router.get('/kj-certi/update-gita', async (req, res) => {
+  try {
+    const { cNum, gita } = req.query;
+    
+    if (!cNum) {
+      return res.status(400).json({
+        success: false,
+        error: '증권 번호(cNum)가 필요합니다.',
+      });
+    }
+
+    if (!gita) {
+      return res.status(400).json({
+        success: false,
+        error: '증권성격(gita)이 필요합니다.',
+      });
+    }
+
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-update-gita.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: { cNum, gita },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-certi update-gita proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권성격 변경 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

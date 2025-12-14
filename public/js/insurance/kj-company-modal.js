@@ -451,6 +451,56 @@
         return;
       }
       
+      // 증권성격 변경 처리
+      if (e.target.classList.contains('certi-field') && e.target.dataset.field === 'gita') {
+        const certiNum = row.dataset.certiNum;
+        const gita = e.target.value;
+        
+        if (!certiNum || !gita) return;
+        
+        // 증권성격 변경 확인
+        const gitaLabels = { 1: '일반', 2: '탁송', 3: '일반/렌트', 4: '탁송/렌트', 5: '전차량' };
+        const gitaLabel = gitaLabels[gita] || gita;
+        
+        if (!confirm(`증권성격을 "${gitaLabel}"로 변경하시겠습니까?`)) {
+          const originalValue = e.target.dataset.originalValue || '';
+          e.target.value = originalValue;
+          return;
+        }
+        
+        // 원래 값 저장
+        if (!e.target.dataset.originalValue) {
+          e.target.dataset.originalValue = e.target.value;
+        }
+        
+        // 버튼 비활성화
+        e.target.disabled = true;
+        
+        try {
+          const response = await fetch(`/api/insurance/kj-certi/update-gita?cNum=${certiNum}&gita=${gita}`);
+          const result = await response.json();
+          
+          if (!result.success) {
+            throw new Error(result.error || '증권성격 변경 실패');
+          }
+          
+          // 성공 메시지 표시
+          showSuccessMessage(result.message || '증권성격이 변경되었습니다.');
+          
+          // 원래 값 업데이트
+          e.target.dataset.originalValue = gita;
+          
+        } catch (err) {
+          console.error('증권성격 변경 오류:', err);
+          alert('증권성격 변경 중 오류가 발생했습니다: ' + (err.message || '알 수 없는 오류'));
+          e.target.value = e.target.dataset.originalValue || '';
+        } finally {
+          e.target.disabled = false;
+        }
+        
+        return;
+      }
+      
       // 저장 버튼 상태 토글
       if (e.target.classList.contains('certi-field') || e.target.classList.contains('insurer-select')) {
         toggleSaveState(row);
