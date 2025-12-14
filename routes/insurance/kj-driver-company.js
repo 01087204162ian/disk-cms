@@ -353,5 +353,74 @@ router.post('/kj-endorse/termination', async (req, res) => {
   }
 });
 
+// 배서 증권번호 목록 조회
+router.get('/kj-endorse/policy-list', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-endorse-policy-list.php`;
+
+    const response = await axios.get(apiUrl, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-endorse policy-list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권번호 목록 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 배서 대리운전회사 목록 조회
+router.get('/kj-endorse/company-list', async (req, res) => {
+  try {
+    const { policyNum } = req.query;
+    
+    const apiUrl = `${PHP_API_BASE_URL}/kj-endorse-company-list.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: { policyNum },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-endorse company-list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '대리운전회사 목록 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 배서 리스트 조회
+router.get('/kj-endorse/list', async (req, res) => {
+  try {
+    const { page, limit, push, policyNum, companyNum } = req.query;
+    
+    const apiUrl = `${PHP_API_BASE_URL}/kj-endorse-list.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: { page, limit, push, policyNum, companyNum },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-endorse list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '배서 리스트 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 
