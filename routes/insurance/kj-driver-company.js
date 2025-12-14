@@ -174,5 +174,36 @@ router.get('/kj-certi/member-list', async (req, res) => {
   }
 });
 
+// 월보험료 조회
+router.get('/kj-premium', async (req, res) => {
+  try {
+    const { cNum } = req.query;
+    
+    if (!cNum) {
+      return res.status(400).json({
+        success: false,
+        error: '증권 번호(cNum)가 필요합니다.',
+      });
+    }
+
+    const apiUrl = `${PHP_API_BASE_URL}/kj-premium-data.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: { cNum },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-premium proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '월보험료 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

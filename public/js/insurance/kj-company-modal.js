@@ -489,6 +489,19 @@
         openEndorseModal(certiNum, insurerCode, policyNum, gita);
         return;
       }
+      
+      // 월보험료 버튼 클릭
+      const premiumBtn = e.target.closest('.certi-premium-btn');
+      if (premiumBtn && !premiumBtn.disabled) {
+        const row = premiumBtn.closest('tr[data-row-index]');
+        if (!row) return;
+        
+        const certiNum = row.dataset.certiNum;
+        if (!certiNum) return;
+        
+        openPremiumModal(certiNum);
+        return;
+      }
     });
 
     // 클릭 이벤트: 저장/수정 버튼
@@ -1017,6 +1030,215 @@
     modalBody.innerHTML = html;
   };
 
+  // ==================== 월보험료 모달 ====================
+
+  // 월보험료 모달 동적 생성
+  const createPremiumModal = () => {
+    // 이미 존재하면 반환
+    let modalElement = document.getElementById('premiumModal');
+    if (modalElement) {
+      return modalElement;
+    }
+    
+    // 모달 HTML 동적 생성
+    const modalHTML = `
+      <div class="modal fade" id="premiumModal" tabindex="-1" aria-labelledby="premiumModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" style="max-width: 80%;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="premiumModalTitle">월보험료 입력</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="premiumModalBody" style="max-height: 70vh; overflow-y: auto;">
+              <div class="text-center py-4">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">로딩 중...</span>
+                </div>
+                <p class="mt-2">보험료 정보를 불러오는 중...</p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+              <button type="button" class="btn btn-success" id="premiumSaveBtn">저장</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // body에 모달 추가
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    modalElement = document.getElementById('premiumModal');
+    
+    return modalElement;
+  };
+
+  // 월보험료 모달 열기
+  const openPremiumModal = (certiNum) => {
+    // 모달이 없으면 생성
+    let modalElement = document.getElementById('premiumModal');
+    if (!modalElement) {
+      modalElement = createPremiumModal();
+    }
+    
+    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    const modalBody = document.getElementById('premiumModalBody');
+    const modalTitle = document.getElementById('premiumModalTitle');
+    
+    // 증권 번호 저장
+    modalElement.dataset.certiNum = certiNum;
+    
+    // 로딩 표시
+    modalBody.innerHTML = `
+      <div class="text-center py-4">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">로딩 중...</span>
+        </div>
+        <p class="mt-2">보험료 정보를 불러오는 중...</p>
+      </div>
+    `;
+    
+    modal.show();
+    
+    // API 호출
+    fetch(`/api/insurance/kj-premium?cNum=${certiNum}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // 모달 제목 설정
+          const companyName = data.company || '';
+          const policyNum = data.policyNum || '';
+          modalTitle.textContent = `${companyName} 증권번호 ${policyNum}`;
+          
+          // 테이블 렌더링
+          renderPremiumModal(modalBody, data.data || []);
+        } else {
+          throw new Error(data.error || '보험료 정보를 불러올 수 없습니다.');
+        }
+      })
+      .catch(err => {
+        console.error('보험료 정보 로드 오류:', err);
+        modalBody.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            보험료 정보를 불러올 수 없습니다: ${err.message}
+          </div>
+        `;
+      });
+  };
+
+  // 월보험료 모달 렌더링
+  const renderPremiumModal = (modalBody, premiumData) => {
+    let html = `
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm" style="font-size: 0.9rem;">
+          <thead class="thead-light" style="background-color: #6f42c1; color: white;">
+            <tr>
+              <th rowspan="2" style="width: 5%; vertical-align: middle;">순번</th>
+              <th colspan="2" style="text-align: center;">나이</th>
+              <th colspan="3" style="text-align: center;">월보험료</th>
+              <th colspan="3" style="text-align: center;">10회분납</th>
+            </tr>
+            <tr>
+              <th style="width: 8%;">시작</th>
+              <th style="width: 8%;">끝</th>
+              <th style="width: 10%;">월기본</th>
+              <th style="width: 10%;">월특약</th>
+              <th style="width: 10%;">합계</th>
+              <th style="width: 10%;">년기본</th>
+              <th style="width: 10%;">년특약</th>
+              <th style="width: 10%;">년계</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    // 7개 행 생성 (6개 데이터 + 1개 빈 행)
+    for (let i = 0; i < 7; i++) {
+      const rowData = premiumData[i] || {};
+      const ageStart = rowData.ageStart || '';
+      const ageEnd = rowData.ageEnd || '';
+      const monthlyBasic = rowData.monthlyBasic || '';
+      const monthlySpecial = rowData.monthlySpecial || '';
+      const monthlyTotal = rowData.monthlyTotal || '';
+      const yearlyBasic = rowData.yearlyBasic || '';
+      const yearlySpecial = rowData.yearlySpecial || '';
+      const yearlyTotal = rowData.yearlyTotal || '';
+      
+      html += `
+        <tr data-premium-row="${i}">
+          <td class="text-center" style="vertical-align: middle;">${i + 1}</td>
+          <td style="padding: 0;">
+            <input type="number" class="form-control form-control-sm premium-age-start" data-row="${i}" value="${ageStart}" placeholder="시작">
+          </td>
+          <td style="padding: 0;">
+            <input type="number" class="form-control form-control-sm premium-age-end" data-row="${i}" value="${ageEnd}" placeholder="끝">
+          </td>
+          <td style="padding: 0;">
+            <input type="number" class="form-control form-control-sm premium-monthly-basic" data-row="${i}" value="${monthlyBasic}" placeholder="월기본">
+          </td>
+          <td style="padding: 0;">
+            <input type="number" class="form-control form-control-sm premium-monthly-special" data-row="${i}" value="${monthlySpecial}" placeholder="월특약">
+          </td>
+          <td style="padding: 0;">
+            <input type="number" class="form-control form-control-sm premium-monthly-total" data-row="${i}" value="${monthlyTotal}" placeholder="합계" readonly>
+          </td>
+          <td style="padding: 0;">
+            <input type="number" class="form-control form-control-sm premium-yearly-basic" data-row="${i}" value="${yearlyBasic}" placeholder="년기본">
+          </td>
+          <td style="padding: 0;">
+            <input type="number" class="form-control form-control-sm premium-yearly-special" data-row="${i}" value="${yearlySpecial}" placeholder="년특약">
+          </td>
+          <td style="padding: 0;">
+            <input type="number" class="form-control form-control-sm premium-yearly-total" data-row="${i}" value="${yearlyTotal}" placeholder="년계" readonly>
+          </td>
+        </tr>
+      `;
+    }
+    
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    modalBody.innerHTML = html;
+    
+    // 합계 자동 계산 이벤트 리스너 추가
+    setupPremiumCalculation(modalBody);
+  };
+
+  // 월보험료 합계 자동 계산 설정
+  const setupPremiumCalculation = (modalBody) => {
+    // 월보험료 합계 계산
+    modalBody.addEventListener('input', (e) => {
+      const row = e.target.closest('tr[data-premium-row]');
+      if (!row) return;
+      
+      const rowIndex = e.target.dataset.row;
+      const monthlyBasic = row.querySelector(`.premium-monthly-basic[data-row="${rowIndex}"]`);
+      const monthlySpecial = row.querySelector(`.premium-monthly-special[data-row="${rowIndex}"]`);
+      const monthlyTotal = row.querySelector(`.premium-monthly-total[data-row="${rowIndex}"]`);
+      
+      if (monthlyBasic && monthlySpecial && monthlyTotal) {
+        const basic = parseFloat(monthlyBasic.value) || 0;
+        const special = parseFloat(monthlySpecial.value) || 0;
+        monthlyTotal.value = (basic + special).toLocaleString();
+      }
+      
+      // 년보험료 합계 계산
+      const yearlyBasic = row.querySelector(`.premium-yearly-basic[data-row="${rowIndex}"]`);
+      const yearlySpecial = row.querySelector(`.premium-yearly-special[data-row="${rowIndex}"]`);
+      const yearlyTotal = row.querySelector(`.premium-yearly-total[data-row="${rowIndex}"]`);
+      
+      if (yearlyBasic && yearlySpecial && yearlyTotal) {
+        const basic = parseFloat(yearlyBasic.value) || 0;
+        const special = parseFloat(yearlySpecial.value) || 0;
+        yearlyTotal.value = (basic + special).toLocaleString();
+      }
+    });
+  };
+
   // ==================== 전역 노출 ====================
 
   // window 객체에 모듈 노출
@@ -1024,7 +1246,8 @@
     openCompanyModal: openCompanyModal,
     renderCompanyModal: renderCompanyModal,
     openMemberListModal: openMemberListModal,
-    openEndorseModal: openEndorseModal
+    openEndorseModal: openEndorseModal,
+    openPremiumModal: openPremiumModal
   };
 
   // ==================== 모달 닫기 시 포커스 관리 ====================
@@ -1122,6 +1345,58 @@
       });
       
       alert(`배서 저장 기능은 추후 구현 예정입니다.\n입력된 대리기사: ${members.length}명`);
+    }
+  });
+
+  // ==================== 월보험료 모달 이벤트 핸들러 ====================
+
+  // 저장 버튼 클릭 (추후 구현)
+  document.addEventListener('click', (e) => {
+    if (e.target.id === 'premiumSaveBtn') {
+      e.preventDefault();
+      const modalElement = document.getElementById('premiumModal');
+      const modalBody = document.getElementById('premiumModalBody');
+      
+      const certiNum = modalElement.dataset.certiNum;
+      
+      // 입력 데이터 수집
+      const rows = modalBody.querySelectorAll('tr[data-premium-row]');
+      const premiumData = [];
+      
+      rows.forEach((row, idx) => {
+        const ageStart = row.querySelector('.premium-age-start');
+        const ageEnd = row.querySelector('.premium-age-end');
+        const monthlyBasic = row.querySelector('.premium-monthly-basic');
+        const monthlySpecial = row.querySelector('.premium-monthly-special');
+        const monthlyTotal = row.querySelector('.premium-monthly-total');
+        const yearlyBasic = row.querySelector('.premium-yearly-basic');
+        const yearlySpecial = row.querySelector('.premium-yearly-special');
+        const yearlyTotal = row.querySelector('.premium-yearly-total');
+        
+        // 입력된 행만 수집
+        if (ageStart?.value || ageEnd?.value || monthlyBasic?.value || monthlySpecial?.value || 
+            yearlyBasic?.value || yearlySpecial?.value) {
+          premiumData.push({
+            rowIndex: idx + 1,
+            ageStart: ageStart?.value || '',
+            ageEnd: ageEnd?.value || '',
+            monthlyBasic: monthlyBasic?.value || '',
+            monthlySpecial: monthlySpecial?.value || '',
+            monthlyTotal: monthlyTotal?.value || '',
+            yearlyBasic: yearlyBasic?.value || '',
+            yearlySpecial: yearlySpecial?.value || '',
+            yearlyTotal: yearlyTotal?.value || ''
+          });
+        }
+      });
+      
+      // TODO: API 호출 구현
+      console.log('월보험료 저장 데이터:', {
+        certiNum,
+        premiumData
+      });
+      
+      alert(`월보험료 저장 기능은 추후 구현 예정입니다.\n입력된 행: ${premiumData.length}개`);
     }
   });
 
