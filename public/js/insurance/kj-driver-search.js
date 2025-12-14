@@ -61,11 +61,16 @@
   // 상태 컬럼 렌더링 (push=4면 select, 그 외 텍스트)
   const renderStatusCell = (row) => {
     const push = Number(row.push);
-    const cancel = row.cancel;
-    const sangtae = row.sangtae;
+    // cancel과 sangtae를 문자열로 변환 (숫자로 올 수도 있으므로)
+    const cancel = row.cancel != null ? String(row.cancel) : '';
+    const sangtae = row.sangtae != null ? String(row.sangtae) : '';
+    
+    // 디버깅용 로그 (개발 환경에서만)
+    // console.log('renderStatusCell:', { push, cancel, sangtae, row });
     
     // push=4이고 cancel=42이고 sangtae=1이면 "해지중" 표시 (배서 신청 상태)
-    if (push === 4 && cancel === '42' && sangtae === '1') {
+    // cancel은 숫자 42 또는 문자열 '42' 모두 가능하도록 처리
+    if (push === 4 && (cancel === '42' || cancel === 42) && (sangtae === '1' || sangtae === 1)) {
       return `<span>해지중</span>`;
     }
     
