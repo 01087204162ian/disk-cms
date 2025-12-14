@@ -1207,22 +1207,39 @@
         
         e.target.value = value;
         
-        // 유효성 검사 (13자리 숫자 확인)
-        if (value.length === 14 && value.includes('-')) {
+        // 13자리 입력 완료 시 즉시 체크섬 검증
+        const digits = value.replace(/[^0-9]/g, '');
+        if (digits.length === 13) {
+          // 주민번호 유효성 검사 (체크섬 포함)
+          const validation = validateJumin(value);
+          
+          if (validation.valid) {
+            e.target.style.borderColor = '#28a745'; // 초록색으로 표시
+            e.target.title = '';
+          } else {
+            e.target.style.borderColor = '#dc3545'; // 빨간색으로 표시
+            e.target.title = validation.message;
+          }
+        } else if (value.length === 14 && value.includes('-')) {
+          // 형식은 맞지만 13자리가 아닌 경우
           const juminParts = value.split('-');
           if (juminParts[0].length === 6 && juminParts[1].length === 7) {
-            // 형식은 맞지만 체크섬 검증은 blur에서 수행
+            // 형식은 맞지만 아직 입력 중
             e.target.style.borderColor = '';
+            e.target.title = '';
           } else {
             // 잘못된 형식
             e.target.style.borderColor = '#dc3545';
+            e.target.title = '주민번호 형식이 올바르지 않습니다.';
           }
         } else if (value.length > 0 && value.length < 14) {
           // 입력 중
           e.target.style.borderColor = '';
+          e.target.title = '';
         } else if (value.length === 0) {
           // 빈 값
           e.target.style.borderColor = '';
+          e.target.title = '';
         }
       });
       
@@ -1258,10 +1275,10 @@
         }
       });
       
-      // 포커스 인 시 테두리 색상 초기화
+      // 포커스 인 시에는 검증 결과를 유지 (초기화하지 않음)
+      // 사용자가 입력을 계속할 수 있도록 함
       input.addEventListener('focus', (e) => {
-        e.target.style.borderColor = '';
-        e.target.title = '';
+        // 포커스 인 시에도 검증 결과 유지
       });
     });
     
