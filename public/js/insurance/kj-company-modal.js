@@ -237,18 +237,18 @@
               <tr>
                 <th style="width: 4%;">순번</th>
                 <th style="width: 8%;">보험사</th>
-                <th style="width: 8%;">시작일</th>
-                <th style="width: 11%;">증권번호</th>
+                <th style="width: 7%;">시작일</th>
+                <th style="width: 10%;">증권번호</th>
                 <th style="width: 5%;">분납</th>
-                <th style="width: 8%;">저장</th>
-                <th style="width: 7%;">회차</th>
+                <th style="width: 7%;">저장</th>
+                <th style="width: 8%;">회차</th>
                 <th style="width: 6%;">상태</th>
                 <th style="width: 6%;">인원</th>
                 <th style="width: 6%;">신규<br>입력</th>
                 <th style="width: 6%;">운전자<Br>추가</th>
                 <th style="width: 7%;">결제<Br>방식</th>
                 <th style="width: 7%;">월보험료</th>
-                <th style="width: 10%;">성격</th>
+                <th style="width: 11%;">성격</th>
               </tr>
             </thead>
             <tbody>
@@ -1056,13 +1056,13 @@
         <tr style="background-color: #ffffff;" data-endorse-row="${i}">
           <td class="text-center" style="padding: 0;">${i + 1}</td>
           <td style="padding: 0;">
-            <input type="text" class="form-control form-control-sm endorse-name-input" data-row="${i}" placeholder="성명" style="background-color: #ffffff; border-color: #ffffff; border: none; width: 100%;">
+            <input type="text" class="form-control form-control-sm endorse-name-input" data-row="${i}" placeholder="성명" style="background-color: #ffffff; border: none; outline: none; box-shadow: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="text" class="form-control form-control-sm endorse-jumin-input" data-row="${i}" placeholder="주민번호" style="background-color: #ffffff; border-color: #ffffff; border: none; width: 100%;">
+            <input type="text" class="form-control form-control-sm endorse-jumin-input" data-row="${i}" placeholder="주민번호" style="background-color: #ffffff; border: none; outline: none; box-shadow: none; width: 100%;">
           </td>
           <td style="padding: 0;">
-            <input type="text" class="form-control form-control-sm endorse-phone-input" data-row="${i}" placeholder="핸드폰번호" style="background-color: #ffffff; border-color: #ffffff; border: none; width: 100%;">
+            <input type="text" class="form-control form-control-sm endorse-phone-input" data-row="${i}" placeholder="핸드폰번호" style="background-color: #ffffff; border: none; outline: none; box-shadow: none; width: 100%;">
           </td>
           <td style="padding: 0;">
             <span class="form-control-plaintext">${gitaLabel}</span>
