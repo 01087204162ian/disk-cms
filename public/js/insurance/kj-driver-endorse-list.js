@@ -197,24 +197,24 @@
       html += `
         <tr>
           <td class="text-center">${rowNum}</td>
-          <td>${row.manager || row.damdanja || row.writer || ''}</td>
-          <td>${row.companyName || row.company_name || row.dName || ''}</td>
-          <td>${row.name || row.Name || ''}</td>
-          <td>${row.jumin || row.Jumin || ''}</td>
-          <td>${row.phone || row.Hphone || ''}</td>
-          <td>${row.progressStep || row.progress_step || row.sangtae || ''}</td>
-          <td>${row.manager || row.manager_name || ''}</td>
-          <td>${row.standardDate || row.standard_date || row.endorseDay || row.endorse_day || ''}</td>
-          <td>${row.applicationDate || row.application_date || row.wdate || ''}</td>
-          <td>${row.policyNum || row.policy_num || ''}</td>
-          <td>${row.certiType || row.certi_type || row.etag || ''}</td>
-          <td>${row.rate || row.yoryul || ''}</td>
+          <td>${row.damdanja || row.manager || ''}</td>
+          <td>${row.companyName || ''}</td>
+          <td>${row.name || ''}</td>
+          <td>${row.jumin || ''}</td>
+          <td>${row.phone || ''}</td>
+          <td>${row.progressStep || ''}</td>
+          <td>${row.manager || ''}</td>
+          <td>${row.standardDate || ''}</td>
+          <td>${row.applicationDate || ''}</td>
+          <td>${row.policyNum || ''}</td>
+          <td>${row.certiType || ''}</td>
+          <td>${row.rate || ''}</td>
           <td class="${statusClass}">${statusText}</td>
-          <td>${row.endorseProcess || row.endorse_process || ''}</td>
-          <td>${row.insuranceCom || row.insurance_com || ''}</td>
-          <td>${row.premium || row.보험료 || ''}</td>
-          <td>${row.cPremium || row.c_premium || row.c보험료 || ''}</td>
-          <td>${row.duplicate || row.duplicate_yn || row.중복여부 || ''}</td>
+          <td>${row.endorseProcess || ''}</td>
+          <td>${row.insuranceCom || ''}</td>
+          <td>${row.premium || ''}</td>
+          <td>${row.cPremium || ''}</td>
+          <td>${row.duplicate || ''}</td>
         </tr>
       `;
     });
@@ -237,16 +237,16 @@
         <div class="card mb-2">
           <div class="card-body">
             <h6 class="card-title">
-              ${row.name || row.Name || ''}
+              ${row.name || ''}
               <span class="${statusClass} ms-2">${statusText}</span>
             </h6>
             <p class="card-text small mb-1">
-              <strong>증권번호:</strong> ${row.policyNum || row.policy_num || ''}<br>
-              <strong>배서번호:</strong> ${row.endorseNum || row.endorse_num || ''}<br>
-              <strong>보험사:</strong> ${row.insuranceCom || row.insurance_com || ''}<br>
-              <strong>배서일자:</strong> ${row.endorseDay || row.endorse_day || ''}<br>
-              <strong>대리운전회사:</strong> ${row.companyName || row.company_name || row.dName || ''}<br>
-              <strong>작성자:</strong> ${row.manager || row.writer || ''}
+              <strong>증권번호:</strong> ${row.policyNum || ''}<br>
+              <strong>배서번호:</strong> ${row.endorseNum || ''}<br>
+              <strong>보험사:</strong> ${row.insuranceCom || ''}<br>
+              <strong>배서일자:</strong> ${row.standardDate || ''}<br>
+              <strong>대리운전회사:</strong> ${row.companyName || ''}<br>
+              <strong>작성자:</strong> ${row.manager || ''}
             </p>
           </div>
         </div>
