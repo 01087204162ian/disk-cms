@@ -167,7 +167,11 @@
       const outputDay = row.OutPutDay || '-';
 
       return `
-        <tr>
+        <tr data-num="${row.num}"
+            data-certi-table-num="${row.CertiTableNum || ''}"
+            data-company-num="${row.companyNum || ''}"
+            data-insurance-company="${row.InsuranceCompany || ''}"
+            data-policy-num="${row.policyNum || ''}">
           <td class="col-kj-ser-number text-center">${displayIndex}</td>
           <td class="col-kj-name">${row.Name ?? ''}</td>
           <td class="col-kj-jumin d-none d-lg-table-cell">${juminText}</td>
@@ -334,19 +338,71 @@
         }
         
         try {
-          const res = await fetch('/api/insurance/kj-driver/status', {
+          // 현재 행의 데이터 수집
+          const row = target.closest('tr');
+          if (!row) {
+            throw new Error('행 데이터를 찾을 수 없습니다.');
+          }
+          
+          // 데이터 속성에서 필요한 정보 수집
+          const cNum = row.dataset.certiTableNum;
+          const dNum = row.dataset.companyNum;
+          const insuranceCompany = row.dataset.insuranceCompany;
+          const policyNum = row.dataset.policyNum;
+          
+          // 오늘 날짜 (YYYY-MM-DD)
+          const today = new Date();
+          const endorseDay = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          
+          // 로그인 사용자 이름 가져오기
+          const userName = (window.sjTemplateLoader && window.sjTemplateLoader.user && window.sjTemplateLoader.user.name) 
+            || sessionStorage.getItem('userName') 
+            || localStorage.getItem('userName') 
+            || 'system';
+          
+          // 필수 데이터 검증
+          if (!cNum || !dNum || !insuranceCompany || !policyNum) {
+            console.error('필수 데이터 누락:', { num, cNum, dNum, insuranceCompany, policyNum });
+            throw new Error('필수 데이터가 누락되었습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+          }
+          
+          // 배서신청 API 호출
+          const res = await fetch('/api/insurance/kj-endorse/cancel', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ num, status: after })
+            body: JSON.stringify({
+              DariMemberNum: num,
+              cNum: cNum,
+              dNum: dNum,
+              InsuranceCompany: insuranceCompany,
+              endorseDay: endorseDay,
+              policyNum: policyNum,
+              userName: userName
+            })
           });
+          
           const json = await res.json();
-          if (!json.success) throw new Error(json.error || '상태 변경 실패');
+          if (!json.success) throw new Error(json.error || json.message || '배서신청 실패');
           
           target.dataset.current = String(after);
-          alert('상태가 해지로 변경되었습니다.');
+          
+          // 성공 메시지
+          if (window.sjTemplateLoader && window.sjTemplateLoader.showToast) {
+            window.sjTemplateLoader.showToast('해지 신청이 완료되었습니다.', 'success');
+          } else {
+            alert('해지 신청이 완료되었습니다.');
+          }
+          
+          // 데이터 새로고침
+          fetchList();
         } catch (err) {
-          console.error(err);
-          alert('상태 변경 중 오류가 발생했습니다.');
+          console.error('배서신청 오류:', err);
+          const errorMsg = err.message || '배서신청 중 오류가 발생했습니다.';
+          if (window.sjTemplateLoader && window.sjTemplateLoader.showToast) {
+            window.sjTemplateLoader.showToast(errorMsg, 'error');
+          } else {
+            alert(errorMsg);
+          }
           target.value = String(before); // 롤백
         }
       } else {
