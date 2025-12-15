@@ -177,7 +177,7 @@
       url.searchParams.set('sj', sj);
       url.searchParams.set('fromDate', fromDate);
       url.searchParams.set('toDate', toDate);
-      const res = await fetch(url.toString());
+      const res = await fetch(url.toString(), { credentials: 'include' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       state.policyData = data;
