@@ -57,7 +57,7 @@ const policyHeaders = () => ({
 router.get('/kj-code/policy-search', async (req, res) => {
   try {
     const { sj, fromDate = '', toDate = '' } = req.query;
-    const apiUrl = `${PHP_API_BASE_URL}/kjDaeri/policySearch.php`;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-policy-search.php`;
     const response = await axios.get(apiUrl, {
       params: { sj, fromDate, toDate },
       timeout: DEFAULT_TIMEOUT,
