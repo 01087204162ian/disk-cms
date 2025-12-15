@@ -529,16 +529,26 @@
   };
 
   const initPage = () => {
-    // 기본 날짜 세팅 후 로드
+    // 기본 날짜 세팅: 끝 = 오늘, 시작 = 끝 - 1년
     const today = new Date();
     const todayStr = formatDateInput(today);
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(today.getFullYear() - 1);
-    const oneYearAgoStr = formatDateInput(oneYearAgo);
+    const start = new Date();
+    start.setFullYear(today.getFullYear() - 1);
+    const startStr = formatDateInput(start);
     const fromEl = document.getElementById('fromDate');
     const toEl = document.getElementById('toDate');
-    if (fromEl && !fromEl.value) fromEl.value = oneYearAgoStr;
-    if (toEl && !toEl.value) toEl.value = todayStr;
+    if (fromEl) fromEl.value = startStr;
+    if (toEl) toEl.value = todayStr;
+
+    // 검색 버튼 클릭 이벤트
+    const searchBtn = document.getElementById('search_btn');
+    if (searchBtn) {
+      searchBtn.addEventListener('click', () => {
+        state.currentPage = 1;
+        fetchList();
+      });
+    }
+
     fetchList();
   };
 

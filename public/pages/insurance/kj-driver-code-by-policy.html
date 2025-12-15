@@ -40,65 +40,22 @@
             <!-- 통합 검색/필터 영역 -->
             <div class="search-filter-row">
               <div class="row align-items-end">
-                <!-- 증권번호 필터 -->
+                <!-- 날짜 필터 -->
                 <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-                  <input type="text" id="policyNumberFilter" class="form-control" placeholder="증권번호 입력" />
+                  <input type="date" id="fromDate" class="form-control" />
                 </div>
-                
-                <!-- 보험사 필터 -->
+                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                  <input type="date" id="toDate" class="form-control" />
+                </div>
+                <!-- 검색 버튼 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <select id="insuranceCompanyFilter" class="form-control">
-                    <option value="">전체 보험사</option>
-                    <option value="DB">DB</option>
-                    <option value="현대">현대</option>
-                    <option value="삼성">삼성</option>
-                    <option value="KB">KB</option>
-                  </select>
-                </div>
-                
-                <!-- 코드 상태 필터 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <select id="codeStatusFilter" class="form-control">
-                    <option value="">전체 상태</option>
-                    <option value="유효">유효</option>
-                    <option value="만료">만료</option>
-                  </select>
-                </div>
-                
-                <!-- 페이지 크기 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <select id="pageSize" class="form-control">
-                    <option value="20" selected>20개</option>
-                    <option value="50">50개</option>
-                    <option value="100">100개</option>
-                  </select>
-                </div>
-                
-                <!-- 검색 영역 -->
-                <div class="col-md-3">
-                  <div class="input-group">
-                    <input type="text" id="search_word" class="form-control" placeholder="코드, 요율로 검색">
-                    <div class="input-group-append">
-                      <button class="btn btn-primary" type="button" id="search_btn">
-                        <i class="fas fa-search"></i> <span class="d-none d-sm-inline">검색</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- 통합 검색/필터 영역 끝 -->
-            
-            <!-- 버튼 영역 -->
-            <div class="row mb-3">
-              <div class="col-12">
-                <div class="btn-row">
-                  <button type="button" class="btn btn-info btn-sm" id="addCode" style="margin-left: auto;">
-                    <i class="fas fa-plus"></i> <span class="d-none d-md-inline">코드 추가</span>
+                  <button class="btn btn-primary w-100" type="button" id="search_btn">
+                    <i class="fas fa-search"></i> <span class="d-none d-sm-inline">검색</span>
                   </button>
                 </div>
               </div>
             </div>
+            <!-- 통합 검색/필터 영역 끝 -->
 
             <!-- 데스크톱 테이블 -->
             <div class="desktop-table">
