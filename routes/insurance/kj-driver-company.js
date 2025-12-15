@@ -46,6 +46,114 @@ router.get('/kj-company/list', async (req, res) => {
   }
 });
 
+// -------------------------
+// 증권별 코드 (policy) 관련 프록시
+// -------------------------
+const policyHeaders = () => ({
+  Accept: 'application/json',
+});
+
+// 증권 리스트 조회
+router.get('/kj-code/policy-search', async (req, res) => {
+  try {
+    const { sj, fromDate = '', toDate = '' } = req.query;
+    const apiUrl = `${PHP_API_BASE_URL}/kjDaeri/policySearch.php`;
+    const response = await axios.get(apiUrl, {
+      params: { sj, fromDate, toDate },
+      timeout: DEFAULT_TIMEOUT,
+      headers: policyHeaders(),
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ policy search proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권 리스트 API 호출 오류',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 증권 상세
+router.post('/kj-code/policy-num-detail', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kjDaeri/policyNumDetail.php`;
+    const response = await axios.post(apiUrl, req.body, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: { ...policyHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ policy detail proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권 상세 API 호출 오류',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 증권별 보험료 통계
+router.get('/kj-code/policy-num-stats', async (req, res) => {
+  try {
+    const { certi } = req.query;
+    const apiUrl = `${PHP_API_BASE_URL}/kjDaeri/PolicyNumInsurancePremiumStatistics.php`;
+    const response = await axios.get(apiUrl, {
+      params: { certi },
+      timeout: DEFAULT_TIMEOUT,
+      headers: policyHeaders(),
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ policy stats proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '보험료 통계 API 호출 오류',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 증권별 보험료 데이터 조회
+router.get('/kj-code/premium-data', async (req, res) => {
+  try {
+    const { certi } = req.query;
+    const apiUrl = `${PHP_API_BASE_URL}/kjDaeri/get_kj_insurance_premium_data.php`;
+    const response = await axios.get(apiUrl, {
+      params: { certi },
+      timeout: DEFAULT_TIMEOUT,
+      headers: policyHeaders(),
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ premium data proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '보험료 데이터 API 호출 오류',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 증권별 보험료 저장
+router.post('/kj-code/premium-save', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kjDaeri/save_Ipremium_data.php`;
+    const response = await axios.post(apiUrl, req.body, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: { ...policyHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ premium save proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '보험료 저장 API 호출 오류',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 // 담당자 목록 조회
 router.get('/kj-company/managers', async (req, res) => {
   try {
