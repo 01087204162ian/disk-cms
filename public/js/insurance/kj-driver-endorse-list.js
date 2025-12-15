@@ -195,10 +195,6 @@
       const sangtae = parseInt(row.progressStep) || 0;
       const cancel = parseInt(row.cancel) || 0;
       
-      // 상태 판단: push=4 → 청약 / push=2 → 해지
-      const statusText = push == 4 ? '청약' : (push == 2 ? '해지' : '');
-      const statusClass = push == 4 ? 'text-primary' : (push == 2 ? 'text-danger' : '');
-      
       // 보험사 표시 (공통 모듈 사용)
       const insuranceComCode = parseInt(row.insuranceCom) || 0;
       const insuranceComName = window.KJConstants ? window.KJConstants.getInsurerName(insuranceComCode) : (row.insuranceCom || '');
@@ -207,10 +203,48 @@
       const certiTypeCode = parseInt(row.certiType) || 0;
       const certiTypeName = window.KJConstants ? window.KJConstants.getGitaName(certiTypeCode) : (row.certiType || '');
       
+      // 상태 select 생성 (worklog 145-147 참고)
+      // 청약 상태 (push=1, sangtae=1): "청약", "취소", "거절" 옵션
+      // 해지 상태 (push=4, sangtae=1, cancel=42): "해지", "취소" 옵션
+      let statusSelect = '';
+      const isSubscription = (push === 1 && sangtae === 1);
+      const isCancellation = (push === 4 && sangtae === 1 && cancel === 42);
+      
+      if (isSubscription) {
+        // 청약: 청약, 취소, 거절
+        const currentValue = row.endorseProcess || '청약';
+        statusSelect = `
+          <select class="form-select form-select-sm endorse-status-select" 
+                  data-num="${row.num}" 
+                  data-push="${push}" 
+                  data-sangtae="${sangtae}">
+            <option value="청약" ${currentValue === '청약' ? 'selected' : ''}>청약</option>
+            <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
+            <option value="거절" ${currentValue === '거절' ? 'selected' : ''}>거절</option>
+          </select>
+        `;
+      } else if (isCancellation) {
+        // 해지: 해지, 취소
+        const currentValue = row.endorseProcess || '해지';
+        statusSelect = `
+          <select class="form-select form-select-sm endorse-status-select" 
+                  data-num="${row.num}" 
+                  data-push="${push}" 
+                  data-sangtae="${sangtae}" 
+                  data-cancel="${cancel}">
+            <option value="해지" ${currentValue === '해지' ? 'selected' : ''}>해지</option>
+            <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
+          </select>
+        `;
+      } else {
+        // 기타: 빈 값 또는 현재 값 표시
+        statusSelect = `<span>${row.endorseProcess || ''}</span>`;
+      }
+      
       // 배서처리 상태 select 생성 (sangtae: 1=미처리, 2=처리)
       const currentSangtae = sangtae || 1;
-      const statusSelect = `
-        <select class="form-select form-select-sm endorse-status-select" 
+      const processSelect = `
+        <select class="form-select form-select-sm endorse-process-select" 
                 data-num="${row.num}" 
                 data-current-sangtae="${currentSangtae}">
           <option value="1" ${currentSangtae == 1 ? 'selected' : ''}>미처리</option>
@@ -233,8 +267,8 @@
           <td>${row.policyNum || ''}</td>
           <td>${certiTypeName}</td>
           <td>${row.rate || ''}</td>
-          <td class="${statusClass}">${statusText}</td>
           <td>${statusSelect}</td>
+          <td>${processSelect}</td>
           <td>${insuranceComName}</td>
           <td>${row.premium || ''}</td>
           <td>${row.cPremium || ''}</td>
@@ -245,9 +279,25 @@
 
     tableBody.innerHTML = html;
     
-    // 배서처리 상태 select 박스 change 이벤트 리스너 추가
+    // 상태 select 박스 change 이벤트 리스너 추가
     const statusSelects = tableBody.querySelectorAll('select.endorse-status-select');
     statusSelects.forEach(select => {
+      select.addEventListener('change', (e) => {
+        const num = e.target.getAttribute('data-num');
+        const value = e.target.value;
+        const push = e.target.getAttribute('data-push');
+        const sangtae = e.target.getAttribute('data-sangtae');
+        const cancel = e.target.getAttribute('data-cancel');
+        
+        console.log('상태 변경:', { num, value, push, sangtae, cancel });
+        // TODO: API 호출하여 상태 업데이트
+        // updateEndorseStatus(num, value, push, sangtae, cancel);
+      });
+    });
+    
+    // 배서처리 상태 select 박스 change 이벤트 리스너 추가
+    const processSelects = tableBody.querySelectorAll('select.endorse-process-select');
+    processSelects.forEach(select => {
       select.addEventListener('change', async (e) => {
         const num = e.target.getAttribute('data-num');
         const newSangtae = parseInt(e.target.value);
