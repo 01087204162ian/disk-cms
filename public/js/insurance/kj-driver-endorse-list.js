@@ -280,20 +280,20 @@
     tableBody.innerHTML = html;
     
     // 상태 select 박스 change 이벤트 리스너 추가
-    const statusSelects = tableBody.querySelectorAll('select.endorse-status-select');
-    statusSelects.forEach(select => {
-      select.addEventListener('change', (e) => {
-        const num = e.target.getAttribute('data-num');
-        const value = e.target.value;
-        const push = e.target.getAttribute('data-push');
-        const sangtae = e.target.getAttribute('data-sangtae');
-        const cancel = e.target.getAttribute('data-cancel');
-        
-        console.log('상태 변경:', { num, value, push, sangtae, cancel });
-        // TODO: API 호출하여 상태 업데이트
-        // updateEndorseStatus(num, value, push, sangtae, cancel);
+      const statusSelects = tableBody.querySelectorAll('select.endorse-status-select');
+      statusSelects.forEach(select => {
+        select.addEventListener('change', (e) => {
+          const num = e.target.getAttribute('data-num');
+          const value = e.target.value;
+          const push = e.target.getAttribute('data-push');
+          const sangtae = e.target.getAttribute('data-sangtae');
+          const cancel = e.target.getAttribute('data-cancel');
+          
+          console.log('상태 변경:', { num, value, push, sangtae, cancel });
+          // TODO: API 호출하여 상태 업데이트 (현재는 표시용)
+          // updateEndorseStatus(num, value, push, sangtae, cancel);
+        });
       });
-    });
     
     // 배서처리 상태 select 박스 change 이벤트 리스너 추가
     const processSelects = tableBody.querySelectorAll('select.endorse-process-select');
@@ -337,8 +337,8 @@
 
     let html = '';
     rows.forEach((row) => {
-      const statusText = row.push == 4 ? '청약' : (row.push == 2 ? '해지' : '');
-      const statusClass = row.push == 4 ? 'badge bg-primary' : (row.push == 2 ? 'badge bg-danger' : 'badge bg-secondary');
+      const statusText = row.push == 1 ? '청약' : (row.push == 4 ? '해지' : '');
+      const statusClass = row.push == 1 ? 'badge bg-primary' : (row.push == 4 ? 'badge bg-danger' : 'badge bg-secondary');
 
       html += `
         <div class="card mb-2">
