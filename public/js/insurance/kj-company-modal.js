@@ -7,35 +7,41 @@
   'use strict';
 
   // ==================== 상수 정의 ====================
-
-  // 보험사 옵션
-  const INSURER_OPTIONS = [
+  // 공통 상수는 kj-constants.js에서 가져옴
+  // kj-constants.js가 먼저 로드되어야 함
+  
+  // 보험사 옵션 (공통 모듈 사용)
+  const INSURER_OPTIONS = window.KJConstants ? window.KJConstants.INSURER_OPTIONS : [
     { value: 0, label: '=선택=' },
     { value: 1, label: '흥국' },
     { value: 2, label: 'DB' },
     { value: 3, label: 'KB' },
     { value: 4, label: '현대' },
     { value: 5, label: '롯데' },
-    { value: 6, label: '더 케이' },
-    { value: 7, label: 'MG' },
+    { value: 6, label: '하나' },
+    { value: 7, label: '한화' },
     { value: 8, label: '삼성' },
     { value: 9, label: '메리츠' },
   ];
 
-  // 성격 옵션
-  const GITA_OPTIONS = [
+  // 성격 옵션 (공통 모듈 사용)
+  const GITA_OPTIONS = window.KJConstants ? window.KJConstants.GITA_OPTIONS : [
     { value: 1, label: '일반' },
     { value: 2, label: '탁송' },
     { value: 3, label: '일반/렌트' },
     { value: 4, label: '탁송/렌트' },
-    { value: 5, label: '전차량' },
+    { value: 5, label: '확대탁송' },
   ];
 
   // ==================== 유틸리티 함수 ====================
 
-  // 보험사 코드 매핑
+  // 보험사 코드 매핑 (공통 모듈 사용)
   const mapInsuranceCompany = (code) => {
-    const map = { 1: '흥국', 2: 'DB', 3: 'KB', 4: '현대', 5: '한화', 6: '더케이', 7: 'MG', 8: '삼성' };
+    if (window.KJConstants) {
+      return window.KJConstants.getInsurerName(code);
+    }
+    // Fallback (공통 모듈이 없을 경우)
+    const map = { 1: '흥국', 2: 'DB', 3: 'KB', 4: '현대', 5: '롯데', 6: '하나', 7: '한화', 8: '삼성', 9: '메리츠' };
     return map[code] || '=선택=';
   };
 
@@ -458,9 +464,9 @@
         
         if (!certiNum || !gita) return;
         
-        // 증권성격 변경 확인
-        const gitaLabels = { 1: '일반', 2: '탁송', 3: '일반/렌트', 4: '탁송/렌트', 5: '전차량' };
-        const gitaLabel = gitaLabels[gita] || gita;
+        // 증권성격 변경 확인 (공통 모듈 사용)
+        const gitaLabel = window.KJConstants ? window.KJConstants.getGitaName(gita) : 
+          ({ 1: '일반', 2: '탁송', 3: '일반/렌트', 4: '탁송/렌트', 5: '확대탁송' }[gita] || gita);
         
         if (!confirm(`증권성격을 "${gitaLabel}"로 변경하시겠습니까?`)) {
           const originalValue = e.target.dataset.originalValue || '';
@@ -809,32 +815,40 @@
       }
     };
     
-    // 보험사 코드 매핑
+    // 보험사 코드 매핑 (공통 모듈 사용)
     const mapInsuranceCompany = (code) => {
+      if (window.KJConstants) {
+        return window.KJConstants.getInsurerName(code);
+      }
+      // Fallback (공통 모듈이 없을 경우)
       const v = Number(code);
       switch (v) {
         case 1: return '흥국';
         case 2: return 'DB';
         case 3: return 'KB';
         case 4: return '현대';
-        case 5: return '한화';
-        case 6: return '더케이';
-        case 7: return 'MG';
+        case 5: return '롯데';
+        case 6: return '하나';
+        case 7: return '한화';
         case 8: return '삼성';
         case 9: return '메리츠';
         default: return '';
       }
     };
     
-    // 증권성격 매핑 (기사 조회 결과와 동일)
+    // 증권성격 매핑 (기사 조회 결과와 동일, 공통 모듈 사용)
     const mapEtagLabel = (etag) => {
+      if (window.KJConstants) {
+        return window.KJConstants.getGitaName(etag);
+      }
+      // Fallback (공통 모듈이 없을 경우)
       const v = Number(etag);
       switch (v) {
         case 1: return '일반';
         case 2: return '탁송';
         case 3: return '일반/렌트';
         case 4: return '탁송/렌트';
-        case 5: return '전차량';
+        case 5: return '확대탁송';  // 전차량 → 확대탁송으로 통일
         default: return '';
       }
     };
@@ -1080,15 +1094,19 @@
 
   // 배서 모달 렌더링
   const renderEndorseModal = (modalBody, gita) => {
-    // 증권성격 매핑
+    // 증권성격 매핑 (공통 모듈 사용)
     const mapGitaLabel = (gita) => {
+      if (window.KJConstants) {
+        return window.KJConstants.getGitaName(gita);
+      }
+      // Fallback (공통 모듈이 없을 경우)
       const v = Number(gita);
       switch (v) {
         case 1: return '일반';
         case 2: return '탁송';
         case 3: return '일반/렌트';
         case 4: return '탁송/렌트';
-        case 5: return '전차량';
+        case 5: return '확대탁송';  // 전차량 → 확대탁송으로 통일
         default: return '일반';
       }
     };

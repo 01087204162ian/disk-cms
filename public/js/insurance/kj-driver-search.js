@@ -34,15 +34,19 @@
     }
   };
 
-  // etag → 텍스트
+  // etag → 텍스트 (공통 모듈 사용)
   const mapEtagLabel = (etag) => {
+    if (window.KJConstants) {
+      return window.KJConstants.getGitaName(etag);
+    }
+    // Fallback (공통 모듈이 없을 경우)
     const v = Number(etag);
     switch (v) {
       case 1: return '일반';
       case 2: return '탁송';
       case 3: return '일반/렌트';
       case 4: return '탁송/렌트';
-      case 5: return '전차량';
+      case 5: return '확대탁송';  // 전차량 → 확대탁송으로 통일
       default: return '';
     }
   };
@@ -91,15 +95,15 @@
     return `<span>${mapPushLabel(push)}</span>`;
   };
 
-  // 증권성격 select 렌더링
+  // 증권성격 select 렌더링 (공통 모듈 사용)
   const renderEtagSelect = (row) => {
     const etag = Number(row.etag || row.Etag || 0);
-    const options = [
+    const options = window.KJConstants ? window.KJConstants.GITA_OPTIONS : [
       { value: 1, label: '일반' },
       { value: 2, label: '탁송' },
       { value: 3, label: '일반/렌트' },
       { value: 4, label: '탁송/렌트' },
-      { value: 5, label: '전차량' },
+      { value: 5, label: '확대탁송' },  // 전차량 → 확대탁송으로 통일
     ];
     
     const optsHtml = options
