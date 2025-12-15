@@ -47,6 +47,23 @@
     });
   };
 
+  const getInsurerLabel = (code) => {
+    if (typeof window.getInsurerName === 'function') {
+      return window.getInsurerName(code);
+    }
+    const fallback = {
+      '1': '흥국',
+      '2': 'DB',
+      '3': 'KB',
+      '4': '현대',
+      '5': '롯데',
+      '6': '롯데',
+      '7': '한화',
+      '8': '삼성',
+    };
+    return fallback[String(code)] || code || '';
+  };
+
   const renderTable = (responseData) => {
     const tableBody = document.getElementById('kje-policyList');
     if (!tableBody) return;
@@ -62,10 +79,10 @@
     const endIndex = Math.min(startIndex + itemsPerPage, responseData.data.length);
     const current = responseData.data.slice(startIndex, endIndex);
 
-    let totalInwon = 0; //
+    let totalInwon = 0;
 
     current.forEach((item, idx) => {
-      const insurer = getInsurerName(item.insurance);
+      const insurer = getInsurerLabel(item.insurance);
       const inwon = parseInt(item.inwon || 0, 10);
       if (!Number.isNaN(inwon)) totalInwon += inwon;
 
