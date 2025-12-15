@@ -195,38 +195,28 @@
       const sangtae = parseInt(row.progressStep) || 0;
       const cancel = parseInt(row.cancel) || 0;
       
-      // 상태 판단: push=1, sangtae=1 → 청약 / push=4, sangtae=1, cancel=42 → 해지
-      const isSubscription = (push === 1 && sangtae === 1);
-      const isCancellation = (push === 4 && sangtae === 1 && cancel === 42);
-      
+      // 상태 판단: push=4 → 청약 / push=2 → 해지
       const statusText = push == 4 ? '청약' : (push == 2 ? '해지' : '');
       const statusClass = push == 4 ? 'text-primary' : (push == 2 ? 'text-danger' : '');
       
-      // 배서처리 select 옵션 생성
-      let endorseProcessSelect = '';
-      if (isSubscription) {
-        // 청약: 청약, 취소, 거절
-        const currentValue = row.endorseProcess || '청약';
-        endorseProcessSelect = `
-          <select class="form-select form-select-sm" data-num="${row.num}" data-push="${push}" data-sangtae="${sangtae}">
-            <option value="청약" ${currentValue === '청약' ? 'selected' : ''}>청약</option>
-            <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
-            <option value="거절" ${currentValue === '거절' ? 'selected' : ''}>거절</option>
-          </select>
-        `;
-      } else if (isCancellation) {
-        // 해지: 해지, 취소
-        const currentValue = row.endorseProcess || '해지';
-        endorseProcessSelect = `
-          <select class="form-select form-select-sm" data-num="${row.num}" data-push="${push}" data-sangtae="${sangtae}" data-cancel="${cancel}">
-            <option value="해지" ${currentValue === '해지' ? 'selected' : ''}>해지</option>
-            <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
-          </select>
-        `;
-      } else {
-        // 기타: 빈 값 또는 현재 값 표시
-        endorseProcessSelect = `<span>${row.endorseProcess || ''}</span>`;
-      }
+      // 보험사 표시 (공통 모듈 사용)
+      const insuranceComCode = parseInt(row.insuranceCom) || 0;
+      const insuranceComName = window.KJConstants ? window.KJConstants.getInsurerName(insuranceComCode) : (row.insuranceCom || '');
+      
+      // 증권성격 표시 (공통 모듈 사용)
+      const certiTypeCode = parseInt(row.certiType) || 0;
+      const certiTypeName = window.KJConstants ? window.KJConstants.getGitaName(certiTypeCode) : (row.certiType || '');
+      
+      // 배서처리 상태 select 생성 (sangtae: 1=미처리, 2=처리)
+      const currentSangtae = sangtae || 1;
+      const statusSelect = `
+        <select class="form-select form-select-sm endorse-status-select" 
+                data-num="${row.num}" 
+                data-current-sangtae="${currentSangtae}">
+          <option value="1" ${currentSangtae == 1 ? 'selected' : ''}>미처리</option>
+          <option value="2" ${currentSangtae == 2 ? 'selected' : ''}>처리</option>
+        </select>
+      `;
 
       html += `
         <tr>
@@ -241,11 +231,11 @@
           <td>${row.standardDate || ''}</td>
           <td>${row.applicationDate || ''}</td>
           <td>${row.policyNum || ''}</td>
-          <td>${row.certiType || ''}</td>
+          <td>${certiTypeName}</td>
           <td>${row.rate || ''}</td>
           <td class="${statusClass}">${statusText}</td>
-          <td>${endorseProcessSelect}</td>
-          <td>${row.insuranceCom || ''}</td>
+          <td>${statusSelect}</td>
+          <td>${insuranceComName}</td>
           <td>${row.premium || ''}</td>
           <td>${row.cPremium || ''}</td>
           <td>${row.duplicate || ''}</td>
@@ -255,19 +245,36 @@
 
     tableBody.innerHTML = html;
     
-    // 배서처리 select 박스 change 이벤트 리스너 추가
-    const endorseProcessSelects = tableBody.querySelectorAll('select[data-num]');
-    endorseProcessSelects.forEach(select => {
-      select.addEventListener('change', (e) => {
+    // 배서처리 상태 select 박스 change 이벤트 리스너 추가
+    const statusSelects = tableBody.querySelectorAll('select.endorse-status-select');
+    statusSelects.forEach(select => {
+      select.addEventListener('change', async (e) => {
         const num = e.target.getAttribute('data-num');
-        const value = e.target.value;
-        const push = e.target.getAttribute('data-push');
-        const sangtae = e.target.getAttribute('data-sangtae');
-        const cancel = e.target.getAttribute('data-cancel');
+        const newSangtae = parseInt(e.target.value);
+        const currentSangtae = parseInt(e.target.getAttribute('data-current-sangtae'));
         
-        console.log('배서처리 변경:', { num, value, push, sangtae, cancel });
-        // TODO: API 호출하여 배서처리 업데이트
-        // updateEndorseProcess(num, value, push, sangtae, cancel);
+        // 값이 변경되지 않았으면 무시
+        if (newSangtae === currentSangtae) {
+          return;
+        }
+        
+        // 로딩 상태 표시
+        const originalValue = e.target.value;
+        e.target.disabled = true;
+        
+        try {
+          await updateEndorseStatus(num, newSangtae);
+          // 성공 시 현재 값 업데이트
+          e.target.setAttribute('data-current-sangtae', newSangtae);
+          // 리스트 새로고침
+          fetchList();
+        } catch (error) {
+          console.error('배서처리 상태 업데이트 오류:', error);
+          alert('배서처리 상태 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+          // 실패 시 원래 값으로 복원
+          e.target.value = currentSangtae;
+          e.target.disabled = false;
+        }
       });
     });
   };
@@ -377,6 +384,34 @@
         }
       });
     });
+  };
+
+  // ==================== 배서처리 상태 업데이트 ====================
+  
+  const updateEndorseStatus = async (num, sangtae) => {
+    try {
+      const response = await fetch('/api/insurance/kj-endorse/update-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          num: num,
+          sangtae: sangtae
+        })
+      });
+      
+      const json = await response.json();
+      
+      if (!json.success) {
+        throw new Error(json.error || '상태 업데이트 실패');
+      }
+      
+      return json;
+    } catch (error) {
+      console.error('배서처리 상태 업데이트 API 오류:', error);
+      throw error;
+    }
   };
 
   // ==================== 이벤트 바인딩 ====================
