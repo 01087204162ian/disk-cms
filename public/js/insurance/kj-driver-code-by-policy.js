@@ -62,7 +62,7 @@
     const endIndex = Math.min(startIndex + itemsPerPage, responseData.data.length);
     const current = responseData.data.slice(startIndex, endIndex);
 
-    let totalInwon = 0;
+    let totalInwon = 0; //
 
     current.forEach((item, idx) => {
       const insurer = getInsurerName(item.insurance);
