@@ -26,6 +26,25 @@
   let currentLimit = 20;
   let currentPagination = { page: 1, limit: 20, total: 0, totalPages: 1 };
 
+  // 요율 옵션 (value는 코드, text는 표시값)
+  const RATE_OPTIONS = [
+    { value: '-1', label: '선택' },
+    { value: '1', label: '1' },
+    { value: '2', label: '0.9' },
+    { value: '3', label: '0.925' },
+    { value: '4', label: '0.898' },
+    { value: '5', label: '0.889' },
+    { value: '6', label: '1.074' },
+    { value: '7', label: '1.085' },
+    { value: '8', label: '1.242' },
+    { value: '9', label: '1.253' },
+    { value: '10', label: '1.314' },
+    { value: '11', label: '1.428' },
+    { value: '12', label: '1.435' },
+    { value: '13', label: '1.447' },
+    { value: '14', label: '1.459' },
+  ];
+
   // ==================== 초기화 ====================
 
   // 증권번호 목록 로드 (초기 로드)
@@ -252,6 +271,26 @@
         </select>
       `;
 
+      // 요율 select 생성
+      const currentRate = (row.rate ?? '').toString();
+      const jumin = row.jumin || '';
+      const policyNum = row.policyNum || '';
+      const rateDisabled = !jumin || !policyNum;
+      const rateOptionsHtml = RATE_OPTIONS.map(opt => {
+        const sel = opt.value === currentRate ? 'selected' : '';
+        return `<option value="${opt.value}" ${sel}>${opt.label}</option>`;
+      }).join('');
+      const rateSelect = `
+        <select class="form-select form-select-sm endorse-rate-select"
+                data-num="${row.num}"
+                data-jumin="${jumin}"
+                data-policy="${policyNum}"
+                data-current-rate="${currentRate}"
+                ${rateDisabled ? 'disabled' : ''}>
+          ${rateOptionsHtml}
+        </select>
+      `;
+
       html += `
         <tr>
           <td class="text-center">${rowNum}</td>
@@ -266,7 +305,7 @@
           <td>${row.applicationDate || ''}</td>
           <td>${row.policyNum || ''}</td>
           <td>${certiTypeName}</td>
-          <td>${row.rate || ''}</td>
+          <td>${rateSelect}</td>
           <td>${statusSelect}</td>
           <td>${processSelect}</td>
           <td>${insuranceComName}</td>
@@ -323,6 +362,35 @@
           alert('배서처리 상태 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
           // 실패 시 원래 값으로 복원
           e.target.value = currentSangtae;
+          e.target.disabled = false;
+        }
+      });
+    });
+
+    // 요율 select change 이벤트 리스너 추가
+    const rateSelects = tableBody.querySelectorAll('select.endorse-rate-select');
+    rateSelects.forEach(select => {
+      select.addEventListener('change', async (e) => {
+        const num = e.target.getAttribute('data-num');
+        const jumin = e.target.getAttribute('data-jumin');
+        const policyNum = e.target.getAttribute('data-policy');
+        const currentRate = e.target.getAttribute('data-current-rate');
+        const newRate = e.target.value;
+
+        if (newRate === currentRate || newRate === '-1') {
+          e.target.value = currentRate || '-1';
+          return;
+        }
+
+        e.target.disabled = true;
+        try {
+          await updateRate(num, jumin, policyNum, newRate);
+          e.target.setAttribute('data-current-rate', newRate);
+        } catch (error) {
+          console.error('요율 업데이트 오류:', error);
+          alert('요율 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+          e.target.value = currentRate || '-1';
+        } finally {
           e.target.disabled = false;
         }
       });
@@ -462,6 +530,30 @@
       console.error('배서처리 상태 업데이트 API 오류:', error);
       throw error;
     }
+  };
+
+  // ==================== 요율 업데이트 ====================
+  const updateRate = async (num, jumin, policyNum, rate) => {
+    if (!jumin || !policyNum) {
+      throw new Error('주민번호 또는 증권번호가 없습니다.');
+    }
+    const res = await fetch('/api/insurance/kj-endorse/rate-update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        Jumin: jumin,
+        rate: rate,
+        policyNum: policyNum,
+        num: num,
+      }),
+    });
+    const json = await res.json();
+    if (!json.success) {
+      throw new Error(json.error || '요율 업데이트 실패');
+    }
+    return json;
   };
 
   // ==================== 이벤트 바인딩 ====================
