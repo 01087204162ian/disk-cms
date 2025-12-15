@@ -163,6 +163,66 @@
     container.appendChild(createBtn('»', currentPage + 1, currentPage === totalPages, false));
   };
 
+  const buildPageLayout = () => {
+    const container = document.getElementById('page-content');
+    if (!container) return;
+    container.innerHTML = `
+      <div class="search-filter-row mb-3">
+        <div class="row align-items-end">
+          <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+            <input type="date" id="fromDate" class="form-control" />
+          </div>
+          <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+            <input type="date" id="toDate" class="form-control" />
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+            <button class="btn btn-primary w-100" type="button" id="search_btn">
+              <i class="fas fa-search"></i> <span class="d-none d-sm-inline">검색</span>
+            </button>
+          </div>
+          <div class="col-md-4 col-sm-12 mt-2 mt-md-0 text-md-end text-sm-start">
+            <span id="currentSituation" class="small text-muted"></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="kjPoLoadingIndicator" class="kj-loading-indicator" style="display:none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">데이터를 불러오는 중...</div>
+      </div>
+
+      <div class="kje-data-table-container table-responsive">
+        <table class="table table-bordered table-hover table-sm align-middle">
+          <thead class="thead-light">
+            <tr>
+              <th class="col-number">#</th>
+              <th class="col-policy-number">증권번호</th>
+              <th class="col-company">회사명</th>
+              <th class="col-name">계약자</th>
+              <th class="col-owner">소유자</th>
+              <th class="col-jumin">주민번호</th>
+              <th class="col-insurance-company">보험사</th>
+              <th class="col-start-date">계약일</th>
+              <th class="col-nab">회차</th>
+              <th class="col-inwon text-end">인원</th>
+              <th class="col-max text-end">max</th>
+              <th class="col-code">코드</th>
+              <th class="col-pass">비밀번호</th>
+              <th class="col-cert">인증번호</th>
+              <th class="col-rate">단체율</th>
+              <th class="col-harin">할인율</th>
+            </tr>
+          </thead>
+          <tbody id="kje-policyList">
+            <tr><td colspan="16" class="text-center py-4">데이터를 불러오는 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="policy-pagination d-flex justify-content-center mt-3"></div>
+    `;
+  };
+
   const fetchList = async () => {
     if (state.isFetching) return;
     state.isFetching = true;
@@ -529,6 +589,7 @@
   };
 
   const initPage = () => {
+    buildPageLayout();
     // 기본 날짜 세팅: 끝 = 오늘, 시작 = 끝 - 1년
     const today = new Date();
     const todayStr = formatDateInput(today);
