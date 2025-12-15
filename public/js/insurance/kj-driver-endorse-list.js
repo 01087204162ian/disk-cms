@@ -26,6 +26,14 @@
   let currentLimit = 20;
   let currentPagination = { page: 1, limit: 20, total: 0, totalPages: 1 };
 
+  // 금액 표시 포맷터 (숫자면 콤마, 0도 표시)
+  const formatAmount = (val) => {
+    if (val === null || val === undefined || val === '') return '';
+    const num = Number(val);
+    if (Number.isNaN(num)) return val;
+    return num.toLocaleString();
+  };
+
   // 요율 옵션 (value는 코드, text는 표시값)
   const RATE_OPTIONS = [
     { value: '-1', label: '선택' },
@@ -280,6 +288,8 @@
         const sel = opt.value === currentRate ? 'selected' : '';
         return `<option value="${opt.value}" ${sel}>${opt.label}</option>`;
       }).join('');
+      const premiumFormatted = formatAmount(row.premium);
+      const cPremiumFormatted = formatAmount(row.cPremium);
       const rateSelect = `
         <select class="form-select form-select-sm endorse-rate-select"
                 data-num="${row.num}"
@@ -309,8 +319,8 @@
           <td>${statusSelect}</td>
           <td>${processSelect}</td>
           <td>${insuranceComName}</td>
-          <td>${row.premium || ''}</td>
-          <td>${row.cPremium || ''}</td>
+          <td class="text-end">${premiumFormatted}</td>
+          <td class="text-end">${cPremiumFormatted}</td>
           <td>${row.duplicate || ''}</td>
         </tr>
       `;
@@ -405,6 +415,8 @@
 
     let html = '';
     rows.forEach((row) => {
+      const premiumFormatted = formatAmount(row.premium);
+      const cPremiumFormatted = formatAmount(row.cPremium);
       const statusText = row.push == 1 ? '청약' : (row.push == 4 ? '해지' : '');
       const statusClass = row.push == 1 ? 'badge bg-primary' : (row.push == 4 ? 'badge bg-danger' : 'badge bg-secondary');
 
@@ -421,7 +433,9 @@
               <strong>보험사:</strong> ${row.insuranceCom || ''}<br>
               <strong>배서일자:</strong> ${row.standardDate || ''}<br>
               <strong>대리운전회사:</strong> ${row.companyName || ''}<br>
-              <strong>작성자:</strong> ${row.manager || ''}
+              <strong>작성자:</strong> ${row.manager || ''}<br>
+              <strong>보험료:</strong> ${premiumFormatted || '-'}<br>
+              <strong>C보험료:</strong> ${cPremiumFormatted || '-'}
             </p>
           </div>
         </div>
