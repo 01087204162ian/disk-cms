@@ -348,34 +348,8 @@
     
     const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
 
-    // 날짜 기본값
-    const today = new Date();
-    const todayStr = formatDateInput(today);
-    const oneYearAgo = new Date(today);
-    oneYearAgo.setFullYear(today.getFullYear() - 1);
-    const oneYearAgoStr = formatDateInput(oneYearAgo);
-
-    const searchField = `
-      <div class="search-filter-row mb-3">
-        <div class="row align-items-end">
-          <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-            <input type="date" id="modal-fromDate" class="form-control" value="${oneYearAgoStr}">
-          </div>
-          <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-            <input type="date" id="modal-toDate" class="form-control" value="${todayStr}">
-          </div>
-          <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-            <button class="btn btn-primary w-100" type="button" onclick="kjPolicyPage.requestSearch()">
-              <i class="fas fa-search"></i> 검색
-            </button>
-          </div>
-          <div class="col-md-4 col-sm-12 mt-2 mt-md-0 text-md-end text-sm-start">
-            <span id='daily_currentSituation' class="small text-muted"></span>
-          </div>
-        </div>
-      </div>
-    `;
-    document.getElementById('policyNum_daeriCompany').innerHTML = searchField;
+    // 검색 섹션 제거
+    document.getElementById('policyNum_daeriCompany').innerHTML = '';
 
     showLoading();
     try {
@@ -420,8 +394,8 @@
               </tr>
               <tr>
                 <td colspan='9' class='text-end'>
-                  <button onclick="kjPolicyPage.openPremiumModal('${d.certi || ''}')" class="btn btn-primary btn-sm">
-                    <i class="fas fa-edit"></i> 보험료 입력
+                  <button id="updatePolicyBtn" class="btn btn-primary btn-sm">
+                    <i class="fas fa-save"></i> 수정
                   </button>
                 </td>
               </tr>
@@ -430,6 +404,27 @@
         </div>
       `;
       document.getElementById('m_policyNum').innerHTML = html;
+      
+      // 수정 버튼 이벤트 리스너 추가
+      const updateBtn = document.getElementById('updatePolicyBtn');
+      if (updateBtn) {
+        updateBtn.addEventListener('click', () => {
+          // TODO: 수정 로직 구현
+          alert('수정 기능은 구현 예정입니다.');
+        });
+      }
+      
+      // 모달 footer에 보험료 입력 버튼 추가
+      const modalFooter = modalElement.querySelector('.modal-footer');
+      if (modalFooter) {
+        modalFooter.innerHTML = `
+          <button type="button" class="btn btn-primary" onclick="kjPolicyPage.openPremiumModal('${d.certi || ''}')">
+            <i class="fas fa-edit"></i> 보험료 입력
+          </button>
+          
+        `;
+      }
+      
       if (d.p_preminum === 1) {
         alert(`${d.certi} 연령별 보험료 입력하세요`);
         kjPolicyPage.openPremiumModal(d.certi);
