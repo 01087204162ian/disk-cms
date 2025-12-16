@@ -572,5 +572,28 @@ router.post('/kj-endorse/rate-update', async (req, res) => {
   }
 });
 
+// 보험료 데이터 마이그레이션 API (2012Certi → kj_insurance_premium_data)
+router.get('/kj-migrate-premium-data', async (req, res) => {
+  try {
+    const { clear } = req.query;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-migrate-premium-data.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: clear ? { clear: '1' } : {},
+      timeout: 300000, // 마이그레이션은 시간이 걸릴 수 있으므로 타임아웃 증가
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-migrate-premium-data proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '보험료 데이터 마이그레이션 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 
