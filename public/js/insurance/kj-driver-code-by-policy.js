@@ -284,55 +284,93 @@
   const buildModalsIfNeeded = () => {
     if (document.getElementById('policyNum-modal')) return;
     const html = `
-      <div id="policyNum-modal" class="kje-modal" style="display:none;">
-        <div class="kje-modal-content">
-          <div id="policyNum_daeriCompany"></div>
-          <div id="m_policyNum"></div>
-          <div id="Insurance_premium_statistics"></div>
-          <button class="kje-modal-close" onclick="kjPolicyPage.closePolicyModal()">닫기</button>
+      <!-- 증권 상세 모달 (Bootstrap) -->
+      <div class="modal fade" id="policyNum-modal" tabindex="-1" aria-labelledby="policyNumModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="policyNumModalLabel">증권 상세 정보</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <div class="modal-body" style="max-height: 85vh; overflow-y: auto;">
+              <div id="policyNum_daeriCompany"></div>
+              <div id="m_policyNum"></div>
+              <div id="Insurance_premium_statistics"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+          </div>
         </div>
       </div>
-      <div id="po-premium-modal" class="kje-modal" style="display:none;">
-        <div class="kje-modal-content">
-          <div id="po_ceti_daeriCompany"></div>
-          <table class='pjTable'>
-            <thead>
-              <tr>
-                <th>#</th><th>시작월</th><th>종료월</th><th>보험료1</th><th>보험료2</th><th>10회납</th>
-              </tr>
-            </thead>
-            <tbody id="policyPremiumList"></tbody>
-          </table>
-          <button class="kje-modal-close" onclick="kjPolicyPage.closePremiumModal()">닫기</button>
+      
+      <!-- 보험료 입력 모달 (Bootstrap) -->
+      <div class="modal fade" id="po-premium-modal" tabindex="-1" aria-labelledby="premiumModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="premiumModalLabel">
+                <span id="po_ceti_daeriCompany">보험료 입력</span>
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+              <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                  <thead class="thead-light">
+                    <tr>
+                      <th>#</th>
+                      <th>시작월</th>
+                      <th>종료월</th>
+                      <th>보험료1</th>
+                      <th>보험료2</th>
+                      <th>10회납</th>
+                    </tr>
+                  </thead>
+                  <tbody id="policyPremiumList"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+          </div>
         </div>
       </div>
-      <style>
-        .kje-modal { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;}
-        .kje-modal-content { background:#fff; padding:20px; border-radius:8px; max-height:90vh; overflow:auto; min-width:320px; width:90%; max-width:900px;}
-        .kje-modal-close { margin-top:12px; float:right; }
-      </style>
     `;
     document.body.insertAdjacentHTML('beforeend', html);
   };
 
   const openPolicyDetail = async (certi) => {
     buildModalsIfNeeded();
-    const modal = document.getElementById('policyNum-modal');
-    if (!modal) return;
+    const modalElement = document.getElementById('policyNum-modal');
+    if (!modalElement) return;
+    
+    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
 
     // 날짜 기본값
     const today = new Date();
     const todayStr = formatDateInput(today);
-    const oneYearAgoStr = formatDateInput(new Date(today.setFullYear(today.getFullYear() - 1)));
+    const oneYearAgo = new Date(today);
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    const oneYearAgoStr = formatDateInput(oneYearAgo);
 
     const searchField = `
-      <div class="kje-list-header">
-        <div class="kje-left-area">
-          <div class="kje-search-area">
-            <input type='date' id='fromDate' class='date-range-field' value='${oneYearAgoStr}'>
-            <input type='date' id='toDate' class='date-range-field' value='${todayStr}'>
-            <button class="sms-stats-button" onclick="kjPolicyPage.requestSearch()">검색</button>
-            <div id='daily_currentSituation'></div>
+      <div class="search-filter-row mb-3">
+        <div class="row align-items-end">
+          <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+            <input type="date" id="modal-fromDate" class="form-control" value="${oneYearAgoStr}">
+          </div>
+          <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+            <input type="date" id="modal-toDate" class="form-control" value="${todayStr}">
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+            <button class="btn btn-primary w-100" type="button" onclick="kjPolicyPage.requestSearch()">
+              <i class="fas fa-search"></i> 검색
+            </button>
+          </div>
+          <div class="col-md-4 col-sm-12 mt-2 mt-md-0 text-md-end text-sm-start">
+            <span id='daily_currentSituation' class="small text-muted"></span>
           </div>
         </div>
       </div>
@@ -353,39 +391,43 @@
       if (!result.success || !result.data || !result.data[0]) throw new Error(result.error || '데이터 없음');
       const d = result.data[0];
       const html = `
-        <table class='pjTable'>
-          <thead>
-            <tr>
-              <th width='15%'>증권번호</th>
-              <th width='15%'>회사명</th>
-              <th width='15%'>계약자</th>
-              <th width='15%'>주민번호</th>
-              <th width='10%'>계약일</th>
-              <th width='5%'>회차</th>
-              <th width='5%'>인원</th>
-              <th width='10%'>단체</th>
-              <th width='10%'>할인율</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><input type='text' id='p-certi' class='geInput2' value="${d.certi || ''}" autocomplete="off"></td>
-              <td><input type='text' id='p-company' class='geInput2' value="${d.company || ''}" autocomplete="off"></td>
-              <td><input type='text' id='p-name' class='geInput2' value="${d.name || ''}" autocomplete="off"></td>
-              <td><input type='text' id='p-jumin' class='geInput2' value="${d.jumin || ''}" autocomplete="off"></td>
-              <td><input type='date' id='p-sigi' class='geInput2' value="${d.sigi || ''}" autocomplete="off"></td>
-              <td><input type='text' id='p-nab' class='geInput2' value="${d.nab || ''}" autocomplete="off"></td>
-              <td class='center-align'>${d.inwon || ''}</td>
-              <td><input type='text' id='p-yearRate' class='geInput2' value="${d.yearRate || ''}" autocomplete="off"></td>
-              <td><input type='text' id='p-harinRate' class='geInput2' value="${d.harinRate || ''}" autocomplete="off"></td>
-            </tr>
-            <tr>
-              <td colspan='9' class='right-align'>
-                <button onclick="kjPolicyPage.openPremiumModal('${d.certi || ''}')" class="save-button" style="padding:4px 10px;">보험료 입력</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-responsive mb-3">
+          <table class="table table-bordered table-sm">
+            <thead class="thead-light">
+              <tr>
+                <th style="width: 15%;">증권번호</th>
+                <th style="width: 15%;">회사명</th>
+                <th style="width: 15%;">계약자</th>
+                <th style="width: 15%;">주민번호</th>
+                <th style="width: 10%;">계약일</th>
+                <th style="width: 5%;">회차</th>
+                <th style="width: 5%;">인원</th>
+                <th style="width: 10%;">단체</th>
+                <th style="width: 10%;">할인율</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type='text' id='p-certi' class='form-control form-control-sm' value="${d.certi || ''}" autocomplete="off"></td>
+                <td><input type='text' id='p-company' class='form-control form-control-sm' value="${d.company || ''}" autocomplete="off"></td>
+                <td><input type='text' id='p-name' class='form-control form-control-sm' value="${d.name || ''}" autocomplete="off"></td>
+                <td><input type='text' id='p-jumin' class='form-control form-control-sm' value="${d.jumin || ''}" autocomplete="off"></td>
+                <td><input type='date' id='p-sigi' class='form-control form-control-sm' value="${d.sigi || ''}" autocomplete="off"></td>
+                <td><input type='text' id='p-nab' class='form-control form-control-sm' value="${d.nab || ''}" autocomplete="off"></td>
+                <td class='text-center'>${d.inwon || ''}</td>
+                <td><input type='text' id='p-yearRate' class='form-control form-control-sm' value="${d.yearRate || ''}" autocomplete="off"></td>
+                <td><input type='text' id='p-harinRate' class='form-control form-control-sm' value="${d.harinRate || ''}" autocomplete="off"></td>
+              </tr>
+              <tr>
+                <td colspan='9' class='text-end'>
+                  <button onclick="kjPolicyPage.openPremiumModal('${d.certi || ''}')" class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> 보험료 입력
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       `;
       document.getElementById('m_policyNum').innerHTML = html;
       if (d.p_preminum === 1) {
@@ -393,7 +435,7 @@
         kjPolicyPage.openPremiumModal(d.certi);
       }
       await loadInsurancePremiumStats(d.certi);
-      modal.style.display = 'flex';
+      modal.show();
     } catch (e) {
       console.error('policy detail error', e);
       alert('데이터 조회 중 오류가 발생했습니다.');
@@ -403,12 +445,18 @@
   };
 
   const closePolicyModal = () => {
-    const modal = document.getElementById('policyNum-modal');
-    if (modal) modal.style.display = 'none';
+    const modalElement = document.getElementById('policyNum-modal');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) modal.hide();
+    }
   };
   const closePremiumModal = () => {
-    const modal = document.getElementById('po-premium-modal');
-    if (modal) modal.style.display = 'none';
+    const modalElement = document.getElementById('po-premium-modal');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) modal.hide();
+    }
   };
 
   const loadInsurancePremiumStats = async (certi) => {
@@ -435,53 +483,57 @@
       return aStart - bStart;
     });
     let html = `
-      <table class='pjTable'>
-        <thead>
-          <tr>
-            <th width='15%' class='center-align'>연령</th>
-            <th width='15%' class='center-align'>인원</th>
-            <th width='17.5%' class='center-align'>1/10 보험료</th>
-            <th width='17.5%' class='center-align'>회사보험료</th>
-            <th width='17.5%' class='center-align'>환산</th>
-            <th width='17.5%' class='center-align'>월보험료</th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="table-responsive mt-3">
+        <table class="table table-bordered table-sm">
+          <thead class="thead-light">
+            <tr>
+              <th style="width: 15%;" class="text-center">연령</th>
+              <th style="width: 15%;" class="text-center">인원</th>
+              <th style="width: 17.5%;" class="text-end">1/10 보험료</th>
+              <th style="width: 17.5%;" class="text-end">회사보험료</th>
+              <th style="width: 17.5%;" class="text-end">환산</th>
+              <th style="width: 17.5%;" class="text-end">월보험료</th>
+            </tr>
+          </thead>
+          <tbody>
     `;
     sortedKeys.forEach((range) => {
       const r = ageRanges[range];
       html += `
         <tr>
-          <td class='center-align'>${r.start_month}~${r.end_month}세</td>
-          <td class='center-align'>${r.driver_count}명</td>
-          <td class='right-align'>${addComma(r.premium_total)}원</td>
-          <td class='right-align'>${addComma(r.total_adjusted_premium)}원</td>
-          <td class='right-align'>${addComma(r.total_adjusted_premium_monthly)}원</td>
-          <td class='right-align'>${addComma(r.total_month_adjusted_premium)}원</td>
+          <td class='text-center'>${r.start_month}~${r.end_month}세</td>
+          <td class='text-center'>${r.driver_count}명</td>
+          <td class='text-end'>${addComma(r.premium_total)}원</td>
+          <td class='text-end'>${addComma(r.total_adjusted_premium)}원</td>
+          <td class='text-end'>${addComma(r.total_adjusted_premium_monthly)}원</td>
+          <td class='text-end'>${addComma(r.total_month_adjusted_premium)}원</td>
         </tr>
       `;
     });
     html += `
-        </tbody>
-        <tfoot>
-          <tr>
-            <th class='center-align'>합계</th>
-            <th class='center-align'>${data.summary?.total_drivers || 0}명</th>
-            <th class='right-align'>${addComma(data.summary?.total_premium)}원</th>
-            <th class='right-align'>${addComma(data.summary?.total_adjusted_premium)}원</th>
-            <th class='right-align'>${addComma(data.summary?.total_adjusted_premium_monthly)}원</th>
-            <th class='right-align'>${addComma(data.summary?.total_month_adjusted_premium)}원</th>
-          </tr>
-        </tfoot>
-      </table>
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <th class='text-center'>합계</th>
+              <th class='text-center'>${data.summary?.total_drivers || 0}명</th>
+              <th class='text-end'>${addComma(data.summary?.total_premium)}원</th>
+              <th class='text-end'>${addComma(data.summary?.total_adjusted_premium)}원</th>
+              <th class='text-end'>${addComma(data.summary?.total_adjusted_premium_monthly)}원</th>
+              <th class='text-end'>${addComma(data.summary?.total_month_adjusted_premium)}원</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     `;
     el.innerHTML = html;
   };
 
   const openPremiumModal = async (certi) => {
     buildModalsIfNeeded();
-    const modal = document.getElementById('po-premium-modal');
-    if (!modal) return;
+    const modalElement = document.getElementById('po-premium-modal');
+    if (!modalElement) return;
+    
+    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
     showLoading();
     try {
       const res = await fetch(`${API_BASE}/kj-code/premium-data?certi=${encodeURIComponent(certi)}`);
@@ -497,19 +549,21 @@
         const rowData = data.data?.[i - 1] || {};
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${i}</td>
-          <td><input type='text' class='geInput_p' id='po_${i}_1' data-row='${i}' data-col='1' value='${rowData.start_month || ''}' autocomplete="off"></td>
-          <td><input type='text' class='geInput_p' id='po_${i}_2' data-row='${i}' data-col='2' value='${rowData.end_month || ''}' autocomplete="off"></td>
-          <td><input type='text' class='geInput_p' id='po_${i}_6' data-row='${i}' data-col='6' value='${rowData.payment10_premium1 || ''}' autocomplete="off"></td>
-          <td><input type='text' class='geInput_p' id='po_${i}_7' data-row='${i}' data-col='7' value='${rowData.payment10_premium2 || ''}' autocomplete="off"></td>
-          <td><input type='text' class='geInput_p' id='po_${i}_8' data-row='${i}' data-col='8' value='${rowData.payment10_premium_total || ''}' readonly></td>
+          <td class="text-center">${i}</td>
+          <td><input type='text' class='form-control form-control-sm' id='po_${i}_1' data-row='${i}' data-col='1' value='${rowData.start_month || ''}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm' id='po_${i}_2' data-row='${i}' data-col='2' value='${rowData.end_month || ''}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_6' data-row='${i}' data-col='6' value='${rowData.payment10_premium1 || ''}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_7' data-row='${i}' data-col='7' value='${rowData.payment10_premium2 || ''}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_8' data-row='${i}' data-col='8' value='${rowData.payment10_premium_total || ''}' readonly></td>
         `;
         tbody.appendChild(row);
       }
       const saveRow = document.createElement('tr');
       saveRow.innerHTML = `
-        <td colspan="9" style="text-align:center;padding:15px;">
-          <button id="saveIPremiumButton" class="save-button" style="padding:8px 20px;">저장</button>
+        <td colspan="6" class="text-center" style="padding:15px;">
+          <button id="saveIPremiumButton" class="btn btn-primary">
+            <i class="fas fa-save"></i> 저장
+          </button>
         </td>
       `;
       tbody.appendChild(saveRow);
@@ -528,7 +582,7 @@
         if (btn) btn.addEventListener('click', () => savePremiumData(certi));
       }, 50);
 
-      modal.style.display = 'flex';
+      modal.show();
     } catch (e) {
       console.error('premium data error', e);
       alert('데이터 로드 실패.');

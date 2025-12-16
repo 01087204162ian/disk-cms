@@ -97,11 +97,11 @@ router.post('/kj-code/policy-num-detail', async (req, res) => {
 router.get('/kj-code/policy-num-stats', async (req, res) => {
   try {
     const { certi } = req.query;
-    const apiUrl = `${PHP_API_BASE_URL}/kjDaeri/PolicyNumInsurancePremiumStatistics.php`;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-policy-stats.php`;
     const response = await axios.get(apiUrl, {
       params: { certi },
       timeout: DEFAULT_TIMEOUT,
-      headers: policyHeaders(),
+      headers: getDefaultHeaders(),
     });
     res.json(response.data);
   } catch (error) {
