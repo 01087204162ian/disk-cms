@@ -77,7 +77,7 @@ router.get('/kj-code/policy-search', async (req, res) => {
 // 증권 상세
 router.post('/kj-code/policy-num-detail', async (req, res) => {
   try {
-    const apiUrl = `${PHP_API_BASE_URL}/kjDaeri/policyNumDetail.php`;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-detail.php`;
     const response = await axios.post(apiUrl, req.body, {
       timeout: DEFAULT_TIMEOUT,
       headers: { ...policyHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
