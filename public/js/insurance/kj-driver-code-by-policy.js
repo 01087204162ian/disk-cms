@@ -494,9 +494,13 @@
     `;
     sortedKeys.forEach((range) => {
       const r = ageRanges[range];
+      // 연령 범위 표시 (end_month가 0이거나 없으면 "세 이상"으로 표시)
+      const ageDisplay = r.end_month && r.end_month > 0 
+        ? `${r.start_month}~${r.end_month}세` 
+        : `${r.start_month}세 이상`;
       html += `
         <tr>
-          <td class='text-center'>${r.start_month}~${r.end_month}세</td>
+          <td class='text-center'>${ageDisplay}</td>
           <td class='text-center'>${r.driver_count}명</td>
           <td class='text-end'>${addComma(r.premium_total)}원</td>
           <td class='text-end'>${addComma(r.total_adjusted_premium)}원</td>
