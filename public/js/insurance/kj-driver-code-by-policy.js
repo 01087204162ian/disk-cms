@@ -32,16 +32,27 @@
   };
 
   const addComma = (val) => {
-    const num = Number(String(val).replace(/,/g, ''));
-    return Number.isFinite(num) ? num.toLocaleString('ko-KR') : '';
+    if (val === null || val === undefined || val === '') return '';
+    const cleaned = String(val).replace(/,/g, '').trim();
+    if (cleaned === '') return '';
+    const num = Number(cleaned);
+    if (!Number.isFinite(num) || num === 0) return '';
+    return num.toLocaleString('ko-KR');
   };
 
   const addCommaListener = (id) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.addEventListener('input', () => {
+    el.addEventListener('input', (e) => {
       const caret = el.selectionStart;
-      el.value = addComma(el.value);
+      const currentValue = el.value;
+      // 빈 문자열이면 그대로 유지
+      if (currentValue === '' || currentValue.trim() === '') {
+        el.value = '';
+        return;
+      }
+      const formatted = addComma(currentValue);
+      el.value = formatted;
       // caret 보정은 생략 (간단 처리)
       el.setSelectionRange(caret, caret);
     });
@@ -747,10 +758,20 @@
   };
 
   const autoSum = (row, c1, c2, target) => {
-    const v1 = parseInt(document.getElementById(`po_${row}_${c1}`)?.value.replace(/,/g, ''), 10) || 0;
-    const v2 = parseInt(document.getElementById(`po_${row}_${c2}`)?.value.replace(/,/g, ''), 10) || 0;
+    const v1Str = document.getElementById(`po_${row}_${c1}`)?.value.replace(/,/g, '').trim() || '';
+    const v2Str = document.getElementById(`po_${row}_${c2}`)?.value.replace(/,/g, '').trim() || '';
+    const v1 = v1Str ? parseInt(v1Str, 10) : 0;
+    const v2 = v2Str ? parseInt(v2Str, 10) : 0;
+    const sum = v1 + v2;
     const el = document.getElementById(`po_${row}_${target}`);
-    if (el) el.value = addComma(v1 + v2);
+    if (el) {
+      // 둘 다 비어있으면 빈 문자열, 합이 0이면 빈 문자열
+      if ((!v1Str && !v2Str) || sum === 0) {
+        el.value = '';
+      } else {
+        el.value = addComma(sum);
+      }
+    }
   };
 
   const saveInsurancePremiumData = async (certi) => {
