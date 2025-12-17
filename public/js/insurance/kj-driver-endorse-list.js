@@ -295,14 +295,19 @@
       const premiumFormatted = formatAmount(row.premium);
       const cPremiumFormatted = formatAmount(row.cPremium);
       const rateSelect = `
-        <select class="form-select form-select-sm endorse-rate-select"
-                data-num="${row.num}"
-                data-jumin="${jumin}"
-                data-policy="${policyNum}"
-                data-current-rate="${currentRate}"
-                ${rateDisabled ? 'disabled' : ''}>
-          ${rateOptionsHtml}
-        </select>
+        <div class="d-flex align-items-center gap-1">
+          <select class="form-select form-select-sm endorse-rate-select"
+                  data-num="${row.num}"
+                  data-jumin="${jumin}"
+                  data-policy="${policyNum}"
+                  data-current-rate="${currentRate}"
+                  ${rateDisabled ? 'disabled' : ''}>
+            ${rateOptionsHtml}
+          </select>
+          <div class="spinner-border spinner-border-sm text-primary d-none" role="status" data-role="rate-loading">
+            <span class="visually-hidden">로딩 중...</span>
+          </div>
+        </div>
       `;
 
       html += `
@@ -402,16 +407,44 @@
           return;
         }
 
+        const rowEl = e.target.closest('tr');
+        const spinner = rowEl?.querySelector('[data-role="rate-loading"]');
+
         e.target.disabled = true;
+        if (spinner) {
+          spinner.classList.remove('d-none');
+        }
         try {
           await updateRate(num, jumin, policyNum, newRate);
           e.target.setAttribute('data-current-rate', newRate);
+
+          // 어떤 행의 요율이 변경되었는지 사용자에게 알림
+          if (rowEl) {
+            const no = rowEl.querySelector('td:nth-child(1)')?.textContent.trim() || '';
+            const name = rowEl.querySelector('td:nth-child(4)')?.textContent.trim() || '';
+            const juminText = rowEl.querySelector('td:nth-child(5)')?.textContent.trim() || '';
+            const policyText = rowEl.querySelector('td:nth-child(11)')?.textContent.trim() || policyNum || '';
+
+            alert(
+              `요율이 변경되었습니다.\n` +
+              (no ? `No: ${no}\n` : '') +
+              (name ? `성명: ${name}\n` : '') +
+              (juminText ? `주민번호: ${juminText}\n` : '') +
+              (policyText ? `증권번호: ${policyText}\n` : '') +
+              `요율 코드: ${newRate}`
+            );
+          } else {
+            alert('요율이 변경되었습니다.');
+          }
         } catch (error) {
           console.error('요율 업데이트 오류:', error);
           alert('요율 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
           e.target.value = currentRate || '-1';
         } finally {
           e.target.disabled = false;
+          if (spinner) {
+            spinner.classList.add('d-none');
+          }
         }
       });
     });
