@@ -676,8 +676,9 @@
         return;
       }
       
-      // 모달 제목에 보험회사 표시
-      document.getElementById('po_ceti_daeriCompany').textContent = insurerName || '보험료 입력';
+      // 모달 제목에 보험회사와 증권번호 표시
+      const titleText = insurerName ? `${insurerName} ${certi}` : certi;
+      document.getElementById('po_ceti_daeriCompany').textContent = titleText;
       const tbody = document.getElementById('policyPremiumList');
       tbody.innerHTML = '';
       
