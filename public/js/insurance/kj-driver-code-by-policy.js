@@ -746,11 +746,24 @@
 
   const saveInsurancePremiumData = async (certi) => {
     const premiumData = [];
+    
+    // 검증: 시작 나이가 없는데 보험료가 있는 경우 체크
     for (let i = 1; i <= 7; i += 1) {
       const startMonth = document.getElementById(`po_${i}_1`)?.value.replace(/,/g, '').trim() || '';
       const endMonth = document.getElementById(`po_${i}_2`)?.value.replace(/,/g, '').trim() || '';
       const payment10Premium1 = document.getElementById(`po_${i}_3`)?.value.replace(/,/g, '').trim() || '';
       const payment10Premium2 = document.getElementById(`po_${i}_4`)?.value.replace(/,/g, '').trim() || '';
+      
+      // 시작 나이가 없는데 보험료가 있는 경우 검증
+      if (!startMonth && (payment10Premium1 || payment10Premium2)) {
+        alert(`${i}번째 행: 시작 나이를 입력하세요.`);
+        // 해당 행의 시작 나이 입력 필드로 포커스 이동
+        const startMonthInput = document.getElementById(`po_${i}_1`);
+        if (startMonthInput) {
+          startMonthInput.focus();
+        }
+        return;
+      }
       
       // 하나라도 입력되어 있으면 저장 대상에 포함
       if (startMonth || endMonth || payment10Premium1 || payment10Premium2) {
@@ -782,12 +795,51 @@
       
       const result = await res.json();
       if (result.success) {
-        const actionText = result.updated > 0 ? '수정' : '저장';
+        const actionText = result.deleted > 0 ? '수정' : '저장';
         alert(`보험료 데이터가 ${actionText}되었습니다.`);
         // 버튼 텍스트를 "수정"으로 변경 (이제 데이터가 있으므로)
         const saveBtn = document.getElementById('saveInsurancePremiumButton');
         if (saveBtn) {
           saveBtn.innerHTML = '<i class="fas fa-save"></i> 수정';
+        }
+        // 모달의 데이터 새로고침 (서버에서 최신 데이터 다시 조회)
+        const refreshRes = await fetch(`${API_BASE}/kj-insurance-premium-data?policyNum=${encodeURIComponent(certi)}`);
+        const refreshData = await refreshRes.json();
+        if (refreshData.success) {
+          const tbody = document.getElementById('policyPremiumList');
+          tbody.innerHTML = '';
+          const existingData = refreshData.data || [];
+          const dataMap = {};
+          existingData.forEach(item => {
+            dataMap[item.rowNum] = item;
+          });
+          
+          for (let i = 1; i <= 7; i += 1) {
+            const rowData = dataMap[i] || {};
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="text-center">${i}</td>
+              <td><input type='text' class='form-control form-control-sm' id='po_${i}_1' data-row='${i}' data-col='1' value='${rowData.start_month || ''}' autocomplete="off"></td>
+              <td><input type='text' class='form-control form-control-sm' id='po_${i}_2' data-row='${i}' data-col='2' value='${rowData.end_month || ''}' autocomplete="off"></td>
+              <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_3' data-row='${i}' data-col='3' value='${rowData.payment10_premium1 ? addComma(rowData.payment10_premium1) : ''}' autocomplete="off"></td>
+              <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_4' data-row='${i}' data-col='4' value='${rowData.payment10_premium2 ? addComma(rowData.payment10_premium2) : ''}' autocomplete="off"></td>
+              <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_5' data-row='${i}' data-col='5' value='${rowData.payment10_premium_total ? addComma(rowData.payment10_premium_total) : ''}' readonly></td>
+            `;
+            tbody.appendChild(row);
+          }
+          
+          // 이벤트 리스너 다시 설정
+          setTimeout(() => {
+            for (let i = 1; i <= 7; i += 1) {
+              const endEl = document.getElementById(`po_${i}_2`);
+              if (endEl) endEl.addEventListener('input', () => autoFillNextRow(i));
+              const a3 = document.getElementById(`po_${i}_3`);
+              const a4 = document.getElementById(`po_${i}_4`);
+              if (a3) a3.addEventListener('input', () => autoSum(i, 3, 4, 5));
+              if (a4) a4.addEventListener('input', () => autoSum(i, 3, 4, 5));
+              ['1', '2', '3', '4', '5'].forEach((col) => addCommaListener(`po_${i}_${col}`));
+            }
+          }, 50);
         }
         // 통계 새로고침 (모달은 닫지 않음)
         await loadInsurancePremiumStats(certi);
