@@ -519,7 +519,7 @@
                     <tr>
                       <th class='text-center'>소계</th>
                       <th class='text-center'>${manager.subtotal.total_drivers}명</th>
-                      <th class='text-end'>${addComma(manager.subtotal.total_payment10_premium1)}원</th>
+                      <th class='text-end'>-</th>
                       <th class='text-end'>${addComma(manager.subtotal.total_company_premium)}원</th>
                       <th class='text-end'>${addComma(manager.subtotal.total_converted_premium)}원</th>
                       <th class='text-end'>${addComma(manager.subtotal.total_monthly_premium)}원</th>
@@ -556,7 +556,7 @@
                     <tr>
                       <td class='text-center'><strong>합계</strong></td>
                       <td class='text-center'><strong>${data.grand_total.total_drivers}명</strong></td>
-                      <td class='text-end'><strong>${addComma(data.grand_total.total_payment10_premium1)}원</strong></td>
+                      <td class='text-end'><strong>-</strong></td>
                       <td class='text-end'><strong>${addComma(data.grand_total.total_company_premium)}원</strong></td>
                       <td class='text-end'><strong>${addComma(data.grand_total.total_converted_premium)}원</strong></td>
                       <td class='text-end'><strong>${addComma(data.grand_total.total_monthly_premium)}원</strong></td>
