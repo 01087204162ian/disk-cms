@@ -595,5 +595,36 @@ router.get('/kj-migrate-premium-data', async (req, res) => {
   }
 });
 
+// 담당자별 보험료 통계 조회
+router.get('/kj-premium/by-manager', async (req, res) => {
+  try {
+    const { certi } = req.query;
+
+    if (!certi) {
+      return res.status(400).json({
+        success: false,
+        message: '증권번호가 필요합니다.',
+      });
+    }
+
+    const apiUrl = `${PHP_API_BASE_URL}/kj-premium-by-manager.php`;
+
+    const response = await axios.get(apiUrl, {
+      params: { certi },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-premium by-manager proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '담당자별 보험료 통계 API 호출 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 
