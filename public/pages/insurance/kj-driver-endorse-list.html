@@ -148,12 +148,62 @@
     </div>
   </main>
 
+  <!-- 대리운전회사 정보 모달 (공통 모듈에서 사용) -->
+  <div class="modal fade" id="companyInfoModal" tabindex="-1" aria-labelledby="companyInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="companyInfoModalLabel">대리운전회사 정보</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body" id="companyInfoModalBody" style="max-height: 85vh; overflow-y: auto;">
+          <div class="text-center py-4">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">로딩 중...</span>
+            </div>
+            <p class="mt-2">회사 정보를 불러오는 중...</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 대리기사 리스트 모달 (공통 모듈에서 사용) -->
+  <div class="modal fade" id="memberListModal" tabindex="-1" aria-labelledby="memberListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="memberListModalLabel">대리기사 리스트</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body" id="memberListModalBody" style="max-height: 70vh; overflow-y: auto;">
+          <div class="text-center py-4">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">로딩 중...</span>
+            </div>
+            <p class="mt-2">대리기사 정보를 불러오는 중...</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- SJ 템플릿 로더 -->
   <script src="/js/sj-template-loader.js"></script>
+  <!-- 주민번호 검증 유틸리티 (배서 모달에서 사용) -->
+  <script src="/js/utils/jumin-validator.js"></script>
   <!-- KJ 공통 상수 모듈 -->
   <script src="/js/insurance/kj-constants.js"></script>
+  <!-- 대리운전회사/증권 공통 모달 모듈 -->
+  <script src="/js/insurance/kj-company-modal.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async function() {
       await window.sjTemplateLoader.initializePage('kj-driver-endorse-list');

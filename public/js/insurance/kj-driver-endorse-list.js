@@ -229,6 +229,10 @@
       // 증권성격 표시 (공통 모듈 사용)
       const certiTypeCode = parseInt(row.certiType) || 0;
       const certiTypeName = window.KJConstants ? window.KJConstants.getGitaName(certiTypeCode) : (row.certiType || '');
+
+      // 대리운전회사 정보 (공통 모달용)
+      const companyNum = row.companyNum || row.company_num || row.dNum || '';
+      const companyName = row.companyName || '';
       
       // 상태 select 생성 (worklog 145-147 참고)
       // 청약 상태 (push=1, sangtae=1): "청약", "취소", "거절" 옵션
@@ -305,7 +309,13 @@
         <tr>
           <td class="text-center">${rowNum}</td>
           <td>${row.damdanja || row.manager || ''}</td>
-          <td>${row.companyName || ''}</td>
+          <td>
+            ${
+              companyNum && companyName
+                ? `<a href="#" class="text-primary" data-role="open-company-modal" data-company-num="${companyNum}" data-company-name="${companyName}">${companyName}</a>`
+                : (companyName || '')
+            }
+          </td>
           <td>${row.name || ''}</td>
           <td>${row.jumin || ''}</td>
           <td>${row.phone || ''}</td>
@@ -420,6 +430,10 @@
       const statusText = row.push == 1 ? '청약' : (row.push == 4 ? '해지' : '');
       const statusClass = row.push == 1 ? 'badge bg-primary' : (row.push == 4 ? 'badge bg-danger' : 'badge bg-secondary');
 
+      // 대리운전회사 정보 (공통 모달용)
+      const companyNum = row.companyNum || row.company_num || row.dNum || '';
+      const companyName = row.companyName || '';
+
       html += `
         <div class="card mb-2">
           <div class="card-body">
@@ -432,7 +446,11 @@
               <strong>배서번호:</strong> ${row.endorseNum || ''}<br>
               <strong>보험사:</strong> ${row.insuranceCom || ''}<br>
               <strong>배서일자:</strong> ${row.standardDate || ''}<br>
-              <strong>대리운전회사:</strong> ${row.companyName || ''}<br>
+              <strong>대리운전회사:</strong> ${
+                companyNum && companyName
+                  ? `<a href="#" class="text-primary" data-role="open-company-modal" data-company-num="${companyNum}" data-company-name="${companyName}">${companyName}</a>`
+                  : (companyName || '')
+              }<br>
               <strong>작성자:</strong> ${row.manager || ''}<br>
               <strong>보험료:</strong> ${premiumFormatted || '-'}<br>
               <strong>C보험료:</strong> ${cPremiumFormatted || '-'}
