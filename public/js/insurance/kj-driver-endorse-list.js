@@ -90,22 +90,17 @@
     }
   };
 
-  // 증권번호 선택 시 대리운전회사 목록 로드
-  const loadCompanyList = async () => {
-    const policyNum = policyNumFilter.value;
-
-    if (!policyNum) {
-      companyFilter.innerHTML = '<option value="">-- 대리운전회사 선택 --</option>';
-      companyFilter.disabled = true;
-      return;
-    }
-
+  // 대리운전회사 목록 로드 (증권번호 선택적)
+  const loadCompanyList = async (policyNum = null) => {
     try {
       companyFilter.disabled = true;
       companyFilter.innerHTML = '<option value="">로딩 중...</option>';
 
-      // API 호출: 증권번호로 대리운전회사 목록 조회
-      const response = await fetch(`/api/insurance/kj-endorse/company-list?policyNum=${policyNum}`);
+      // API 호출: 증권번호가 있으면 필터링, 없으면 전체 목록 조회
+      const url = policyNum 
+        ? `/api/insurance/kj-endorse/company-list?policyNum=${policyNum}`
+        : `/api/insurance/kj-endorse/company-list`;
+      const response = await fetch(url);
       const json = await response.json();
 
       if (!json.success) {
@@ -115,10 +110,17 @@
       companyFilter.innerHTML = '<option value="">-- 대리운전회사 선택 --</option>';
       
       if (json.data && json.data.length > 0) {
+        // 현재 선택된 값 저장
+        const currentValue = companyFilter.value;
+        
         json.data.forEach(item => {
           const option = document.createElement('option');
           option.value = item.companyNum || item.company_num || item.dNum || '';
           option.textContent = item.companyName || item.company_name || item.dName || '';
+          // 현재 선택된 값이 있으면 유지
+          if (currentValue && option.value === currentValue) {
+            option.selected = true;
+          }
           companyFilter.appendChild(option);
         });
         companyFilter.disabled = false;
@@ -629,15 +631,12 @@
     fetchList();
   });
 
-  // 증권번호 변경 시 대리운전회사 목록 로드 및 자동 검색
+  // 증권번호 변경 시 대리운전회사 목록 업데이트 및 자동 검색
   policyNumFilter?.addEventListener('change', () => {
-    // 대리운전회사 초기화
-    companyFilter.innerHTML = '<option value="">-- 대리운전회사 선택 --</option>';
-    companyFilter.disabled = true;
-    
-    if (policyNumFilter.value) {
-      loadCompanyList();
-    }
+    // 증권번호가 선택되면 해당 증권번호로 필터링된 목록 표시
+    // 증권번호가 없으면 전체 목록 표시
+    const policyNum = policyNumFilter.value || null;
+    loadCompanyList(policyNum);
     
     currentPage = 1;
     fetchList();
@@ -656,9 +655,11 @@
     fetchList();
   });
 
-  // 초기화: 증권번호 목록 로드 후 데이터 조회
+  // 초기화: 증권번호 목록 및 대리운전회사 목록 로드 후 데이터 조회
   const initialize = async () => {
     await loadPolicyNumList();
+    // 초기 로드 시 전체 대리운전회사 목록 로드 (증권번호 없이)
+    await loadCompanyList();
     // 초기 로드 시 필터 없이 전체 데이터 조회하여 통계 표시
     fetchList();
   };
