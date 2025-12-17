@@ -317,14 +317,19 @@
             <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
               <div class="table-responsive">
                 <table class="table table-bordered table-sm">
-                  <thead class="thead-light">
+                  <thead class="thead-light" style="background-color: #6f42c1; color: white;">
                     <tr>
-                      <th>#</th>
-                      <th>시작월</th>
-                      <th>종료월</th>
-                      <th>보험료1</th>
-                      <th>보험료2</th>
-                      <th>10회납</th>
+                      <th class="text-center">순번</th>
+                      <th class="text-center" colspan="2">나이</th>
+                      <th class="text-center" colspan="3">10회분납</th>
+                    </tr>
+                    <tr style="background-color: #6f42c1; color: white;">
+                      <th></th>
+                      <th class="text-center">시작</th>
+                      <th class="text-center">끝</th>
+                      <th class="text-center">년기본</th>
+                      <th class="text-center">년특약</th>
+                      <th class="text-center">년계</th>
                     </tr>
                   </thead>
                   <tbody id="policyPremiumList"></tbody>
@@ -333,6 +338,9 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+              <button type="button" class="btn btn-primary" id="saveInsurancePremiumButton">
+                <i class="fas fa-save"></i> 저장
+              </button>
             </div>
           </div>
         </div>
@@ -640,50 +648,53 @@
     const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
     showLoading();
     try {
-      const res = await fetch(`${API_BASE}/kj-code/premium-data?certi=${encodeURIComponent(certi)}`);
+      // kj_insurance_premium_data 조회
+      const res = await fetch(`${API_BASE}/kj-insurance-premium-data?policyNum=${encodeURIComponent(certi)}`);
       const data = await res.json();
       if (!data.success) {
         alert(data.error || '데이터 조회 실패');
         return;
       }
+      
       document.getElementById('po_ceti_daeriCompany').textContent = `증권번호 ${certi}`;
       const tbody = document.getElementById('policyPremiumList');
       tbody.innerHTML = '';
+      
+      // 기존 데이터가 있으면 표시, 없으면 빈 행 7개 생성
+      const existingData = data.data || [];
+      const dataMap = {};
+      existingData.forEach(item => {
+        dataMap[item.rowNum] = item;
+      });
+      
       for (let i = 1; i <= 7; i += 1) {
-        const rowData = data.data?.[i - 1] || {};
+        const rowData = dataMap[i] || {};
         const row = document.createElement('tr');
         row.innerHTML = `
           <td class="text-center">${i}</td>
           <td><input type='text' class='form-control form-control-sm' id='po_${i}_1' data-row='${i}' data-col='1' value='${rowData.start_month || ''}' autocomplete="off"></td>
           <td><input type='text' class='form-control form-control-sm' id='po_${i}_2' data-row='${i}' data-col='2' value='${rowData.end_month || ''}' autocomplete="off"></td>
-          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_6' data-row='${i}' data-col='6' value='${rowData.payment10_premium1 || ''}' autocomplete="off"></td>
-          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_7' data-row='${i}' data-col='7' value='${rowData.payment10_premium2 || ''}' autocomplete="off"></td>
-          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_8' data-row='${i}' data-col='8' value='${rowData.payment10_premium_total || ''}' readonly></td>
+          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_3' data-row='${i}' data-col='3' value='${rowData.payment10_premium1 ? addComma(rowData.payment10_premium1) : ''}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_4' data-row='${i}' data-col='4' value='${rowData.payment10_premium2 ? addComma(rowData.payment10_premium2) : ''}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_5' data-row='${i}' data-col='5' value='${rowData.payment10_premium_total ? addComma(rowData.payment10_premium_total) : ''}' readonly></td>
         `;
         tbody.appendChild(row);
       }
-      const saveRow = document.createElement('tr');
-      saveRow.innerHTML = `
-        <td colspan="6" class="text-center" style="padding:15px;">
-          <button id="saveIPremiumButton" class="btn btn-primary">
-            <i class="fas fa-save"></i> 저장
-          </button>
-        </td>
-      `;
-      tbody.appendChild(saveRow);
 
       setTimeout(() => {
         for (let i = 1; i <= 7; i += 1) {
           const endEl = document.getElementById(`po_${i}_2`);
           if (endEl) endEl.addEventListener('input', () => autoFillNextRow(i));
-          const a6 = document.getElementById(`po_${i}_6`);
-          const a7 = document.getElementById(`po_${i}_7`);
-          if (a6) a6.addEventListener('input', () => autoSum(i, 6, 7, 8));
-          if (a7) a7.addEventListener('input', () => autoSum(i, 6, 7, 8));
-          ['1', '2', '6', '7', '8'].forEach((col) => addCommaListener(`po_${i}_${col}`));
+          const a3 = document.getElementById(`po_${i}_3`);
+          const a4 = document.getElementById(`po_${i}_4`);
+          if (a3) a3.addEventListener('input', () => autoSum(i, 3, 4, 5));
+          if (a4) a4.addEventListener('input', () => autoSum(i, 3, 4, 5));
+          ['1', '2', '3', '4', '5'].forEach((col) => addCommaListener(`po_${i}_${col}`));
         }
-        const btn = document.getElementById('saveIPremiumButton');
-        if (btn) btn.addEventListener('click', () => savePremiumData(certi));
+        const btn = document.getElementById('saveInsurancePremiumButton');
+        if (btn) {
+          btn.onclick = () => saveInsurancePremiumData(certi);
+        }
       }, 50);
 
       modal.show();
@@ -700,6 +711,62 @@
     const v2 = parseInt(document.getElementById(`po_${row}_${c2}`)?.value.replace(/,/g, ''), 10) || 0;
     const el = document.getElementById(`po_${row}_${target}`);
     if (el) el.value = addComma(v1 + v2);
+  };
+
+  const saveInsurancePremiumData = async (certi) => {
+    const premiumData = [];
+    for (let i = 1; i <= 7; i += 1) {
+      const startMonth = document.getElementById(`po_${i}_1`)?.value.replace(/,/g, '').trim() || '';
+      const endMonth = document.getElementById(`po_${i}_2`)?.value.replace(/,/g, '').trim() || '';
+      const payment10Premium1 = document.getElementById(`po_${i}_3`)?.value.replace(/,/g, '').trim() || '';
+      const payment10Premium2 = document.getElementById(`po_${i}_4`)?.value.replace(/,/g, '').trim() || '';
+      
+      // 하나라도 입력되어 있으면 저장 대상에 포함
+      if (startMonth || endMonth || payment10Premium1 || payment10Premium2) {
+        premiumData.push({
+          rowNum: i,
+          start_month: startMonth || null,
+          end_month: endMonth || null,
+          payment10_premium1: payment10Premium1 || null,
+          payment10_premium2: payment10Premium2 || null,
+          payment10_premium_total: null, // 서버에서 자동 계산
+        });
+      }
+    }
+    
+    if (!premiumData.length) {
+      alert('저장할 데이터가 없습니다.');
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${API_BASE}/kj-insurance-premium-data`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          policyNum: certi,
+          data: premiumData
+        }),
+      });
+      
+      const result = await res.json();
+      if (result.success) {
+        alert('보험료 데이터가 저장되었습니다.');
+        // 모달 닫기
+        const modalElement = document.getElementById('po-premium-modal');
+        if (modalElement) {
+          const modal = bootstrap.Modal.getInstance(modalElement);
+          if (modal) modal.hide();
+        }
+        // 통계 새로고침
+        await loadInsurancePremiumStats(certi);
+      } else {
+        alert(result.error || '저장 실패');
+      }
+    } catch (e) {
+      console.error('save insurance premium error', e);
+      alert('데이터 저장 중 오류가 발생했습니다.');
+    }
   };
 
   const autoFillNextRow = (row) => {

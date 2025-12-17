@@ -115,6 +115,45 @@ router.get('/kj-code/policy-num-stats', async (req, res) => {
 });
 
 // 증권별 보험료 데이터 조회
+// kj_insurance_premium_data 조회/저장
+router.get('/kj-insurance-premium-data', async (req, res) => {
+  try {
+    const { policyNum } = req.query;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-insurance-premium-data.php`;
+    const response = await axios.get(apiUrl, {
+      params: { policyNum },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ insurance premium data proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '보험료 데이터 API 호출 오류',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+router.post('/kj-insurance-premium-data', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-insurance-premium-data.php`;
+    const response = await axios.post(apiUrl, req.body, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: { ...getDefaultHeaders(), 'Content-Type': 'application/json' },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ insurance premium data save proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '보험료 데이터 저장 오류',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 router.get('/kj-code/premium-data', async (req, res) => {
   try {
     const { certi } = req.query;
