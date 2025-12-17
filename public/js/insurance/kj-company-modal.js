@@ -220,7 +220,7 @@
                 <th class="bg-light">법인번호</th>
                 <td>${company.lNumber || ''}</td>
                 <th class="bg-light">보험료 받는날</th>
-                <td>${company.FirstStart || ''}</td>
+                <td><input type="date" class="form-control form-control-sm" id="companyFirstStart" value="${company.FirstStart || ''}" style="width: 100%;"></td>
                 <th class="bg-light">읽기 전용 ID</th>
                 <td colspan="3">${company.mem_id || ''}${company.permit == 1 ? '허용' : (company.permit == 2 ? '차단' : '')}</td>
               </tr>
