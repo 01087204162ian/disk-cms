@@ -481,6 +481,12 @@
     const el = document.getElementById('Insurance_premium_statistics');
     if (!el) return;
 
+    // 대리기사 정보가 없거나 데이터가 없는 경우 빈 화면 표시
+    if ((!data.managers || data.managers.length === 0) && (!data.age_ranges || data.age_ranges.length === 0)) {
+      el.innerHTML = '';
+      return;
+    }
+
     let html = '';
 
     // 담당자별 데이터가 있는 경우
