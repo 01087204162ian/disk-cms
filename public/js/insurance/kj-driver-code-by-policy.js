@@ -456,7 +456,8 @@
 
   const loadInsurancePremiumStats = async (certi) => {
     try {
-      const res = await fetch(`${API_BASE}/kj-code/policy-num-stats?certi=${encodeURIComponent(certi)}`);
+      // 담당자별 데이터 포함하여 조회
+      const res = await fetch(`${API_BASE}/kj-code/policy-num-stats?certi=${encodeURIComponent(certi)}&by_manager=1`);
       const data = await res.json();
       if (!data.success) {
         alert(data.error || '통계 조회 실패');
@@ -471,59 +472,149 @@
   const renderAgePremiumStats = (data) => {
     const el = document.getElementById('Insurance_premium_statistics');
     if (!el) return;
-    const ageRanges = data.age_range_premiums || {};
-    const sortedKeys = Object.keys(ageRanges).sort((a, b) => {
-      const aStart = parseInt(a.split('-')[0], 10);
-      const bStart = parseInt(b.split('-')[0], 10);
-      return aStart - bStart;
-    });
-    let html = `
-      <div class="table-responsive mt-3">
-        <table class="table table-bordered table-sm">
-          <thead class="thead-light">
+
+    let html = '';
+
+    // 담당자별 데이터가 있는 경우
+    if (data.managers && data.managers.length > 0) {
+      // 각 담당자별 테이블 생성
+      data.managers.forEach((manager) => {
+        html += `
+          <div class="card mb-3">
+            <div class="card-header bg-light">
+              <h6 class="mb-0"><strong>담당자: ${manager.manager_name}</strong></h6>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-bordered table-sm mb-0">
+                  <thead class="thead-light">
+                    <tr>
+                      <th style="width: 15%;" class="text-center">연령</th>
+                      <th style="width: 15%;" class="text-center">인원</th>
+                      <th style="width: 17.5%;" class="text-end">1/10 보험료</th>
+                      <th style="width: 17.5%;" class="text-end">회사보험료</th>
+                      <th style="width: 17.5%;" class="text-end">환산</th>
+                      <th style="width: 17.5%;" class="text-end">월보험료</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+        `;
+        
+        manager.age_ranges.forEach((range) => {
+          html += `
             <tr>
-              <th style="width: 15%;" class="text-center">연령</th>
-              <th style="width: 15%;" class="text-center">인원</th>
-              <th style="width: 17.5%;" class="text-end">1/10 보험료</th>
-              <th style="width: 17.5%;" class="text-end">회사보험료</th>
-              <th style="width: 17.5%;" class="text-end">환산</th>
-              <th style="width: 17.5%;" class="text-end">월보험료</th>
+              <td class='text-center'>${range.age_range}</td>
+              <td class='text-center'>${range.driver_count}명</td>
+              <td class='text-end'>${addComma(range.payment10_premium1)}원</td>
+              <td class='text-end'>${addComma(range.company_premium)}원</td>
+              <td class='text-end'>${addComma(range.converted_premium)}원</td>
+              <td class='text-end'>${addComma(range.monthly_premium)}원</td>
             </tr>
-          </thead>
-          <tbody>
-    `;
-    sortedKeys.forEach((range) => {
-      const r = ageRanges[range];
-      // 연령 범위 표시 (end_month가 0이거나 없으면 "세 이상"으로 표시)
-      const ageDisplay = r.end_month && r.end_month > 0 
-        ? `${r.start_month}~${r.end_month}세` 
-        : `${r.start_month}세 이상`;
-      html += `
-        <tr>
-          <td class='text-center'>${ageDisplay}</td>
-          <td class='text-center'>${r.driver_count}명</td>
-          <td class='text-end'>${addComma(r.premium_total)}원</td>
-          <td class='text-end'>${addComma(r.total_adjusted_premium)}원</td>
-          <td class='text-end'>${addComma(r.total_adjusted_premium_monthly)}원</td>
-          <td class='text-end'>${addComma(r.total_month_adjusted_premium)}원</td>
-        </tr>
+          `;
+        });
+
+        html += `
+                  </tbody>
+                  <tfoot class="table-light">
+                    <tr>
+                      <th class='text-center'>소계</th>
+                      <th class='text-center'>${manager.subtotal.total_drivers}명</th>
+                      <th class='text-end'>${addComma(manager.subtotal.total_payment10_premium1)}원</th>
+                      <th class='text-end'>${addComma(manager.subtotal.total_company_premium)}원</th>
+                      <th class='text-end'>${addComma(manager.subtotal.total_converted_premium)}원</th>
+                      <th class='text-end'>${addComma(manager.subtotal.total_monthly_premium)}원</th>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      // 전체 합계 테이블
+      if (data.grand_total) {
+        html += `
+          <div class="card mb-3 border-primary">
+            <div class="card-header bg-primary text-white">
+              <h6 class="mb-0"><strong>전체 합계</strong></h6>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-bordered table-sm mb-0">
+                  <thead class="thead-light">
+                    <tr>
+                      <th style="width: 15%;" class="text-center">항목</th>
+                      <th style="width: 15%;" class="text-center">인원</th>
+                      <th style="width: 17.5%;" class="text-end">1/10 보험료</th>
+                      <th style="width: 17.5%;" class="text-end">회사보험료</th>
+                      <th style="width: 17.5%;" class="text-end">환산</th>
+                      <th style="width: 17.5%;" class="text-end">월보험료</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class='text-center'><strong>합계</strong></td>
+                      <td class='text-center'><strong>${data.grand_total.total_drivers}명</strong></td>
+                      <td class='text-end'><strong>${addComma(data.grand_total.total_payment10_premium1)}원</strong></td>
+                      <td class='text-end'><strong>${addComma(data.grand_total.total_company_premium)}원</strong></td>
+                      <td class='text-end'><strong>${addComma(data.grand_total.total_converted_premium)}원</strong></td>
+                      <td class='text-end'><strong>${addComma(data.grand_total.total_monthly_premium)}원</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      // 담당자별 데이터가 없는 경우 기존 방식 (전체 통계만)
+      const ageRanges = data.age_ranges || [];
+      html = `
+        <div class="table-responsive mt-3">
+          <table class="table table-bordered table-sm">
+            <thead class="thead-light">
+              <tr>
+                <th style="width: 15%;" class="text-center">연령</th>
+                <th style="width: 15%;" class="text-center">인원</th>
+                <th style="width: 17.5%;" class="text-end">1/10 보험료</th>
+                <th style="width: 17.5%;" class="text-end">회사보험료</th>
+                <th style="width: 17.5%;" class="text-end">환산</th>
+                <th style="width: 17.5%;" class="text-end">월보험료</th>
+              </tr>
+            </thead>
+            <tbody>
       `;
-    });
-    html += `
-          </tbody>
-          <tfoot class="table-light">
-            <tr>
-              <th class='text-center'>합계</th>
-              <th class='text-center'>${data.summary?.total_drivers || 0}명</th>
-              <th class='text-end'>${addComma(data.summary?.total_premium)}원</th>
-              <th class='text-end'>${addComma(data.summary?.total_adjusted_premium)}원</th>
-              <th class='text-end'>${addComma(data.summary?.total_adjusted_premium_monthly)}원</th>
-              <th class='text-end'>${addComma(data.summary?.total_month_adjusted_premium)}원</th>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    `;
+      ageRanges.forEach((range) => {
+        html += `
+          <tr>
+            <td class='text-center'>${range.age_range}</td>
+            <td class='text-center'>${range.driver_count}명</td>
+            <td class='text-end'>${addComma(range.payment10_premium1)}원</td>
+            <td class='text-end'>${addComma(range.company_premium)}원</td>
+            <td class='text-end'>${addComma(range.converted_premium)}원</td>
+            <td class='text-end'>${addComma(range.monthly_premium)}원</td>
+          </tr>
+        `;
+      });
+      html += `
+            </tbody>
+            <tfoot class="table-light">
+              <tr>
+                <th class='text-center'>합계</th>
+                <th class='text-center'>${data.summary?.total_drivers || 0}명</th>
+                <th class='text-end'>${addComma(data.summary?.total_payment10_premium1)}원</th>
+                <th class='text-end'>${addComma(data.summary?.total_company_premium)}원</th>
+                <th class='text-end'>${addComma(data.summary?.total_converted_premium)}원</th>
+                <th class='text-end'>${addComma(data.summary?.total_monthly_premium)}원</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `;
+    }
+
     el.innerHTML = html;
   };
 
