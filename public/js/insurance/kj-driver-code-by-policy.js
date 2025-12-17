@@ -701,13 +701,22 @@
       for (let i = 1; i <= 7; i += 1) {
         const rowData = dataMap[i] || {};
         const row = document.createElement('tr');
+        // 0이나 null, undefined인 경우 빈 문자열 표시
+        const formatValue = (val) => {
+          if (val === null || val === undefined || val === '' || val === 0 || val === '0') return '';
+          return addComma(val);
+        };
+        const formatMonth = (val) => {
+          if (val === null || val === undefined || val === '' || val === 0 || val === '0') return '';
+          return val;
+        };
         row.innerHTML = `
           <td class="text-center">${i}</td>
-          <td><input type='text' class='form-control form-control-sm' id='po_${i}_1' data-row='${i}' data-col='1' value='${rowData.start_month || ''}' autocomplete="off"></td>
-          <td><input type='text' class='form-control form-control-sm' id='po_${i}_2' data-row='${i}' data-col='2' value='${rowData.end_month || ''}' autocomplete="off"></td>
-          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_3' data-row='${i}' data-col='3' value='${rowData.payment10_premium1 ? addComma(rowData.payment10_premium1) : ''}' autocomplete="off"></td>
-          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_4' data-row='${i}' data-col='4' value='${rowData.payment10_premium2 ? addComma(rowData.payment10_premium2) : ''}' autocomplete="off"></td>
-          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_5' data-row='${i}' data-col='5' value='${rowData.payment10_premium_total ? addComma(rowData.payment10_premium_total) : ''}' readonly></td>
+          <td><input type='text' class='form-control form-control-sm' id='po_${i}_1' data-row='${i}' data-col='1' value='${formatMonth(rowData.start_month)}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm' id='po_${i}_2' data-row='${i}' data-col='2' value='${formatMonth(rowData.end_month)}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_3' data-row='${i}' data-col='3' value='${formatValue(rowData.payment10_premium1)}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_4' data-row='${i}' data-col='4' value='${formatValue(rowData.payment10_premium2)}' autocomplete="off"></td>
+          <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_5' data-row='${i}' data-col='5' value='${formatValue(rowData.payment10_premium_total)}' readonly></td>
         `;
         tbody.appendChild(row);
       }
@@ -817,13 +826,22 @@
           for (let i = 1; i <= 7; i += 1) {
             const rowData = dataMap[i] || {};
             const row = document.createElement('tr');
+            // 0이나 null, undefined인 경우 빈 문자열 표시
+            const formatValue = (val) => {
+              if (val === null || val === undefined || val === '' || val === 0 || val === '0') return '';
+              return addComma(val);
+            };
+            const formatMonth = (val) => {
+              if (val === null || val === undefined || val === '' || val === 0 || val === '0') return '';
+              return val;
+            };
             row.innerHTML = `
               <td class="text-center">${i}</td>
-              <td><input type='text' class='form-control form-control-sm' id='po_${i}_1' data-row='${i}' data-col='1' value='${rowData.start_month || ''}' autocomplete="off"></td>
-              <td><input type='text' class='form-control form-control-sm' id='po_${i}_2' data-row='${i}' data-col='2' value='${rowData.end_month || ''}' autocomplete="off"></td>
-              <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_3' data-row='${i}' data-col='3' value='${rowData.payment10_premium1 ? addComma(rowData.payment10_premium1) : ''}' autocomplete="off"></td>
-              <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_4' data-row='${i}' data-col='4' value='${rowData.payment10_premium2 ? addComma(rowData.payment10_premium2) : ''}' autocomplete="off"></td>
-              <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_5' data-row='${i}' data-col='5' value='${rowData.payment10_premium_total ? addComma(rowData.payment10_premium_total) : ''}' readonly></td>
+              <td><input type='text' class='form-control form-control-sm' id='po_${i}_1' data-row='${i}' data-col='1' value='${formatMonth(rowData.start_month)}' autocomplete="off"></td>
+              <td><input type='text' class='form-control form-control-sm' id='po_${i}_2' data-row='${i}' data-col='2' value='${formatMonth(rowData.end_month)}' autocomplete="off"></td>
+              <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_3' data-row='${i}' data-col='3' value='${formatValue(rowData.payment10_premium1)}' autocomplete="off"></td>
+              <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_4' data-row='${i}' data-col='4' value='${formatValue(rowData.payment10_premium2)}' autocomplete="off"></td>
+              <td><input type='text' class='form-control form-control-sm text-end' id='po_${i}_5' data-row='${i}' data-col='5' value='${formatValue(rowData.payment10_premium_total)}' readonly></td>
             `;
             tbody.appendChild(row);
           }
