@@ -656,7 +656,13 @@
     fetchList();
   });
 
-  // 초기화: 증권번호 목록 로드
-  loadPolicyNumList();
+  // 초기화: 증권번호 목록 로드 후 데이터 조회
+  const initialize = async () => {
+    await loadPolicyNumList();
+    // 초기 로드 시 필터 없이 전체 데이터 조회하여 통계 표시
+    fetchList();
+  };
+  
+  initialize();
 })();
 
