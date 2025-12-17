@@ -12,6 +12,7 @@
 
   // 필터 요소
   const statusFilter = document.getElementById('statusFilter');
+  const insuranceComFilter = document.getElementById('insuranceComFilter');
   const policyNumFilter = document.getElementById('policyNumFilter');
   const companyFilter = document.getElementById('companyFilter');
   const pageSizeSelect = document.getElementById('pageSize');
@@ -54,6 +55,44 @@
   ];
 
   // ==================== 초기화 ====================
+
+  // 보험회사 필터 옵션 초기화
+  const initInsuranceComFilter = () => {
+    if (!insuranceComFilter) return;
+    
+    insuranceComFilter.innerHTML = '<option value="">-- 보험회사 선택 --</option>';
+    
+    // 공통 모듈에서 보험회사 옵션 가져오기
+    if (window.KJConstants && window.KJConstants.INSURER_OPTIONS) {
+      window.KJConstants.INSURER_OPTIONS.forEach(opt => {
+        if (opt.value !== 0) { // '=선택=' 제외
+          const option = document.createElement('option');
+          option.value = opt.value;
+          option.textContent = opt.label;
+          insuranceComFilter.appendChild(option);
+        }
+      });
+    } else {
+      // Fallback: 공통 모듈이 없을 경우
+      const fallbackOptions = [
+        { value: 1, label: '흥국' },
+        { value: 2, label: 'DB' },
+        { value: 3, label: 'KB' },
+        { value: 4, label: '현대' },
+        { value: 5, label: '롯데' },
+        { value: 6, label: '하나' },
+        { value: 7, label: '한화' },
+        { value: 8, label: '삼성' },
+        { value: 9, label: '메리츠' },
+      ];
+      fallbackOptions.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.label;
+        insuranceComFilter.appendChild(option);
+      });
+    }
+  };
 
   // 증권번호 목록 로드 (초기 로드)
   const loadPolicyNumList = async () => {
@@ -146,6 +185,7 @@
 
   const fetchList = async () => {
     const push = statusFilter.value || '';
+    const insuranceCom = insuranceComFilter.value || '';
     const policyNum = policyNumFilter.value || '';
     const companyNum = companyFilter.value || '';
 
@@ -167,6 +207,7 @@
     params.append('page', currentPage);
     params.append('limit', currentLimit);
     if (push) params.append('push', push);
+    if (insuranceCom) params.append('insuranceCom', insuranceCom);
     if (policyNum) params.append('policyNum', policyNum);
     if (companyNum) params.append('companyNum', companyNum);
 
@@ -634,6 +675,9 @@
 
   // 상태 필터 변경 시 다른 필터 초기화 및 자동 검색
   statusFilter?.addEventListener('change', () => {
+    // 보험회사 필터 초기화
+    insuranceComFilter.value = '';
+    
     // 증권번호 필터 초기화
     policyNumFilter.value = '';
     
@@ -641,6 +685,12 @@
     companyFilter.value = '';
     loadCompanyList(); // 증권번호 없이 전체 목록 로드
     
+    currentPage = 1;
+    fetchList();
+  });
+
+  // 보험회사 필터 변경 시 자동 검색
+  insuranceComFilter?.addEventListener('change', () => {
     currentPage = 1;
     fetchList();
   });
@@ -669,8 +719,11 @@
     fetchList();
   });
 
-  // 초기화: 증권번호 목록 및 대리운전회사 목록 로드 후 데이터 조회
+  // 초기화: 보험회사 필터, 증권번호 목록 및 대리운전회사 목록 로드 후 데이터 조회
   const initialize = async () => {
+    // 보험회사 필터 옵션 초기화
+    initInsuranceComFilter();
+    
     await loadPolicyNumList();
     // 초기 로드 시 전체 대리운전회사 목록 로드 (증권번호 없이)
     await loadCompanyList();
