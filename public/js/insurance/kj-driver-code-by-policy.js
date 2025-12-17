@@ -503,7 +503,7 @@
         manager.age_ranges.forEach((range) => {
           html += `
             <tr>
-              <td class='text-center'>${range.age_range}</td>
+              <td class='text-center' style='white-space: nowrap; overflow: visible;'>${range.age_range}</td>
               <td class='text-center'>${range.driver_count}명</td>
               <td class='text-end'>${addComma(range.payment10_premium1)}원</td>
               <td class='text-end'>${addComma(range.company_premium)}원</td>
@@ -589,7 +589,7 @@
       ageRanges.forEach((range) => {
         html += `
           <tr>
-            <td class='text-center'>${range.age_range}</td>
+            <td class='text-center' style='white-space: nowrap; overflow: visible;'>${range.age_range}</td>
             <td class='text-center'>${range.driver_count}명</td>
             <td class='text-end'>${addComma(range.payment10_premium1)}원</td>
             <td class='text-end'>${addComma(range.company_premium)}원</td>
