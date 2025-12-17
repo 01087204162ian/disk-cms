@@ -400,7 +400,7 @@
             </thead>
             <tbody>
               <tr>
-                <td><input type='text' id='p-certi' class='form-control form-control-sm' value="${d.certi || ''}" autocomplete="off"></td>
+                <td><input type='text' id='p-certi' class='form-control form-control-sm' value="${d.certi || ''}" readonly></td>
                 <td><input type='text' id='p-company' class='form-control form-control-sm' value="${d.company || ''}" autocomplete="off"></td>
                 <td><input type='text' id='p-name' class='form-control form-control-sm' value="${d.name || ''}" autocomplete="off"></td>
                 <td><input type='text' id='p-jumin' class='form-control form-control-sm' value="${d.jumin || ''}" autocomplete="off"></td>
@@ -426,9 +426,8 @@
       // 수정 버튼 이벤트 리스너 추가
       const updateBtn = document.getElementById('updatePolicyBtn');
       if (updateBtn) {
-        updateBtn.addEventListener('click', () => {
-          // TODO: 수정 로직 구현
-          alert('수정 기능은 구현 예정입니다.');
+        updateBtn.addEventListener('click', async () => {
+          await updatePolicyDetail(certi);
         });
       }
       
@@ -452,6 +451,61 @@
     } catch (e) {
       console.error('policy detail error', e);
       alert('데이터 조회 중 오류가 발생했습니다.');
+    } finally {
+      hideLoading();
+    }
+  };
+
+  const updatePolicyDetail = async (certi) => {
+    if (!certi) {
+      alert('증권번호가 없습니다.');
+      return;
+    }
+
+    // 입력 필드에서 값 가져오기
+    const company = document.getElementById('p-company')?.value.trim() || '';
+    const name = document.getElementById('p-name')?.value.trim() || '';
+    const jumin = document.getElementById('p-jumin')?.value.trim() || '';
+    const sigi = document.getElementById('p-sigi')?.value.trim() || '';
+    const nab = document.getElementById('p-nab')?.value.trim() || '';
+    const yearRate = document.getElementById('p-yearRate')?.value.trim() || '';
+    const harinRate = document.getElementById('p-harinRate')?.value.trim() || '';
+
+    // 수정할 데이터 구성
+    const updateData = {
+      certi: certi, // 증권번호는 수정 불가, WHERE 조건에만 사용
+      company: company,
+      name: name,
+      jumin: jumin,
+      sigi: sigi,
+      nab: nab,
+      yearRate: yearRate,
+      harinRate: harinRate
+    };
+
+    try {
+      showLoading();
+      const res = await fetch(`${API_BASE}/kj-certi/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
+
+      const result = await res.json();
+      
+      if (!result.success) {
+        alert(result.error || '증권 정보 수정에 실패했습니다.');
+        return;
+      }
+
+      alert(result.message || '증권 정보가 수정되었습니다.');
+      
+      // 모달 새로고침 (수정된 데이터 다시 조회)
+      await openPolicyDetail(certi);
+      
+    } catch (e) {
+      console.error('update policy detail error', e);
+      alert('증권 정보 수정 중 오류가 발생했습니다: ' + (e.message || '알 수 없는 오류'));
     } finally {
       hideLoading();
     }
