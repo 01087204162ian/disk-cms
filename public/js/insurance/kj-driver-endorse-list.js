@@ -75,7 +75,14 @@
         json.data.forEach(item => {
           const option = document.createElement('option');
           option.value = item.policyNum || item.policy_num || '';
-          option.textContent = `${item.policyNum || item.policy_num || ''} (${item.insuranceCom || item.insurance_com || ''})`;
+          
+          // 보험회사 코드를 이름으로 변환 (공통 모듈 사용)
+          const insuranceComCode = parseInt(item.insuranceCom || item.insurance_com || 0);
+          const insuranceComName = window.KJConstants 
+            ? window.KJConstants.getInsurerName(insuranceComCode) 
+            : (item.insuranceCom || item.insurance_com || '');
+          
+          option.textContent = `${item.policyNum || item.policy_num || ''} (${insuranceComName})`;
           policyNumFilter.appendChild(option);
         });
         policyNumFilter.disabled = false;
