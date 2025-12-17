@@ -684,10 +684,19 @@
       
       // 기존 데이터가 있으면 표시, 없으면 빈 행 7개 생성
       const existingData = data.data || [];
+      const hasExistingData = existingData.length > 0;
       const dataMap = {};
       existingData.forEach(item => {
         dataMap[item.rowNum] = item;
       });
+      
+      // 버튼 텍스트 설정 (기존 데이터가 있으면 "수정", 없으면 "저장")
+      const saveBtn = document.getElementById('saveInsurancePremiumButton');
+      if (saveBtn) {
+        saveBtn.innerHTML = hasExistingData 
+          ? '<i class="fas fa-save"></i> 수정'
+          : '<i class="fas fa-save"></i> 저장';
+      }
       
       for (let i = 1; i <= 7; i += 1) {
         const rowData = dataMap[i] || {};
@@ -773,14 +782,14 @@
       
       const result = await res.json();
       if (result.success) {
-        alert('보험료 데이터가 저장되었습니다.');
-        // 모달 닫기
-        const modalElement = document.getElementById('po-premium-modal');
-        if (modalElement) {
-          const modal = bootstrap.Modal.getInstance(modalElement);
-          if (modal) modal.hide();
+        const actionText = result.updated > 0 ? '수정' : '저장';
+        alert(`보험료 데이터가 ${actionText}되었습니다.`);
+        // 버튼 텍스트를 "수정"으로 변경 (이제 데이터가 있으므로)
+        const saveBtn = document.getElementById('saveInsurancePremiumButton');
+        if (saveBtn) {
+          saveBtn.innerHTML = '<i class="fas fa-save"></i> 수정';
         }
-        // 통계 새로고침
+        // 통계 새로고침 (모달은 닫지 않음)
         await loadInsurancePremiumStats(certi);
       } else {
         alert(result.error || '저장 실패');
