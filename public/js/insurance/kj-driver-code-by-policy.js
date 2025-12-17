@@ -496,7 +496,7 @@
 
     let html = '';
 
-    // 담당자별 데이터가 있는 경우
+    // 담당자별 데이터가 있는 경우//
     if (data.managers && data.managers.length > 0) {
       // 각 담당자별 테이블 생성
       data.managers.forEach((manager) => {
