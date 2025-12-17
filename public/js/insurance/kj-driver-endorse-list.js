@@ -495,10 +495,10 @@
     mobileCards.innerHTML = html;
   };
 
-  const renderPagination = (currentPage, totalPages, total) => {
+  const renderPagination = (pageNum, totalPages, total) => {
     // 페이지 정보
-    const start = total === 0 ? 0 : (currentPage - 1) * currentLimit + 1;
-    const end = Math.min(currentPage * currentLimit, total);
+    const start = total === 0 ? 0 : (pageNum - 1) * currentLimit + 1;
+    const end = Math.min(pageNum * currentLimit, total);
     paginationInfo.textContent = `총 ${total.toLocaleString()}건 중 ${start.toLocaleString()}-${end.toLocaleString()}건 표시`;
 
     // 페이지네이션 컨트롤
@@ -510,17 +510,17 @@
     let html = '';
 
     // 이전 버튼
-    if (currentPage > 1) {
+    if (pageNum > 1) {
       html += `
         <li class="page-item">
-          <a class="page-link" href="#" data-page="${currentPage - 1}">이전</a>
+          <a class="page-link" href="#" data-page="${pageNum - 1}">이전</a>
         </li>
       `;
     }
 
     // 페이지 번호
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
+    const startPage = Math.max(1, pageNum - 2);
+    const endPage = Math.min(totalPages, pageNum + 2);
 
     if (startPage > 1) {
       html += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
@@ -531,7 +531,7 @@
 
     for (let i = startPage; i <= endPage; i++) {
       html += `
-        <li class="page-item ${i === currentPage ? 'active' : ''}">
+        <li class="page-item ${i === pageNum ? 'active' : ''}">
           <a class="page-link" href="#" data-page="${i}">${i}</a>
         </li>
       `;
@@ -545,10 +545,10 @@
     }
 
     // 다음 버튼
-    if (currentPage < totalPages) {
+    if (pageNum < totalPages) {
       html += `
         <li class="page-item">
-          <a class="page-link" href="#" data-page="${currentPage + 1}">다음</a>
+          <a class="page-link" href="#" data-page="${pageNum + 1}">다음</a>
         </li>
       `;
     }
@@ -560,7 +560,8 @@
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const page = parseInt(link.dataset.page);
-        if (page && page !== currentPage) {
+        // 전역 변수 currentPage와 비교 (함수 파라미터 이름 충돌 방지)
+        if (page && page !== currentPage && page > 0) {
           currentPage = page;
           fetchList();
         }
