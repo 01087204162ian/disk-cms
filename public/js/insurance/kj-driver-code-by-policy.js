@@ -337,7 +337,6 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
               <button type="button" class="btn btn-primary" id="saveInsurancePremiumButton">
                 <i class="fas fa-save"></i> 저장
               </button>
@@ -648,6 +647,27 @@
     const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
     showLoading();
     try {
+      // 증권 정보 조회 (보험회사 코드 가져오기)
+      let insurerName = '';
+      try {
+        const certiParams = new URLSearchParams();
+        certiParams.append('num', certi);
+        const certiRes = await fetch(`${API_BASE}/kj-code/policy-num-detail`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: certiParams.toString(),
+        });
+        if (certiRes.ok) {
+          const certiData = await certiRes.json();
+          if (certiData.success && certiData.data && certiData.data[0]) {
+            const insuranceCode = certiData.data[0].insurance;
+            insurerName = getInsurerLabel(insuranceCode);
+          }
+        }
+      } catch (e) {
+        console.error('증권 정보 조회 오류:', e);
+      }
+      
       // kj_insurance_premium_data 조회
       const res = await fetch(`${API_BASE}/kj-insurance-premium-data?policyNum=${encodeURIComponent(certi)}`);
       const data = await res.json();
@@ -656,7 +676,8 @@
         return;
       }
       
-      document.getElementById('po_ceti_daeriCompany').textContent = `증권번호 ${certi}`;
+      // 모달 제목에 보험회사 표시
+      document.getElementById('po_ceti_daeriCompany').textContent = insurerName || '보험료 입력';
       const tbody = document.getElementById('policyPremiumList');
       tbody.innerHTML = '';
       
