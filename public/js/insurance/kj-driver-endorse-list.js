@@ -625,8 +625,15 @@
 
   // ==================== 이벤트 바인딩 ====================
 
-  // 상태 필터 변경 시 자동 검색
+  // 상태 필터 변경 시 다른 필터 초기화 및 자동 검색
   statusFilter?.addEventListener('change', () => {
+    // 증권번호 필터 초기화
+    policyNumFilter.value = '';
+    
+    // 대리운전회사 필터 초기화 및 전체 목록 로드
+    companyFilter.value = '';
+    loadCompanyList(); // 증권번호 없이 전체 목록 로드
+    
     currentPage = 1;
     fetchList();
   });
