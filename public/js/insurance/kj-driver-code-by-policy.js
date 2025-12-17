@@ -458,14 +458,22 @@
     try {
       // 담당자별 데이터 포함하여 조회
       const res = await fetch(`${API_BASE}/kj-code/policy-num-stats?certi=${encodeURIComponent(certi)}&by_manager=1`);
+      
+      // HTTP 상태 코드 확인
+      if (!res.ok) {
+        alert(`통계 조회 실패: HTTP ${res.status} 오류가 발생했습니다.`);
+        return;
+      }
+      
       const data = await res.json();
       if (!data.success) {
-        alert(data.error || '통계 조회 실패');
+        alert(data.error || data.message || '통계 조회 실패');
         return;
       }
       renderAgePremiumStats(data);
     } catch (e) {
       console.error('stats error', e);
+      alert('통계 조회 중 오류가 발생했습니다: ' + (e.message || '알 수 없는 오류'));
     }
   };
 
