@@ -1050,7 +1050,7 @@
     
     // 증권번호(보험사) 표시
     const insuranceComName = insuranceCom && window.KJConstants 
-      ? window.KJConstants.getInsuranceCompanyName(insuranceCom) 
+      ? window.KJConstants.getInsurerName(insuranceCom) 
       : '';
     const policyInfo = policyNum 
       ? `${policyNum}${insuranceComName ? ` (${insuranceComName})` : ''}`
