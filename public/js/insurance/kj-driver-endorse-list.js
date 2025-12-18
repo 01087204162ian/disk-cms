@@ -11,6 +11,7 @@
   const paginationControls = document.getElementById('paginationControls');
 
   // 필터 요소
+  const endorseDayFilter = document.getElementById('endorseDayFilter');
   const statusFilter = document.getElementById('statusFilter');
   const insuranceComFilter = document.getElementById('insuranceComFilter');
   const policyNumFilter = document.getElementById('policyNumFilter');
@@ -188,6 +189,7 @@
     const insuranceCom = insuranceComFilter.value || '';
     const policyNum = policyNumFilter.value || '';
     const companyNum = companyFilter.value || '';
+    const endorseDay = endorseDayFilter ? endorseDayFilter.value || '' : '';
 
     // 로딩 상태 표시
     tableBody.innerHTML = `
@@ -210,6 +212,7 @@
     if (insuranceCom) params.append('insuranceCom', insuranceCom);
     if (policyNum) params.append('policyNum', policyNum);
     if (companyNum) params.append('companyNum', companyNum);
+    if (endorseDay) params.append('endorseDay', endorseDay);
 
     // 디버깅: 파라미터 로그
     console.log('API 호출 파라미터:', {
@@ -1127,6 +1130,12 @@
     companyFilter.value = '';
     loadCompanyList(); // 증권번호 없이 전체 목록 로드
     
+    currentPage = 1;
+    fetchList();
+  });
+
+  // 배서기준일 필터 변경 시 자동 검색
+  endorseDayFilter?.addEventListener('change', () => {
     currentPage = 1;
     fetchList();
   });

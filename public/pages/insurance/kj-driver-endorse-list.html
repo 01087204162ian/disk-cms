@@ -40,8 +40,13 @@
             <!-- 통합 검색/필터 영역 -->
             <div class="search-filter-row">
               <div class="row align-items-end">
-                <!-- 첫 번째 필터: 선택/청약/해지 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                <!-- 첫 번째 필터: 배서기준일 -->
+                <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+                  <input type="date" id="endorseDayFilter" class="form-control">
+                </div>
+                
+                <!-- 두 번째 필터: 선택/청약/해지 -->
+                <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
                   <select id="statusFilter" class="form-control">
                     <option value="">선택</option>
                     <option value="1">청약</option>
@@ -49,28 +54,28 @@
                   </select>
                 </div>
                 
-                <!-- 두 번째 필터: 보험회사 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                <!-- 세 번째 필터: 보험회사 -->
+                <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
                   <select id="insuranceComFilter" class="form-control">
                     <option value="">-- 보험회사 선택 --</option>
                   </select>
                 </div>
                 
-                <!-- 세 번째 필터: 증권번호 -->
+                <!-- 네 번째 필터: 증권번호 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <select id="policyNumFilter" class="form-control">
                     <option value="">-- 증권 선택 --</option>
                   </select>
                 </div>
                 
-                <!-- 네 번째 필터: 대리운전회사 -->
+                <!-- 다섯 번째 필터: 대리운전회사 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <select id="companyFilter" class="form-control" disabled>
                     <option value="">-- 대리운전회사 선택 --</option>
                   </select>
                 </div>
                 
-                <!-- 다섯 번째 필터: 페이지 크기 -->
+                <!-- 여섯 번째 필터: 페이지 크기 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <select id="pageSize" class="form-control">
                     <option value="20" selected>20개</option>
