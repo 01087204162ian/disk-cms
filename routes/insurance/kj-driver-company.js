@@ -569,12 +569,12 @@ router.get('/kj-endorse/company-list', async (req, res) => {
 // 배서 리스트 조회
 router.get('/kj-endorse/list', async (req, res) => {
   try {
-    const { page, limit, push, policyNum, companyNum } = req.query;
+    const { page, limit, push, insuranceCom, policyNum, companyNum } = req.query;
     
     const apiUrl = `${PHP_API_BASE_URL}/kj-endorse-list.php`;
 
     const response = await axios.get(apiUrl, {
-      params: { page, limit, push, policyNum, companyNum },
+      params: { page, limit, push, insuranceCom, policyNum, companyNum },
       timeout: DEFAULT_TIMEOUT,
       headers: getDefaultHeaders(),
     });
