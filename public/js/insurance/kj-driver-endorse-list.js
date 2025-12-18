@@ -281,7 +281,11 @@
     rows.forEach((row, index) => {
       const rowNum = startNum + index;
       const push = parseInt(row.push) || 0;
-      const sangtae = parseInt(row.progressStep) || 0;
+      // progress 필드 값 처리 (빈 문자열이면 -1, 숫자면 해당 값)
+      const progressValue = row.progressStep === '' || row.progressStep === null || row.progressStep === undefined 
+        ? -1 
+        : parseInt(row.progressStep) || -1;
+      const sangtae = parseInt(row.sangtae) || 0; // sangtae는 배서 신청 상태로 유지
       const cancel = parseInt(row.cancel) || 0;
       
       // 보험사 표시 (공통 모듈 사용)
@@ -376,8 +380,8 @@
         </div>
       `;
 
-      // 진행단계 select 생성 (sangtae가 0이거나 없으면 -1로 표시)
-      const currentProgressStep = (sangtae && sangtae > 0) ? sangtae : -1;
+      // 진행단계 select 생성 (progress 필드 값 사용, 빈 문자열이거나 없으면 -1로 표시)
+      const currentProgressStep = (progressValue && progressValue > 0) ? progressValue : -1;
       const progressSelect = `
         <select class="form-select form-select-sm endorse-progress-select"
                 data-num="${row.num}"
