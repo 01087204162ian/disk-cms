@@ -221,9 +221,40 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
+          <!-- 헤더 정보: 대리운전회사명, 증권번호(보험사) -->
           <div class="mb-3">
-            <label for="endorseDayInput" class="form-label">배서기준일</label>
+            <div class="row">
+              <div class="col-6">
+                <strong>대리운전회사명:</strong> <span id="endorseDayCompanyName">-</span>
+              </div>
+              <div class="col-6">
+                <strong>증권번호(보험사):</strong> <span id="endorseDayPolicyInfo">-</span>
+              </div>
+            </div>
+          </div>
+          
+          <hr>
+          
+          <!-- 변경전 기준일 (텍스트만) -->
+          <div class="mb-3">
+            <label class="form-label">변경전 기준일</label>
+            <input type="text" class="form-control" id="endorseDayCurrentDate" readonly style="background-color: #f8f9fa;">
+          </div>
+          
+          <!-- 변경후 기준일 (달력) -->
+          <div class="mb-3">
+            <label for="endorseDayInput" class="form-label">변경후 기준일</label>
             <input type="date" class="form-control" id="endorseDayInput">
+          </div>
+          
+          <!-- 동일 증권 전체 변경 옵션 -->
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="updateAllSamePolicy">
+              <label class="form-check-label" for="updateAllSamePolicy">
+                동일 증권의 상태가 1인 모든 배서건의 배서기준일 변경
+              </label>
+            </div>
           </div>
         </div>
         <div class="modal-footer">

@@ -431,6 +431,10 @@
            class="text-primary endorse-date-link"
            data-num="${row.num}"
            data-current-date="${row.standardDate || ''}"
+           data-company-name="${row.companyName || ''}"
+           data-company-num="${row.companyNum || ''}"
+           data-policy-num="${row.policyNum || ''}"
+           data-insurance-com="${row.insuranceCom || ''}"
            style="cursor: pointer; text-decoration: underline;">
           ${row.standardDate || ''}
         </a>
@@ -666,7 +670,11 @@
         e.preventDefault();
         const num = parseInt(link.getAttribute('data-num'));
         const currentDate = link.getAttribute('data-current-date') || '';
-        openEndorseDayModal(num, currentDate);
+        const companyName = link.getAttribute('data-company-name') || '';
+        const companyNum = link.getAttribute('data-company-num') || '';
+        const policyNum = link.getAttribute('data-policy-num') || '';
+        const insuranceCom = link.getAttribute('data-insurance-com') || '';
+        openEndorseDayModal(num, currentDate, companyName, companyNum, policyNum, insuranceCom);
       });
     });
 
@@ -928,17 +936,26 @@
   };
 
   // 배서기준일 업데이트
-  const updateEndorseDay = async (num, endorseDay) => {
+  const updateEndorseDay = async (num, endorseDay, updateAll = false, policyNum = null, companyNum = null, currentEndorseDay = null) => {
     try {
+      const payload = {
+        num: num,
+        endorseDay: endorseDay,
+        updateAll: updateAll
+      };
+      
+      if (updateAll) {
+        if (policyNum) payload.policyNum = policyNum;
+        if (companyNum) payload.companyNum = companyNum;
+        if (currentEndorseDay) payload.currentEndorseDay = currentEndorseDay;
+      }
+      
       const response = await fetch('/api/insurance/kj-endorse/update-endorse-day', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          num: num,
-          endorseDay: endorseDay
-        })
+        body: JSON.stringify(payload)
       });
       
       const json = await response.json();
@@ -1008,37 +1025,78 @@
 
   // ==================== 배서기준일 모달 ====================
   
-  let currentEndorseDayNum = null;
+  let currentEndorseDayData = null;
   const endorseDayModal = new bootstrap.Modal(document.getElementById('endorseDayModal'));
   const endorseDayInput = document.getElementById('endorseDayInput');
+  const endorseDayCurrentDate = document.getElementById('endorseDayCurrentDate');
+  const endorseDayCompanyName = document.getElementById('endorseDayCompanyName');
+  const endorseDayPolicyInfo = document.getElementById('endorseDayPolicyInfo');
+  const updateAllSamePolicy = document.getElementById('updateAllSamePolicy');
   const saveEndorseDayBtn = document.getElementById('saveEndorseDayBtn');
 
   // 배서기준일 모달 열기
-  const openEndorseDayModal = (num, currentDate) => {
-    currentEndorseDayNum = num;
+  const openEndorseDayModal = (num, currentDate, companyName, companyNum, policyNum, insuranceCom) => {
+    currentEndorseDayData = {
+      num: num,
+      currentDate: currentDate || '',
+      companyName: companyName || '',
+      companyNum: companyNum || '',
+      policyNum: policyNum || '',
+      insuranceCom: insuranceCom || ''
+    };
+    
+    // 헤더 정보 설정
+    endorseDayCompanyName.textContent = companyName || '-';
+    
+    // 증권번호(보험사) 표시
+    const insuranceComName = insuranceCom && window.KJConstants 
+      ? window.KJConstants.getInsuranceCompanyName(insuranceCom) 
+      : '';
+    const policyInfo = policyNum 
+      ? `${policyNum}${insuranceComName ? ` (${insuranceComName})` : ''}`
+      : '-';
+    endorseDayPolicyInfo.textContent = policyInfo;
+    
+    // 변경전 기준일 설정
+    endorseDayCurrentDate.value = currentDate || '';
+    
+    // 변경후 기준일 초기화
     endorseDayInput.value = currentDate || '';
+    
+    // 체크박스 초기화
+    updateAllSamePolicy.checked = false;
+    
     endorseDayModal.show();
   };
 
   // 배서기준일 저장 버튼 클릭
   saveEndorseDayBtn.addEventListener('click', async () => {
-    if (!currentEndorseDayNum) {
+    if (!currentEndorseDayData || !currentEndorseDayData.num) {
       alert('오류가 발생했습니다.');
       return;
     }
 
     const newDate = endorseDayInput.value.trim();
     if (!newDate) {
-      alert('배서기준일을 입력해주세요.');
+      alert('변경후 기준일을 입력해주세요.');
       return;
     }
 
+    const updateAll = updateAllSamePolicy.checked;
+
     saveEndorseDayBtn.disabled = true;
     try {
-      await updateEndorseDay(currentEndorseDayNum, newDate);
+      await updateEndorseDay(
+        currentEndorseDayData.num, 
+        newDate, 
+        updateAll, 
+        currentEndorseDayData.policyNum,
+        currentEndorseDayData.companyNum,
+        currentEndorseDayData.currentDate
+      );
       endorseDayModal.hide();
       // 리스트 새로고침
-      fetchList();
+      await fetchList();
     } catch (error) {
       console.error('배서기준일 업데이트 오류:', error);
       alert('배서기준일 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
