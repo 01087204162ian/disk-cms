@@ -308,7 +308,7 @@
                   data-num="${row.num}" 
                   data-push="${push}" 
                   data-sangtae="${sangtae}"
-                  style="border: none; background-color: white;">
+                  style="border: none; background-color: white; font-size: 0.6875rem;">
             <option value="청약" ${currentValue === '청약' ? 'selected' : ''}>청약</option>
             <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
             <option value="거절" ${currentValue === '거절' ? 'selected' : ''}>거절</option>
@@ -323,7 +323,7 @@
                   data-push="${push}" 
                   data-sangtae="${sangtae}" 
                   data-cancel="${cancel}"
-                  style="border: none; background-color: white;">
+                  style="border: none; background-color: white; font-size: 0.6875rem;">
             <option value="해지" ${currentValue === '해지' ? 'selected' : ''}>해지</option>
             <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
           </select>
@@ -339,7 +339,7 @@
         <select class="form-select form-select-sm endorse-process-select" 
                 data-num="${row.num}" 
                 data-current-sangtae="${currentSangtae}"
-                style="border: none; background-color: white;">
+                style="border: none; background-color: white; font-size: 0.6875rem;">
           <option value="1" ${currentSangtae == 1 ? 'selected' : ''}>미처리</option>
           <option value="2" ${currentSangtae == 2 ? 'selected' : ''}>처리</option>
         </select>
@@ -364,7 +364,7 @@
                   data-policy="${policyNum}"
                   data-current-rate="${currentRate}"
                   ${rateDisabled ? 'disabled' : ''}
-                  style="border: none; background-color: white;">
+                  style="border: none; background-color: white; font-size: 0.6875rem;">
             ${rateOptionsHtml}
           </select>
           <div class="spinner-border spinner-border-sm text-primary d-none" role="status" data-role="rate-loading">
@@ -379,7 +379,7 @@
         <select class="form-select form-select-sm endorse-progress-select"
                 data-num="${row.num}"
                 data-current-progress="${currentProgressStep}"
-                style="border: none; background-color: white;">
+                style="border: none; background-color: white; font-size: 0.6875rem;">
           <option value="-1" ${currentProgressStep === -1 || currentProgressStep === 0 ? 'selected' : ''}>선택</option>
           <option value="1" ${currentProgressStep === 1 ? 'selected' : ''}>프린트</option>
           <option value="2" ${currentProgressStep === 2 ? 'selected' : ''}>스캔</option>
@@ -392,7 +392,7 @@
         </select>
       `;
 
-      // 성명 인풋박스 (테두리선 없음, 배경 흰색)
+      // 성명 인풋박스 (테두리선 없음, 배경 흰색, 폰트 크기 헤더와 동일 0.6875rem)
       const nameInput = `
         <input type="text" 
                class="form-control form-control-sm endorse-name-input"
@@ -400,10 +400,10 @@
                data-num="${row.num}"
                data-current-name="${row.name || ''}"
                placeholder="성명"
-               style="border: none; background-color: white;">
+               style="border: none; background-color: white; font-size: 0.6875rem;">
       `;
 
-      // 핸드폰 인풋박스 (하이픈 포함, 테두리선 없음, 배경 흰색)
+      // 핸드폰 인풋박스 (하이픈 포함, 테두리선 없음, 배경 흰색, 폰트 크기 헤더와 동일 0.6875rem)
       const phoneInput = `
         <input type="text" 
                class="form-control form-control-sm endorse-phone-input"
@@ -412,7 +412,7 @@
                data-current-phone="${row.phone || ''}"
                placeholder="010-0000-0000"
                maxlength="13"
-               style="border: none; background-color: white;">
+               style="border: none; background-color: white; font-size: 0.6875rem;">
       `;
 
       // 배서기준일 클릭 가능하게
