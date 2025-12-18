@@ -369,6 +369,56 @@
         </div>
       `;
 
+      // 진행단계 select 생성 (sangtae가 0이거나 없으면 -1로 표시)
+      const currentProgressStep = (sangtae && sangtae > 0) ? sangtae : -1;
+      const progressSelect = `
+        <select class="form-select form-select-sm endorse-progress-select"
+                data-num="${row.num}"
+                data-current-progress="${currentProgressStep}">
+          <option value="-1" ${currentProgressStep === -1 || currentProgressStep === 0 ? 'selected' : ''}>선택</option>
+          <option value="1" ${currentProgressStep === 1 ? 'selected' : ''}>프린트</option>
+          <option value="2" ${currentProgressStep === 2 ? 'selected' : ''}>스캔</option>
+          <option value="3" ${currentProgressStep === 3 ? 'selected' : ''}>고객등록</option>
+          <option value="4" ${currentProgressStep === 4 ? 'selected' : ''}>심사중</option>
+          <option value="5" ${currentProgressStep === 5 ? 'selected' : ''}>입금대기</option>
+          <option value="6" ${currentProgressStep === 6 ? 'selected' : ''}>카드승인</option>
+          <option value="7" ${currentProgressStep === 7 ? 'selected' : ''}>수납중</option>
+          <option value="8" ${currentProgressStep === 8 ? 'selected' : ''}>확정중</option>
+        </select>
+      `;
+
+      // 성명 인풋박스
+      const nameInput = `
+        <input type="text" 
+               class="form-control form-control-sm endorse-name-input"
+               value="${row.name || ''}"
+               data-num="${row.num}"
+               data-current-name="${row.name || ''}"
+               placeholder="성명">
+      `;
+
+      // 핸드폰 인풋박스 (하이픈 포함)
+      const phoneInput = `
+        <input type="text" 
+               class="form-control form-control-sm endorse-phone-input"
+               value="${row.phone || ''}"
+               data-num="${row.num}"
+               data-current-phone="${row.phone || ''}"
+               placeholder="010-0000-0000"
+               maxlength="13">
+      `;
+
+      // 배서기준일 클릭 가능하게
+      const standardDateCell = `
+        <a href="#" 
+           class="text-primary endorse-date-link"
+           data-num="${row.num}"
+           data-current-date="${row.standardDate || ''}"
+           style="cursor: pointer; text-decoration: underline;">
+          ${row.standardDate || ''}
+        </a>
+      `;
+
       html += `
         <tr>
           <td class="text-center">${rowNum}</td>
@@ -380,12 +430,12 @@
                 : (companyName || '')
             }
           </td>
-          <td>${row.name || ''}</td>
+          <td>${nameInput}</td>
           <td>${row.jumin || ''}${row.age ? ` (${row.age}세)` : ''}</td>
-          <td>${row.phone || ''}</td>
-          <td>${row.progressStep || ''}</td>
+          <td>${phoneInput}</td>
+          <td>${progressSelect}</td>
           <td>${row.manager || ''}</td>
-          <td>${row.standardDate || ''}</td>
+          <td>${standardDateCell}</td>
           <td>${row.applicationDate || ''}</td>
           <td>${row.policyNum || ''}</td>
           <td>${certiTypeName}</td>
@@ -448,6 +498,134 @@
           e.target.value = currentSangtae;
           e.target.disabled = false;
         }
+      });
+    });
+
+    // 성명 인풋박스 엔터/블러 이벤트 리스너 추가
+    const nameInputs = tableBody.querySelectorAll('input.endorse-name-input');
+    nameInputs.forEach(input => {
+      input.addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const num = parseInt(input.getAttribute('data-num'));
+          const currentName = input.getAttribute('data-current-name') || '';
+          const newName = input.value.trim();
+          
+          // 값이 변경되지 않았으면 무시
+          if (newName === currentName) {
+            return;
+          }
+          
+          input.disabled = true;
+          try {
+            await updateMemberInfo(num, newName);
+            input.setAttribute('data-current-name', newName);
+            // 리스트 새로고침
+            fetchList();
+          } catch (error) {
+            console.error('성명 업데이트 오류:', error);
+            alert('성명 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+            input.value = currentName;
+            input.disabled = false;
+          }
+        }
+      });
+    });
+
+    // 핸드폰 인풋박스 하이픈 처리 및 엔터 이벤트 리스너 추가
+    const phoneInputs = tableBody.querySelectorAll('input.endorse-phone-input');
+    phoneInputs.forEach(input => {
+      // 클릭 시 하이픈 제거
+      input.addEventListener('focus', (e) => {
+        e.target.value = removePhoneHyphen(e.target.value);
+      });
+      
+      // 입력 시 하이픈 자동 추가
+      input.addEventListener('input', (e) => {
+        const cursorPosition = e.target.selectionStart;
+        const oldValue = e.target.value;
+        const newValue = formatPhoneNumber(oldValue);
+        e.target.value = newValue;
+        
+        // 커서 위치 조정 (하이픈이 추가되면 커서 위치 변경)
+        const diff = newValue.length - oldValue.length;
+        if (diff > 0) {
+          e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
+        } else {
+          e.target.setSelectionRange(cursorPosition, cursorPosition);
+        }
+      });
+      
+      // 포커스 아웃 시 하이픈 다시 추가
+      input.addEventListener('blur', (e) => {
+        e.target.value = formatPhoneNumber(e.target.value);
+      });
+      
+      // 엔터 키 이벤트
+      input.addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const num = parseInt(input.getAttribute('data-num'));
+          const currentPhone = input.getAttribute('data-current-phone') || '';
+          const newPhone = formatPhoneNumber(input.value.trim());
+          
+          // 값이 변경되지 않았으면 무시
+          if (newPhone === currentPhone) {
+            return;
+          }
+          
+          input.disabled = true;
+          try {
+            await updateMemberInfo(num, null, newPhone);
+            input.setAttribute('data-current-phone', newPhone);
+            // 리스트 새로고침
+            fetchList();
+          } catch (error) {
+            console.error('핸드폰 번호 업데이트 오류:', error);
+            alert('핸드폰 번호 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+            input.value = currentPhone;
+            input.disabled = false;
+          }
+        }
+      });
+    });
+
+    // 진행단계 select change 이벤트 리스너 추가
+    const progressSelects = tableBody.querySelectorAll('select.endorse-progress-select');
+    progressSelects.forEach(select => {
+      select.addEventListener('change', async (e) => {
+        const num = parseInt(e.target.getAttribute('data-num'));
+        const currentProgress = parseInt(e.target.getAttribute('data-current-progress')) || -1;
+        const newProgress = parseInt(e.target.value) || -1;
+        
+        // 값이 변경되지 않았으면 무시
+        if (newProgress === currentProgress) {
+          return;
+        }
+        
+        e.target.disabled = true;
+        try {
+          await updateMemberInfo(num, null, null, newProgress);
+          e.target.setAttribute('data-current-progress', newProgress);
+          // 리스트 새로고침
+          fetchList();
+        } catch (error) {
+          console.error('진행단계 업데이트 오류:', error);
+          alert('진행단계 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+          e.target.value = currentProgress;
+          e.target.disabled = false;
+        }
+      });
+    });
+
+    // 배서기준일 클릭 이벤트 리스너 추가
+    const endorseDateLinks = tableBody.querySelectorAll('a.endorse-date-link');
+    endorseDateLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const num = parseInt(link.getAttribute('data-num'));
+        const currentDate = link.getAttribute('data-current-date') || '';
+        openEndorseDayModal(num, currentDate);
       });
     });
 
@@ -628,6 +806,88 @@
     });
   };
 
+  // ==================== 유틸리티 함수 ====================
+  
+  // 핸드폰 번호 하이픈 처리 (하이픈 추가)
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return '';
+    // 하이픈 제거
+    const cleaned = phone.replace(/-/g, '');
+    // 숫자만 남기기
+    const numbers = cleaned.replace(/\D/g, '');
+    // 하이픈 추가 (010-1234-5678 형식)
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return numbers.slice(0, 3) + '-' + numbers.slice(3);
+    } else {
+      return numbers.slice(0, 3) + '-' + numbers.slice(3, 7) + '-' + numbers.slice(7, 11);
+    }
+  };
+
+  // 핸드폰 번호에서 하이픈 제거
+  const removePhoneHyphen = (phone) => {
+    return phone ? phone.replace(/-/g, '') : '';
+  };
+
+  // ==================== 업데이트 함수 ====================
+
+  // 회원 정보 업데이트 (이름, 핸드폰, 진행단계)
+  const updateMemberInfo = async (num, name = null, phone = null, progressStep = null) => {
+    try {
+      const payload = { num };
+      if (name !== null) payload.name = name;
+      if (phone !== null) payload.phone = removePhoneHyphen(phone); // 서버 전송 시 하이픈 제거
+      if (progressStep !== null) payload.progressStep = progressStep;
+
+      const response = await fetch('/api/insurance/kj-endorse/update-member', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      const json = await response.json();
+      
+      if (!json.success) {
+        throw new Error(json.error || '회원 정보 업데이트 실패');
+      }
+      
+      return json;
+    } catch (error) {
+      console.error('회원 정보 업데이트 API 오류:', error);
+      throw error;
+    }
+  };
+
+  // 배서기준일 업데이트
+  const updateEndorseDay = async (num, endorseDay) => {
+    try {
+      const response = await fetch('/api/insurance/kj-endorse/update-endorse-day', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          num: num,
+          endorseDay: endorseDay
+        })
+      });
+      
+      const json = await response.json();
+      
+      if (!json.success) {
+        throw new Error(json.error || '배서기준일 업데이트 실패');
+      }
+      
+      return json;
+    } catch (error) {
+      console.error('배서기준일 업데이트 API 오류:', error);
+      throw error;
+    }
+  };
+
   // ==================== 배서처리 상태 업데이트 ====================
   
   const updateEndorseStatus = async (num, sangtae) => {
@@ -679,6 +939,47 @@
     }
     return json;
   };
+
+  // ==================== 배서기준일 모달 ====================
+  
+  let currentEndorseDayNum = null;
+  const endorseDayModal = new bootstrap.Modal(document.getElementById('endorseDayModal'));
+  const endorseDayInput = document.getElementById('endorseDayInput');
+  const saveEndorseDayBtn = document.getElementById('saveEndorseDayBtn');
+
+  // 배서기준일 모달 열기
+  const openEndorseDayModal = (num, currentDate) => {
+    currentEndorseDayNum = num;
+    endorseDayInput.value = currentDate || '';
+    endorseDayModal.show();
+  };
+
+  // 배서기준일 저장 버튼 클릭
+  saveEndorseDayBtn.addEventListener('click', async () => {
+    if (!currentEndorseDayNum) {
+      alert('오류가 발생했습니다.');
+      return;
+    }
+
+    const newDate = endorseDayInput.value.trim();
+    if (!newDate) {
+      alert('배서기준일을 입력해주세요.');
+      return;
+    }
+
+    saveEndorseDayBtn.disabled = true;
+    try {
+      await updateEndorseDay(currentEndorseDayNum, newDate);
+      endorseDayModal.hide();
+      // 리스트 새로고침
+      fetchList();
+    } catch (error) {
+      console.error('배서기준일 업데이트 오류:', error);
+      alert('배서기준일 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
+    } finally {
+      saveEndorseDayBtn.disabled = false;
+    }
+  });
 
   // ==================== 이벤트 바인딩 ====================
 

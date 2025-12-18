@@ -632,6 +632,48 @@ router.post('/kj-endorse/rate-update', async (req, res) => {
   }
 });
 
+// 배서 회원 정보 업데이트 API (이름, 핸드폰, 진행단계)
+router.post('/kj-endorse/update-member', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-endorse-update-member.php`;
+
+    const response = await axios.post(apiUrl, req.body, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-endorse update-member proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '회원 정보 업데이트 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 배서기준일 업데이트 API
+router.post('/kj-endorse/update-endorse-day', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-endorse-update-endorse-day.php`;
+
+    const response = await axios.post(apiUrl, req.body, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-endorse update-endorse-day proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '배서기준일 업데이트 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 // 보험료 데이터 마이그레이션 API (2012Certi → kj_insurance_premium_data)
 router.get('/kj-migrate-premium-data', async (req, res) => {
   try {
