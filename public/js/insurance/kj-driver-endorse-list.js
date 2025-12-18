@@ -211,6 +211,15 @@
     if (policyNum) params.append('policyNum', policyNum);
     if (companyNum) params.append('companyNum', companyNum);
 
+    // 디버깅: 파라미터 로그
+    console.log('API 호출 파라미터:', {
+      push,
+      insuranceCom,
+      policyNum,
+      companyNum,
+      url: `/api/insurance/kj-endorse/list?${params.toString()}`
+    });
+
     try {
       const res = await fetch(`/api/insurance/kj-endorse/list?${params.toString()}`);
       const json = await res.json();
