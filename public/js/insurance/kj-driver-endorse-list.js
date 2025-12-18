@@ -1029,10 +1029,20 @@
   const endorseDayModal = new bootstrap.Modal(document.getElementById('endorseDayModal'));
   const endorseDayInput = document.getElementById('endorseDayInput');
   const endorseDayCurrentDate = document.getElementById('endorseDayCurrentDate');
-  const endorseDayCompanyName = document.getElementById('endorseDayCompanyName');
-  const endorseDayPolicyInfo = document.getElementById('endorseDayPolicyInfo');
+  const endorseDayHeaderInfo = document.getElementById('endorseDayHeaderInfo');
   const updateAllSamePolicy = document.getElementById('updateAllSamePolicy');
   const saveEndorseDayBtn = document.getElementById('saveEndorseDayBtn');
+
+  // 다음날 계산 함수
+  const getNextDay = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + 1);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   // 배서기준일 모달 열기
   const openEndorseDayModal = (num, currentDate, companyName, companyNum, policyNum, insuranceCom) => {
@@ -1045,26 +1055,24 @@
       insuranceCom: insuranceCom || ''
     };
     
-    // 헤더 정보 설정
-    endorseDayCompanyName.textContent = companyName || '-';
-    
-    // 증권번호(보험사) 표시
+    // 헤더 정보 설정: "한솔콜센타 :2025-S286883 (현대)" 형식
     const insuranceComName = insuranceCom && window.KJConstants 
       ? window.KJConstants.getInsurerName(insuranceCom) 
       : '';
-    const policyInfo = policyNum 
-      ? `${policyNum}${insuranceComName ? ` (${insuranceComName})` : ''}`
-      : '-';
-    endorseDayPolicyInfo.textContent = policyInfo;
+    const headerInfo = companyName && policyNum
+      ? `${companyName} :${policyNum}${insuranceComName ? ` (${insuranceComName})` : ''}`
+      : (companyName || policyNum || '-');
+    endorseDayHeaderInfo.textContent = headerInfo;
     
     // 변경전 기준일 설정
     endorseDayCurrentDate.value = currentDate || '';
     
-    // 변경후 기준일 초기화
-    endorseDayInput.value = currentDate || '';
+    // 변경후 기준일: 다음날로 기본값 설정
+    const nextDay = getNextDay(currentDate);
+    endorseDayInput.value = nextDay || '';
     
-    // 체크박스 초기화
-    updateAllSamePolicy.checked = false;
+    // 체크박스 기본값: 체크 상태
+    updateAllSamePolicy.checked = true;
     
     endorseDayModal.show();
   };
