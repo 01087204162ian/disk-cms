@@ -392,7 +392,7 @@
         </select>
       `;
 
-      // 성명 인풋박스 (테두리선 없음, 배경 흰색, 폰트 크기 헤더와 동일 0.6875rem)
+      // 성명 인풋박스 (테두리선 없음, 배경 흰색, 폰트 크기 헤더와 동일 0.6875rem, 가운데 정렬)
       const nameInput = `
         <input type="text" 
                class="form-control form-control-sm endorse-name-input"
@@ -400,7 +400,7 @@
                data-num="${row.num}"
                data-current-name="${row.name || ''}"
                placeholder="성명"
-               style="border: none; background-color: white; font-size: 0.6875rem;">
+               style="border: none; background-color: white; font-size: 0.6875rem; text-align: center;">
       `;
 
       // 핸드폰 인풋박스 (하이픈 포함, 테두리선 없음, 배경 흰색, 폰트 크기 헤더와 동일 0.6875rem)
