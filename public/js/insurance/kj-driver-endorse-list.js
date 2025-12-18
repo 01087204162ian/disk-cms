@@ -387,18 +387,17 @@
         </select>
       `;
 
-      // 성명 인풋박스 (폭 40%의 1/3 = 약 13%)
+      // 성명 인풋박스
       const nameInput = `
         <input type="text" 
                class="form-control form-control-sm endorse-name-input"
                value="${row.name || ''}"
                data-num="${row.num}"
                data-current-name="${row.name || ''}"
-               placeholder="성명"
-               style="width: 13%; display: inline-block;">
+               placeholder="성명">
       `;
 
-      // 핸드폰 인풋박스 (하이픈 포함, 폭 70%에서 20% 줄임 = 56%)
+      // 핸드폰 인풋박스 (하이픈 포함)
       const phoneInput = `
         <input type="text" 
                class="form-control form-control-sm endorse-phone-input"
@@ -406,8 +405,7 @@
                data-num="${row.num}"
                data-current-phone="${row.phone || ''}"
                placeholder="010-0000-0000"
-               maxlength="13"
-               style="width: 56%; display: inline-block;">
+               maxlength="13">
       `;
 
       // 배서기준일 클릭 가능하게
@@ -432,9 +430,9 @@
                 : (companyName || '')
             }
           </td>
-          <td>${nameInput}</td>
+          <td style="width: 6%;">${nameInput}</td>
           <td>${row.jumin || ''}${row.age ? ` (${row.age}세)` : ''}</td>
-          <td>${phoneInput}</td>
+          <td style="width: 12%;">${phoneInput}</td>
           <td>${progressSelect}</td>
           <td>${row.manager || ''}</td>
           <td>${standardDateCell}</td>
