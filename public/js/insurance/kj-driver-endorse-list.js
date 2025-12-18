@@ -594,12 +594,16 @@
           e.preventDefault();
           const num = parseInt(input.getAttribute('data-num'));
           const currentPhone = input.getAttribute('data-current-phone') || '';
-          const newPhone = formatPhoneNumber(input.value.trim());
+          const trimmedValue = input.value.trim();
+          const newPhone = formatPhoneNumber(trimmedValue);
           
           // 값이 변경되지 않았으면 무시
           if (newPhone === currentPhone) {
             return;
           }
+          
+          // 빈 값인 경우 null로 전달 (서버에서 처리)
+          const phoneToUpdate = trimmedValue ? newPhone : null;
           
           const rowEl = input.closest('tr');
           const spinner = rowEl?.querySelector('[data-role="phone-loading"]');
@@ -609,8 +613,8 @@
             spinner.classList.remove('d-none');
           }
           try {
-            await updateMemberInfo(num, null, newPhone);
-            input.setAttribute('data-current-phone', newPhone);
+            await updateMemberInfo(num, null, phoneToUpdate);
+            input.setAttribute('data-current-phone', newPhone || '');
             // 리스트 새로고침
             await fetchList();
           } catch (error) {
@@ -873,9 +877,22 @@
   const updateMemberInfo = async (num, name = null, phone = null, progressStep = null) => {
     try {
       const payload = { num };
-      if (name !== null) payload.name = name;
-      if (phone !== null) payload.phone = removePhoneHyphen(phone); // 서버 전송 시 하이픈 제거
+      if (name !== null && name !== '') payload.name = name;
+      if (phone !== null && phone !== '') {
+        // 하이픈 제거하고 숫자만 전송
+        const cleanedPhone = removePhoneHyphen(phone);
+        if (cleanedPhone && cleanedPhone.trim()) {
+          payload.phone = cleanedPhone.trim();
+        }
+      }
       if (progressStep !== null) payload.progressStep = progressStep;
+
+      // 업데이트할 필드가 없으면 에러
+      if (Object.keys(payload).length === 1) { // num만 있는 경우
+        throw new Error('업데이트할 필드가 없습니다.');
+      }
+
+      console.log('업데이트 요청 payload:', payload);
 
       const response = await fetch('/api/insurance/kj-endorse/update-member', {
         method: 'POST',
@@ -885,10 +902,22 @@
         body: JSON.stringify(payload)
       });
       
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('서버 응답 오류:', response.status, errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          errorData = { error: errorText || `HTTP ${response.status} 오류` };
+        }
+        throw new Error(errorData.error || errorData.details?.error || '회원 정보 업데이트 실패');
+      }
+      
       const json = await response.json();
       
       if (!json.success) {
-        throw new Error(json.error || '회원 정보 업데이트 실패');
+        throw new Error(json.error || json.details?.error || '회원 정보 업데이트 실패');
       }
       
       return json;
