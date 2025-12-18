@@ -300,14 +300,12 @@
       const companyNum = row.companyNum || row.company_num || row.dNum || '';
       const companyName = row.companyName || '';
       
-      // 상태 select 생성 (worklog 145-147 참고)
-      // 청약 상태 (push=1, sangtae=1): "청약", "취소", "거절" 옵션
-      // 해지 상태 (push=4, sangtae=1, cancel=42): "해지", "취소" 옵션
+      // 상태 select 생성 (push 값에 따라 배서 상태 표시)
+      // 청약 상태 (push=1): "청약", "취소", "거절" 옵션
+      // 해지 상태 (push=4): "해지", "취소" 옵션
       let statusSelect = '';
-      const isSubscription = (push === 1 && sangtae === 1);
-      const isCancellation = (push === 4 && sangtae === 1 && cancel === 42);
       
-      if (isSubscription) {
+      if (push === 1) {
         // 청약: 청약, 취소, 거절
         const currentValue = row.endorseProcess || '청약';
         statusSelect = `
@@ -321,7 +319,7 @@
             <option value="거절" ${currentValue === '거절' ? 'selected' : ''}>거절</option>
           </select>
         `;
-      } else if (isCancellation) {
+      } else if (push === 4) {
         // 해지: 해지, 취소
         const currentValue = row.endorseProcess || '해지';
         statusSelect = `
