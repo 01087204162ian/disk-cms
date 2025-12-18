@@ -23,13 +23,22 @@
    - 미처리(1) → 처리(2)로 변경
    - 이미 처리된 건(sangtae=2)은 에러 반환
 
-2. **push 값에 따른 후속 처리**
-   - push=1 (청약): 정상 처리로 변경 (push=4, cancel=null)
-   - push=4 (해지): 해지 처리 (push=2, cancel=42)
-   - 기타 경우는 현재 push 값 유지
-
+2. **push 값과 선택된 처리 상태에 따른 후속 처리**
+   
+   #### 청약 상태 (push=1)에서:
+   - "청약" 선택 → 정상 처리 (push=4, cancel=null)
+   - "취소" 선택 → 청약 취소 (push=1, cancel=12)
+   - "거절" 선택 → 청약 거절 (push=1, cancel=13)
+   
+   #### 해지 상태 (push=4)에서:
+   - "해지" 선택 → 해지 완료 (push=2, cancel=42)
+   - "취소" 선택 → 해지 취소 (push=4, cancel=45) - 정상 상태로 복귀
+   
 3. **manager 필드 업데이트**
    - 처리한 사용자 이름 저장
+
+4. **reasion 필드 업데이트**
+   - 처리 사유 저장 (선택 사항)
 
 #### 2.2.2 고급 기능 (2차 개발)
 1. **보험료 계산**
@@ -62,17 +71,22 @@
 #### Request Body (JSON)
 ```json
 {
-  "num": 12345,              // 필수: 2012DaeriMember 테이블의 num
-  "sangtae": 2,              // 필수: 배서처리 상태 (1=미처리, 2=처리)
-  "manager": "홍길동"        // 필수: 처리자 이름 (로그인 사용자)
+  "num": 12345,                    // 필수: 2012DaeriMember 테이블의 num
+  "sangtae": 2,                    // 필수: 배서처리 상태 (1=미처리, 2=처리)
+  "endorseProcess": "청약",        // 선택: 배서 처리 상태 ("청약", "취소", "거절", "해지")
+  "manager": "홍길동",             // 필수: 처리자 이름 (로그인 사용자)
+  "reasion": "처리 사유"           // 선택: 처리 사유
 }
 ```
+
+**주의**: `endorseProcess` 값은 현재 push 값에 따라 유효한 값이 다릅니다:
+- push=1 (청약)일 때: "청약", "취소", "거절" 중 선택
+- push=4 (해지)일 때: "해지", "취소" 중 선택
 
 #### 선택 파라미터 (2차 개발)
 ```json
 {
-  "reasion": "처리 사유",     // 처리 사유 (선택)
-  "smsContents": "SMS 내용"   // SMS 내용 (선택)
+  "smsContents": "SMS 내용"   // SMS 내용 (취소/거절 시 사용자 입력 메시지)
 }
 ```
 
@@ -113,19 +127,43 @@
 UPDATE 2012DaeriMember 
 SET 
   sangtae = :sangtae,
+  push = :push,
+  cancel = :cancel,
   manager = :manager,
   reasion = :reasion
 WHERE num = :num
 ```
 
-#### push 값 변경 로직
-- push=1 (청약)이고 sangtae=2 (처리)로 변경 시:
-  - push = 4 (정상 처리)
-  - cancel = null
+#### push 및 cancel 값 변경 로직
 
-- push=4 (해지)이고 sangtae=2 (처리)로 변경 시:
-  - push = 2 (해지 완료)
-  - cancel = 42
+**청약 상태 (현재 push=1)에서:**
+
+1. **"청약" 선택** (정상 처리):
+   - push: 1 → 4
+   - cancel: null
+   - 설명: 청약을 정상적으로 처리하여 가입완료 상태로 변경
+
+2. **"취소" 선택** (청약 취소):
+   - push: 1 → 1 (유지)
+   - cancel: 12
+   - 설명: 청약을 취소 처리, push는 청약 상태 유지
+
+3. **"거절" 선택** (청약 거절):
+   - push: 1 → 1 (유지)
+   - cancel: 13
+   - 설명: 청약을 거절 처리, push는 청약 상태 유지
+
+**해지 상태 (현재 push=4)에서:**
+
+1. **"해지" 선택** (해지 완료):
+   - push: 4 → 2
+   - cancel: 42
+   - 설명: 해지 신청을 처리하여 해지 완료 상태로 변경
+
+2. **"취소" 선택** (해지 취소):
+   - push: 4 → 4 (유지)
+   - cancel: 45
+   - 설명: 해지 신청을 취소하여 정상 처리 상태로 복귀 (또는 유지)
 
 ## 5. 개발 단계
 
@@ -135,9 +173,48 @@ WHERE num = :num
    - 기본 검증 로직 구현
 
 2. **기본 업데이트 로직**
-   - sangtae 상태 변경
-   - manager 필드 업데이트
-   - push 값에 따른 기본 처리
+   - sangtae 상태 변경 (1→2)
+   - 현재 push 값 확인
+   - 선택된 endorseProcess 값에 따른 push, cancel 값 계산
+   - manager, reasion 필드 업데이트
+   
+   **처리 로직 예시**:
+   ```php
+   // 현재 데이터 조회
+   $currentPush = $row['push'];
+   $endorseProcess = $input['endorseProcess'] ?? '청약';
+   
+   // push 값과 endorseProcess에 따른 처리
+   if ($currentPush == 1) {
+       // 청약 상태
+       switch ($endorseProcess) {
+           case '청약':
+               $newPush = 4;
+               $newCancel = null;
+               break;
+           case '취소':
+               $newPush = 1;
+               $newCancel = 12;
+               break;
+           case '거절':
+               $newPush = 1;
+               $newCancel = 13;
+               break;
+       }
+   } else if ($currentPush == 4) {
+       // 해지 상태
+       switch ($endorseProcess) {
+           case '해지':
+               $newPush = 2;
+               $newCancel = 42;
+               break;
+           case '취소':
+               $newPush = 4;
+               $newCancel = 45;
+               break;
+       }
+   }
+   ```
 
 3. **에러 처리**
    - 이미 처리된 건 검증
