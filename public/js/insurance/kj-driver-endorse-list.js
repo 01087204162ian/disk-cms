@@ -35,8 +35,8 @@
     return num.toLocaleString();
   };
 
-  // 요율 옵션 (value는 코드, text는 표시값)
-  const RATE_OPTIONS = [
+  // 요율 옵션 (공통 모듈 사용)
+  const RATE_OPTIONS = window.KJConstants ? window.KJConstants.RATE_OPTIONS : [
     { value: '-1', label: '선택' },
     { value: '1', label: '1' },
     { value: '2', label: '0.9' },
