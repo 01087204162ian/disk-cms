@@ -437,9 +437,9 @@
                 : (companyName || '')
             }
           </td>
-          <td style="width: 6%; white-space: nowrap;">${nameInput}</td>
+          <td style="width: 6%; white-space: nowrap; padding: 0;">${nameInput}</td>
           <td style="white-space: nowrap;">${row.jumin || ''}${row.age ? ` (${row.age}세)` : ''}</td>
-          <td style="width: 6%; white-space: nowrap;">${phoneInput}</td>
+          <td style="width: 6%; white-space: nowrap; padding: 0;">${phoneInput}</td>
           <td style="white-space: nowrap;">${progressSelect}</td>
           <td style="white-space: nowrap;">${row.manager || ''}</td>
           <td style="white-space: nowrap;">${standardDateCell}</td>
