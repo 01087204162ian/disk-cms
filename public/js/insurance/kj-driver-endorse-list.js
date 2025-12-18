@@ -1175,15 +1175,6 @@
     // 보험회사 필터 옵션 초기화
     initInsuranceComFilter();
     
-    // 배서기준일 필터 기본값을 오늘 날짜로 설정
-    if (endorseDayFilter) {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      endorseDayFilter.value = `${year}-${month}-${day}`;
-    }
-    
     await loadPolicyNumList();
     // 초기 로드 시 전체 대리운전회사 목록 로드 (증권번호 없이)
     await loadCompanyList();
