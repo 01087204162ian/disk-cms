@@ -307,7 +307,8 @@
           <select class="form-select form-select-sm endorse-status-select" 
                   data-num="${row.num}" 
                   data-push="${push}" 
-                  data-sangtae="${sangtae}">
+                  data-sangtae="${sangtae}"
+                  style="border: none; background-color: white;">
             <option value="청약" ${currentValue === '청약' ? 'selected' : ''}>청약</option>
             <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
             <option value="거절" ${currentValue === '거절' ? 'selected' : ''}>거절</option>
@@ -321,7 +322,8 @@
                   data-num="${row.num}" 
                   data-push="${push}" 
                   data-sangtae="${sangtae}" 
-                  data-cancel="${cancel}">
+                  data-cancel="${cancel}"
+                  style="border: none; background-color: white;">
             <option value="해지" ${currentValue === '해지' ? 'selected' : ''}>해지</option>
             <option value="취소" ${currentValue === '취소' ? 'selected' : ''}>취소</option>
           </select>
@@ -336,7 +338,8 @@
       const processSelect = `
         <select class="form-select form-select-sm endorse-process-select" 
                 data-num="${row.num}" 
-                data-current-sangtae="${currentSangtae}">
+                data-current-sangtae="${currentSangtae}"
+                style="border: none; background-color: white;">
           <option value="1" ${currentSangtae == 1 ? 'selected' : ''}>미처리</option>
           <option value="2" ${currentSangtae == 2 ? 'selected' : ''}>처리</option>
         </select>
@@ -360,7 +363,8 @@
                   data-jumin="${jumin}"
                   data-policy="${policyNum}"
                   data-current-rate="${currentRate}"
-                  ${rateDisabled ? 'disabled' : ''}>
+                  ${rateDisabled ? 'disabled' : ''}
+                  style="border: none; background-color: white;">
             ${rateOptionsHtml}
           </select>
           <div class="spinner-border spinner-border-sm text-primary d-none" role="status" data-role="rate-loading">
@@ -374,7 +378,8 @@
       const progressSelect = `
         <select class="form-select form-select-sm endorse-progress-select"
                 data-num="${row.num}"
-                data-current-progress="${currentProgressStep}">
+                data-current-progress="${currentProgressStep}"
+                style="border: none; background-color: white;">
           <option value="-1" ${currentProgressStep === -1 || currentProgressStep === 0 ? 'selected' : ''}>선택</option>
           <option value="1" ${currentProgressStep === 1 ? 'selected' : ''}>프린트</option>
           <option value="2" ${currentProgressStep === 2 ? 'selected' : ''}>스캔</option>
@@ -423,31 +428,31 @@
 
       html += `
         <tr>
-          <td class="text-center">${rowNum}</td>
-          <td>${row.damdanja || row.manager || ''}</td>
-          <td>
+          <td class="text-center" style="white-space: nowrap;">${rowNum}</td>
+          <td style="white-space: nowrap;">${row.damdanja || row.manager || ''}</td>
+          <td style="white-space: nowrap;">
             ${
               companyNum && companyName
                 ? `<a href="#" class="text-primary" data-role="open-company-modal" data-company-num="${companyNum}" data-company-name="${companyName}">${companyName}</a>`
                 : (companyName || '')
             }
           </td>
-          <td style="width: 6%;">${nameInput}</td>
-          <td>${row.jumin || ''}${row.age ? ` (${row.age}세)` : ''}</td>
-          <td style="width: 6%;">${phoneInput}</td>
-          <td>${progressSelect}</td>
-          <td>${row.manager || ''}</td>
-          <td>${standardDateCell}</td>
-          <td>${row.applicationDate || ''}</td>
-          <td>${row.policyNum || ''}</td>
-          <td>${certiTypeName}</td>
-          <td>${rateSelect}</td>
-          <td>${statusSelect}</td>
-          <td>${processSelect}</td>
-          <td>${insuranceComName}</td>
-          <td class="text-end">${premiumFormatted}</td>
-          <td class="text-end">${cPremiumFormatted}</td>
-          <td>${row.duplicate || ''}</td>
+          <td style="width: 6%; white-space: nowrap;">${nameInput}</td>
+          <td style="white-space: nowrap;">${row.jumin || ''}${row.age ? ` (${row.age}세)` : ''}</td>
+          <td style="width: 6%; white-space: nowrap;">${phoneInput}</td>
+          <td style="white-space: nowrap;">${progressSelect}</td>
+          <td style="white-space: nowrap;">${row.manager || ''}</td>
+          <td style="white-space: nowrap;">${standardDateCell}</td>
+          <td style="white-space: nowrap;">${row.applicationDate || ''}</td>
+          <td style="white-space: nowrap;">${row.policyNum || ''}</td>
+          <td style="white-space: nowrap;">${certiTypeName}</td>
+          <td style="white-space: nowrap;">${rateSelect}</td>
+          <td style="white-space: nowrap;">${statusSelect}</td>
+          <td style="white-space: nowrap;">${processSelect}</td>
+          <td style="white-space: nowrap;">${insuranceComName}</td>
+          <td class="text-end" style="white-space: nowrap;">${premiumFormatted}</td>
+          <td class="text-end" style="white-space: nowrap;">${cPremiumFormatted}</td>
+          <td style="white-space: nowrap;">${row.duplicate || ''}</td>
         </tr>
       `;
     });
