@@ -1179,10 +1179,15 @@
   });
 
   // 진행단계 필터 변경 시 독립적으로 작동 (다른 필터 초기화 안 함)
-  progressFilter?.addEventListener('change', () => {
-    currentPage = 1;
-    fetchList();
-  });
+  if (progressFilter) {
+    progressFilter.addEventListener('change', () => {
+      console.log('진행단계 필터 변경:', progressFilter.value);
+      currentPage = 1;
+      fetchList();
+    });
+  } else {
+    console.error('progressFilter 요소를 찾을 수 없습니다.');
+  }
 
   // 배서기준일 필터 변경 시 다른 필터 초기화 및 자동 검색
   endorseDayFilter?.addEventListener('change', () => {
