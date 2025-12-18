@@ -387,17 +387,18 @@
         </select>
       `;
 
-      // 성명 인풋박스
+      // 성명 인풋박스 (폭 40% - 60% 줄임)
       const nameInput = `
         <input type="text" 
                class="form-control form-control-sm endorse-name-input"
                value="${row.name || ''}"
                data-num="${row.num}"
                data-current-name="${row.name || ''}"
-               placeholder="성명">
+               placeholder="성명"
+               style="width: 40%; display: inline-block;">
       `;
 
-      // 핸드폰 인풋박스 (하이픈 포함)
+      // 핸드폰 인풋박스 (하이픈 포함, 폭 70% - 30% 줄임)
       const phoneInput = `
         <input type="text" 
                class="form-control form-control-sm endorse-phone-input"
@@ -405,7 +406,8 @@
                data-num="${row.num}"
                data-current-phone="${row.phone || ''}"
                placeholder="010-0000-0000"
-               maxlength="13">
+               maxlength="13"
+               style="width: 70%; display: inline-block;">
       `;
 
       // 배서기준일 클릭 가능하게
