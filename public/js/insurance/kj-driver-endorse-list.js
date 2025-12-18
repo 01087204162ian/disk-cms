@@ -381,7 +381,7 @@
             }
           </td>
           <td>${row.name || ''}</td>
-          <td>${row.jumin || ''}</td>
+          <td>${row.jumin || ''}${row.age ? ` (${row.age}세)` : ''}</td>
           <td>${row.phone || ''}</td>
           <td>${row.progressStep || ''}</td>
           <td>${row.manager || ''}</td>
