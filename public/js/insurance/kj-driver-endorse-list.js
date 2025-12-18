@@ -394,25 +394,35 @@
 
       // 성명 인풋박스 (테두리선 없음, 배경 흰색, 폰트 크기 헤더와 동일 0.6875rem, 가운데 정렬)
       const nameInput = `
-        <input type="text" 
-               class="form-control form-control-sm endorse-name-input"
-               value="${row.name || ''}"
-               data-num="${row.num}"
-               data-current-name="${row.name || ''}"
-               placeholder="성명"
-               style="border: none; background-color: white; font-size: 0.6875rem; text-align: center;">
+        <div class="d-flex align-items-center gap-1">
+          <input type="text" 
+                 class="form-control form-control-sm endorse-name-input"
+                 value="${row.name || ''}"
+                 data-num="${row.num}"
+                 data-current-name="${row.name || ''}"
+                 placeholder="성명"
+                 style="border: none; background-color: white; font-size: 0.6875rem; text-align: center;">
+          <div class="spinner-border spinner-border-sm text-primary d-none" role="status" data-role="name-loading">
+            <span class="visually-hidden">로딩 중...</span>
+          </div>
+        </div>
       `;
 
       // 핸드폰 인풋박스 (하이픈 포함, 테두리선 없음, 배경 흰색, 폰트 크기 헤더와 동일 0.6875rem)
       const phoneInput = `
-        <input type="text" 
-               class="form-control form-control-sm endorse-phone-input"
-               value="${row.phone || ''}"
-               data-num="${row.num}"
-               data-current-phone="${row.phone || ''}"
-               placeholder="010-0000-0000"
-               maxlength="13"
-               style="border: none; background-color: white; font-size: 0.6875rem;">
+        <div class="d-flex align-items-center gap-1">
+          <input type="text" 
+                 class="form-control form-control-sm endorse-phone-input"
+                 value="${row.phone || ''}"
+                 data-num="${row.num}"
+                 data-current-phone="${row.phone || ''}"
+                 placeholder="010-0000-0000"
+                 maxlength="13"
+                 style="border: none; background-color: white; font-size: 0.6875rem;">
+          <div class="spinner-border spinner-border-sm text-primary d-none" role="status" data-role="phone-loading">
+            <span class="visually-hidden">로딩 중...</span>
+          </div>
+        </div>
       `;
 
       // 배서기준일 클릭 가능하게
@@ -523,17 +533,27 @@
             return;
           }
           
+          const rowEl = input.closest('tr');
+          const spinner = rowEl?.querySelector('[data-role="name-loading"]');
+          
           input.disabled = true;
+          if (spinner) {
+            spinner.classList.remove('d-none');
+          }
           try {
             await updateMemberInfo(num, newName);
             input.setAttribute('data-current-name', newName);
             // 리스트 새로고침
-            fetchList();
+            await fetchList();
           } catch (error) {
             console.error('성명 업데이트 오류:', error);
             alert('성명 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
             input.value = currentName;
+          } finally {
             input.disabled = false;
+            if (spinner) {
+              spinner.classList.add('d-none');
+            }
           }
         }
       });
@@ -581,17 +601,27 @@
             return;
           }
           
+          const rowEl = input.closest('tr');
+          const spinner = rowEl?.querySelector('[data-role="phone-loading"]');
+          
           input.disabled = true;
+          if (spinner) {
+            spinner.classList.remove('d-none');
+          }
           try {
             await updateMemberInfo(num, null, newPhone);
             input.setAttribute('data-current-phone', newPhone);
             // 리스트 새로고침
-            fetchList();
+            await fetchList();
           } catch (error) {
             console.error('핸드폰 번호 업데이트 오류:', error);
             alert('핸드폰 번호 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
             input.value = currentPhone;
+          } finally {
             input.disabled = false;
+            if (spinner) {
+              spinner.classList.add('d-none');
+            }
           }
         }
       });
