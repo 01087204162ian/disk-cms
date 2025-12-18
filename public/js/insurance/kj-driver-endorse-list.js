@@ -879,10 +879,10 @@
       const payload = { num };
       if (name !== null && name !== '') payload.name = name;
       if (phone !== null && phone !== '') {
-        // 하이픈 제거하고 숫자만 전송
-        const cleanedPhone = removePhoneHyphen(phone);
-        if (cleanedPhone && cleanedPhone.trim()) {
-          payload.phone = cleanedPhone.trim();
+        // 하이픈 포함 형식으로 전송 (010-3514-3262)
+        const formattedPhone = formatPhoneNumber(phone);
+        if (formattedPhone && formattedPhone.trim()) {
+          payload.phone = formattedPhone.trim();
         }
       }
       if (progressStep !== null) payload.progressStep = progressStep;
