@@ -49,33 +49,48 @@
                   </select>
                 </div>
                 
-                <!-- 두 번째 필터: 배서기준일 -->
+                <!-- 두 번째 필터: 진행단계 -->
+                <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 110px;">
+                  <select id="progressFilter" class="form-control form-control-sm">
+                    <option value="">진행단계</option>
+                    <option value="1">프린트</option>
+                    <option value="2">스캔</option>
+                    <option value="3">고객등록</option>
+                    <option value="4">심사중</option>
+                    <option value="5">입금대기</option>
+                    <option value="6">카드승인</option>
+                    <option value="7">수납중</option>
+                    <option value="8">확정중</option>
+                  </select>
+                </div>
+                
+                <!-- 세 번째 필터: 배서기준일 -->
                 <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 140px;">
                   <input type="date" id="endorseDayFilter" class="form-control form-control-sm" title="배서기준일">
                 </div>
                 
-                <!-- 세 번째 필터: 보험회사 -->
+                <!-- 네 번째 필터: 보험회사 -->
                 <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 156px;">
                   <select id="insuranceComFilter" class="form-control form-control-sm">
                     <option value="">-- 보험회사 선택 --</option>
                   </select>
                 </div>
                 
-                <!-- 네 번째 필터: 증권번호 -->
+                <!-- 다섯 번째 필터: 증권번호 -->
                 <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 180px;">
                   <select id="policyNumFilter" class="form-control form-control-sm">
                     <option value="">-- 증권 선택 --</option>
                   </select>
                 </div>
                 
-                <!-- 다섯 번째 필터: 대리운전회사 -->
+                <!-- 여섯 번째 필터: 대리운전회사 -->
                 <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 182px;">
                   <select id="companyFilter" class="form-control form-control-sm" disabled>
                     <option value="">-- 대리운전회사 선택 --</option>
                   </select>
                 </div>
                 
-                <!-- 여섯 번째 필터: 페이지 크기 -->
+                <!-- 일곱 번째 필터: 페이지 크기 -->
                 <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 75px;">
                   <select id="pageSize" class="form-control form-control-sm">
                     <option value="20" selected>20개</option>

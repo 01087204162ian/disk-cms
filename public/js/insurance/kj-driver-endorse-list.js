@@ -13,6 +13,7 @@
   // 필터 요소
   const endorseDayFilter = document.getElementById('endorseDayFilter');
   const statusFilter = document.getElementById('statusFilter');
+  const progressFilter = document.getElementById('progressFilter');
   const insuranceComFilter = document.getElementById('insuranceComFilter');
   const policyNumFilter = document.getElementById('policyNumFilter');
   const companyFilter = document.getElementById('companyFilter');
@@ -186,6 +187,7 @@
 
   const fetchList = async () => {
     const push = statusFilter.value || '';
+    const progress = progressFilter ? progressFilter.value || '' : '';
     const insuranceCom = insuranceComFilter.value || '';
     const policyNum = policyNumFilter.value || '';
     const companyNum = companyFilter.value || '';
@@ -209,6 +211,7 @@
     params.append('page', currentPage);
     params.append('limit', currentLimit);
     if (push) params.append('push', push);
+    if (progress) params.append('progress', progress);
     if (insuranceCom) params.append('insuranceCom', insuranceCom);
     if (policyNum) params.append('policyNum', policyNum);
     if (companyNum) params.append('companyNum', companyNum);
@@ -217,6 +220,7 @@
     // 디버깅: 파라미터 로그
     console.log('API 호출 파라미터:', {
       push,
+      progress,
       insuranceCom,
       policyNum,
       companyNum,
@@ -1170,6 +1174,12 @@
     companyFilter.value = '';
     loadCompanyList(); // 증권번호 없이 전체 목록 로드
     
+    currentPage = 1;
+    fetchList();
+  });
+
+  // 진행단계 필터 변경 시 독립적으로 작동 (다른 필터 초기화 안 함)
+  progressFilter?.addEventListener('change', () => {
     currentPage = 1;
     fetchList();
   });
