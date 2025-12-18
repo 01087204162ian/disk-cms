@@ -41,12 +41,12 @@
             <div class="search-filter-row">
               <div class="row align-items-end">
                 <!-- 첫 번째 필터: 배서기준일 -->
-                <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <input type="date" id="endorseDayFilter" class="form-control">
                 </div>
                 
                 <!-- 두 번째 필터: 선택/청약/해지 -->
-                <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <select id="statusFilter" class="form-control">
                     <option value="">선택</option>
                     <option value="1">청약</option>
@@ -55,7 +55,7 @@
                 </div>
                 
                 <!-- 세 번째 필터: 보험회사 -->
-                <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <select id="insuranceComFilter" class="form-control">
                     <option value="">-- 보험회사 선택 --</option>
                   </select>
@@ -76,7 +76,7 @@
                 </div>
                 
                 <!-- 여섯 번째 필터: 페이지 크기 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                <div class="col-md-1 col-sm-6 mb-2 mb-md-0">
                   <select id="pageSize" class="form-control">
                     <option value="20" selected>20개</option>
                     <option value="50">50개</option>
@@ -85,8 +85,8 @@
                 </div>
                 
                 <!-- 통계 정보 (같은 행에 배치) -->
-                <div class="col-md-2 col-sm-12 mb-2 mb-md-0">
-                  <div class="alert alert-info mb-0 py-2" id="statsInfo">
+                <div class="col-md-1 col-sm-12 mb-2 mb-md-0">
+                  <div class="alert alert-info mb-0 py-2" id="statsInfo" style="font-size: 0.8rem;">
                     <strong>청약:</strong><span id="statsSubscription">0</span>, 
                     <strong>해지:</strong><span id="statsCancellation">0</span>, 
                     <strong>계:</strong><span id="statsTotal">0</span>
