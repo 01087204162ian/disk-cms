@@ -448,7 +448,7 @@
       `;
 
       html += `
-        <tr>
+        <tr data-num="${row.num}">
           <td class="text-center" style="white-space: nowrap;">${rowNum}</td>
           <td style="white-space: nowrap;">${row.damdanja || row.manager || ''}</td>
           <td style="white-space: nowrap;">
@@ -462,7 +462,7 @@
           <td style="white-space: nowrap;">${row.jumin || ''}${row.age ? ` (${row.age}세)` : ''}</td>
           <td style="width: 6%; white-space: nowrap; padding: 0;">${phoneInput}</td>
           <td style="white-space: nowrap;">${progressSelect}</td>
-          <td style="white-space: nowrap;">${row.manager || ''}</td>
+          <td class="manager-cell" style="white-space: nowrap;">${row.manager || ''}</td>
           <td style="white-space: nowrap;">${standardDateCell}</td>
           <td style="white-space: nowrap;">${row.applicationDate || ''}</td>
           <td style="white-space: nowrap;">${row.policyNum || ''}</td>
@@ -657,10 +657,23 @@
         
         e.target.disabled = true;
         try {
-          await updateMemberInfo(num, null, null, newProgress);
+          // 진행단계 업데이트 시 manager(처리자)도 함께 업데이트
+          const result = await updateMemberInfo(num, null, null, newProgress);
           e.target.setAttribute('data-current-progress', newProgress);
-          // 리스트 새로고침
-          fetchList();
+          
+          // 해당 행의 manager 셀만 업데이트 (페이지 새로고침 없이)
+          const row = e.target.closest('tr[data-num]');
+          if (row) {
+            const managerCell = row.querySelector('td.manager-cell');
+            if (managerCell) {
+              const userName = getLoginUserName();
+              if (userName) {
+                managerCell.textContent = userName;
+              }
+            }
+          }
+          
+          e.target.disabled = false;
         } catch (error) {
           console.error('진행단계 업데이트 오류:', error);
           alert('진행단계 업데이트에 실패했습니다: ' + (error.message || '알 수 없는 오류'));
@@ -888,8 +901,24 @@
 
   // ==================== 업데이트 함수 ====================
 
-  // 회원 정보 업데이트 (이름, 핸드폰, 진행단계)
-  const updateMemberInfo = async (num, name = null, phone = null, progressStep = null) => {
+  // 로그인 사용자 이름 가져오기 (공통 함수)
+  const getLoginUserName = () => {
+    // sj-template-loader 사용 시
+    if (window.sjTemplateLoader && window.sjTemplateLoader.user && window.sjTemplateLoader.user.name) {
+      return window.sjTemplateLoader.user.name;
+    }
+    // 세션 스토리지 확인
+    const sessionName = sessionStorage.getItem('userName');
+    if (sessionName) return sessionName;
+    // 로컬 스토리지 확인
+    const localName = localStorage.getItem('userName');
+    if (localName) return localName;
+    // 기본값
+    return '';
+  };
+
+  // 회원 정보 업데이트 (이름, 핸드폰, 진행단계, manager)
+  const updateMemberInfo = async (num, name = null, phone = null, progressStep = null, manager = null) => {
     try {
       const payload = { num };
       if (name !== null && name !== '') payload.name = name;
@@ -900,7 +929,16 @@
           payload.phone = formattedPhone.trim();
         }
       }
-      if (progressStep !== null) payload.progressStep = progressStep;
+      if (progressStep !== null) {
+        payload.progressStep = progressStep;
+        // 진행단계 업데이트 시 manager도 함께 업데이트 (전달되지 않은 경우 로그인 사용자 이름 사용)
+        if (manager === null) {
+          manager = getLoginUserName();
+        }
+        if (manager) {
+          payload.manager = manager;
+        }
+      }
 
       // 업데이트할 필드가 없으면 에러
       if (Object.keys(payload).length === 1) { // num만 있는 경우
