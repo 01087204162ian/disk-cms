@@ -387,17 +387,18 @@
         </select>
       `;
 
-      // 성명 인풋박스
+      // 성명 인풋박스 (테두리선 없음, 배경 흰색)
       const nameInput = `
         <input type="text" 
                class="form-control form-control-sm endorse-name-input"
                value="${row.name || ''}"
                data-num="${row.num}"
                data-current-name="${row.name || ''}"
-               placeholder="성명">
+               placeholder="성명"
+               style="border: none; background-color: white;">
       `;
 
-      // 핸드폰 인풋박스 (하이픈 포함)
+      // 핸드폰 인풋박스 (하이픈 포함, 테두리선 없음, 배경 흰색)
       const phoneInput = `
         <input type="text" 
                class="form-control form-control-sm endorse-phone-input"
@@ -405,7 +406,8 @@
                data-num="${row.num}"
                data-current-phone="${row.phone || ''}"
                placeholder="010-0000-0000"
-               maxlength="13">
+               maxlength="13"
+               style="border: none; background-color: white;">
       `;
 
       // 배서기준일 클릭 가능하게
@@ -432,7 +434,7 @@
           </td>
           <td style="width: 6%;">${nameInput}</td>
           <td>${row.jumin || ''}${row.age ? ` (${row.age}세)` : ''}</td>
-          <td style="width: 12%;">${phoneInput}</td>
+          <td style="width: 6%;">${phoneInput}</td>
           <td>${progressSelect}</td>
           <td>${row.manager || ''}</td>
           <td>${standardDateCell}</td>
