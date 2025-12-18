@@ -39,15 +39,15 @@
             
             <!-- 통합 검색/필터 영역 -->
             <div class="search-filter-row">
-              <div class="row align-items-end">
+              <div class="row align-items-center">
                 <!-- 첫 번째 필터: 배서기준일 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <input type="date" id="endorseDayFilter" class="form-control">
+                <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 150px;">
+                  <input type="date" id="endorseDayFilter" class="form-control form-control-sm">
                 </div>
                 
                 <!-- 두 번째 필터: 선택/청약/해지 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <select id="statusFilter" class="form-control">
+                <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 100px;">
+                  <select id="statusFilter" class="form-control form-control-sm">
                     <option value="">선택</option>
                     <option value="1">청약</option>
                     <option value="4">해지</option>
@@ -55,38 +55,38 @@
                 </div>
                 
                 <!-- 세 번째 필터: 보험회사 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <select id="insuranceComFilter" class="form-control">
+                <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 140px;">
+                  <select id="insuranceComFilter" class="form-control form-control-sm">
                     <option value="">-- 보험회사 선택 --</option>
                   </select>
                 </div>
                 
                 <!-- 네 번째 필터: 증권번호 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <select id="policyNumFilter" class="form-control">
+                <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 130px;">
+                  <select id="policyNumFilter" class="form-control form-control-sm">
                     <option value="">-- 증권 선택 --</option>
                   </select>
                 </div>
                 
                 <!-- 다섯 번째 필터: 대리운전회사 -->
-                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <select id="companyFilter" class="form-control" disabled>
+                <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 150px;">
+                  <select id="companyFilter" class="form-control form-control-sm" disabled>
                     <option value="">-- 대리운전회사 선택 --</option>
                   </select>
                 </div>
                 
                 <!-- 여섯 번째 필터: 페이지 크기 -->
-                <div class="col-md-1 col-sm-6 mb-2 mb-md-0">
-                  <select id="pageSize" class="form-control">
+                <div class="col-auto mb-2 mb-md-0" style="flex: 0 0 auto; width: 80px;">
+                  <select id="pageSize" class="form-control form-control-sm">
                     <option value="20" selected>20개</option>
                     <option value="50">50개</option>
                     <option value="100">100개</option>
                   </select>
                 </div>
                 
-                <!-- 통계 정보 (같은 행에 배치) -->
-                <div class="col-md-1 col-sm-12 mb-2 mb-md-0">
-                  <div class="alert alert-info mb-0 py-2" id="statsInfo" style="font-size: 0.8rem;">
+                <!-- 통계 정보 (필터와 같은 높이) -->
+                <div class="col-auto mb-2 mb-md-0 ms-auto">
+                  <div class="form-control form-control-sm bg-info bg-opacity-10 border-info text-dark" id="statsInfo" style="height: 31px; display: flex; align-items: center; font-size: 0.8rem; padding: 0.25rem 0.5rem;">
                     <strong>청약:</strong><span id="statsSubscription">0</span>, 
                     <strong>해지:</strong><span id="statsCancellation">0</span>, 
                     <strong>계:</strong><span id="statsTotal">0</span>
