@@ -511,12 +511,26 @@
           return;
         }
         
+        // 같은 행의 배서 상태 select에서 선택된 값 가져오기
+        const row = e.target.closest('tr[data-num]');
+        const statusSelect = row?.querySelector('select.endorse-status-select');
+        const endorseProcess = statusSelect?.value || '청약'; // 기본값: 청약
+        
         // 로딩 상태 표시
         const originalValue = e.target.value;
         e.target.disabled = true;
         
         try {
-          await updateEndorseStatus(num, newSangtae);
+          // 처리자 이름 가져오기
+          const manager = getLoginUserName();
+          if (!manager && newSangtae === 2) {
+            alert('처리자 정보를 찾을 수 없습니다. 로그인 상태를 확인해주세요.');
+            e.target.value = currentSangtae;
+            e.target.disabled = false;
+            return;
+          }
+          
+          await updateEndorseStatus(num, newSangtae, endorseProcess, manager);
           // 성공 시 현재 값 업데이트
           e.target.setAttribute('data-current-sangtae', newSangtae);
           // 리스트 새로고침
@@ -1020,23 +1034,56 @@
 
   // ==================== 배서처리 상태 업데이트 ====================
   
-  const updateEndorseStatus = async (num, sangtae) => {
+  const updateEndorseStatus = async (num, sangtae, endorseProcess = '청약', manager = null, reasion = null) => {
     try {
+      // 처리 시(sangtae=2) manager 필수
+      if (sangtae === 2 && !manager) {
+        manager = getLoginUserName();
+        if (!manager) {
+          throw new Error('처리자(manager) 정보가 필요합니다.');
+        }
+      }
+      
+      const payload = {
+        num: num,
+        sangtae: sangtae,
+        endorseProcess: endorseProcess
+      };
+      
+      if (manager) {
+        payload.manager = manager;
+      }
+      
+      if (reasion) {
+        payload.reasion = reasion;
+      }
+      
+      console.log('배서처리 상태 업데이트 요청:', payload);
+      
       const response = await fetch('/api/insurance/kj-endorse/update-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          num: num,
-          sangtae: sangtae
-        })
+        body: JSON.stringify(payload)
       });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('서버 응답 오류:', response.status, errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          errorData = { error: errorText || `HTTP ${response.status} 오류` };
+        }
+        throw new Error(errorData.error || errorData.details?.error || '배서처리 상태 업데이트 실패');
+      }
       
       const json = await response.json();
       
       if (!json.success) {
-        throw new Error(json.error || '상태 업데이트 실패');
+        throw new Error(json.error || '배서처리 상태 업데이트 실패');
       }
       
       return json;
