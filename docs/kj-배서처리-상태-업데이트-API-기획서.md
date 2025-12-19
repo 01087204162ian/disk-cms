@@ -153,7 +153,7 @@ WHERE num = :num
 
 2. **"취소" 선택** (청약 취소):
    - push: 1 → 1 (유지)
-   - cancel: 16
+   - cancel: 12
    - 설명: 청약을 취소 처리, push는 청약 상태 유지
    - SMS: 발송하지 않음
 
@@ -223,7 +223,7 @@ WHERE num = :num
                break;
            case '취소':
                $newPush = 1;
-               $newCancel = 16;
+               $newCancel = 12;
                // SMS 발송하지 않음
                break;
            case '거절':

@@ -500,6 +500,27 @@ router.post('/kj-endorse/save', async (req, res) => {
   }
 });
 
+// 배서처리 상태 업데이트 API
+router.post('/kj-endorse/update-status', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-endorse-update-status.php`;
+
+    const response = await axios.post(apiUrl, req.body, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-endorse update-status proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '배서처리 상태 업데이트 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 // 배서 해지 신청 API
 router.post('/kj-endorse/termination', async (req, res) => {
   try {
