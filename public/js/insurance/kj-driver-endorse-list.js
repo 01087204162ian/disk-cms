@@ -527,6 +527,21 @@
         const statusSelect = row?.querySelector('select.endorse-status-select');
         const endorseProcess = statusSelect?.value || '청약'; // 기본값: 청약
         
+        // 청약 처리 시 할인할증(rate) 확인
+        if (newSangtae === 2 && endorseProcess === '청약') {
+          // 같은 행의 rate select에서 현재 값 가져오기
+          const rateSelect = row?.querySelector('select.endorse-rate-select');
+          const currentRate = rateSelect?.value || rateSelect?.getAttribute('data-current-rate') || '';
+          
+          // rate가 선택되지 않았거나 '-1' (선택)이면 에러
+          if (!currentRate || currentRate === '' || currentRate === '-1' || currentRate === '0') {
+            alert('청약 처리 시 할인할증(요율)이 입력되어야 합니다. 먼저 할인할증을 선택해주세요.');
+            e.target.value = currentSangtae;
+            e.target.disabled = false;
+            return;
+          }
+        }
+        
         // 로딩 상태 표시
         const originalValue = e.target.value;
         e.target.disabled = true;
