@@ -229,10 +229,21 @@
 
     try {
       const res = await fetch(`/api/insurance/kj-endorse/list?${params.toString()}`);
+      
+      // 응답이 JSON인지 확인
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text();
+        console.error('Non-JSON response:', text);
+        throw new Error(`서버 오류 (HTTP ${res.status}): ${text.substring(0, 200)}`);
+      }
+      
       const json = await res.json();
 
-      if (!json.success) {
-        throw new Error(json.error || 'API 오류');
+      if (!res.ok || !json.success) {
+        const errorMsg = json.error || `서버 오류 (HTTP ${res.status})`;
+        console.error('API 오류:', errorMsg, json);
+        throw new Error(errorMsg);
       }
 
       const rows = json.data || [];
