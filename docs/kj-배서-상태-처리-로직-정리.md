@@ -105,7 +105,10 @@ switch ($push) {
   - push: 1 → 4 (정상 처리)
   - sangtae: 1 → 2 (처리 완료)
   - cancel: null
-  - SMS: 가입완료 메시지
+  - **SMS 발송 조건**: 
+    - `divi = 2` (월납입, 12회분납)인 경우에만 발송
+    - 월보험료, 배서보험료 문자 메시지를 대리운전 담당자에게 발송
+    - `divi = 1` (정상분납)인 경우 SMS 발송하지 않음
 
 #### 케이스 2: 청약 → 취소
 - **현재 상태**: push=1, sangtae=1 (청약, 미처리)
@@ -114,7 +117,7 @@ switch ($push) {
   - push: 1 → 1 (청약 상태 유지)
   - sangtae: 1 → 2 (처리 완료)
   - cancel: 12 (청약 취소)
-  - SMS: 취소 메시지
+  - **SMS**: 발송하지 않음
 
 #### 케이스 3: 청약 → 거절
 - **현재 상태**: push=1, sangtae=1 (청약, 미처리)
@@ -123,7 +126,7 @@ switch ($push) {
   - push: 1 → 1 (청약 상태 유지)
   - sangtae: 1 → 2 (처리 완료)
   - cancel: 13 (청약 거절)
-  - SMS: 거절 메시지
+  - **SMS**: 발송하지 않음
 
 #### 케이스 4: 해지 → 해지 완료
 - **현재 상태**: push=4, sangtae=1 (해지 신청, 미처리)
@@ -132,16 +135,19 @@ switch ($push) {
   - push: 4 → 2 (해지 완료)
   - sangtae: 1 → 2 (처리 완료)
   - cancel: 42 (해지 완료)
-  - SMS: 해지완료 메시지
+  - **SMS 발송 조건**: 
+    - `divi = 2` (월납입, 12회분납)인 경우에만 발송
+    - 월보험료, 배서보험료 문자 메시지를 대리운전 담당자에게 발송
+    - `divi = 1` (정상분납)인 경우 SMS 발송하지 않음
 
 #### 케이스 5: 해지 → 취소
 - **현재 상태**: push=4, sangtae=1 (해지 신청, 미처리)
 - **선택 액션**: "취소" 선택 + sangtae=2 (처리)
 - **변경 결과**:
-  - push: 4 → 4 (해지 상태 유지... 아니다! 정상으로 복귀해야 함)
+  - push: 4 → 4 (정상 처리 상태 유지)
   - sangtae: 1 → 2 (처리 완료)
   - cancel: 45 (해지 취소)
-  - SMS: 취소 메시지
+  - **SMS**: 발송하지 않음
 
 **문제**: 케이스 5에서 해지 취소 시 push 값을 어떻게 처리해야 할까?
 
@@ -182,20 +188,36 @@ if ($currentSangtae == 2 && $newSangtae == 2) {
 }
 
 // 3. push 값과 endorseProcess에 따른 처리
+// 4. divi 값 조회 (SMS 발송 조건 확인용)
+$certiTableSql = "SELECT divi FROM 2012CertiTable WHERE num = :cNum";
+$certiTableStmt = $pdo->prepare($certiTableSql);
+$certiTableStmt->bindParam(':cNum', $currentData['CertiTableNum'], PDO::PARAM_INT);
+$certiTableStmt->execute();
+$certiTableRow = $certiTableStmt->fetch(PDO::FETCH_ASSOC);
+$divi = $certiTableRow['divi'] ?? null; // 1=정상분납, 2=월납입
+
+// 5. push 값과 endorseProcess에 따른 처리
+$sendSms = false; // SMS 발송 여부
 if ($currentPush == 1) {
     // 청약 상태
     switch ($endorseProcess) {
         case '청약': // 정상 처리
             $newPush = 4;
             $newCancel = null;
+            // divi=2 (월납입)인 경우에만 SMS 발송
+            if ($divi == 2) {
+                $sendSms = true;
+            }
             break;
         case '취소':
             $newPush = 1;
             $newCancel = 12;
+            // SMS 발송하지 않음
             break;
         case '거절':
             $newPush = 1;
             $newCancel = 13;
+            // SMS 발송하지 않음
             break;
     }
 } else if ($currentPush == 4) {
@@ -204,10 +226,15 @@ if ($currentPush == 1) {
         case '해지': // 해지 완료
             $newPush = 2;
             $newCancel = 42;
+            // divi=2 (월납입)인 경우에만 SMS 발송
+            if ($divi == 2) {
+                $sendSms = true;
+            }
             break;
         case '취소':
-            $newPush = 4; // 정상 상태로 복귀? 아니면 유지?
+            $newPush = 4; // 정상 상태 유지
             $newCancel = 45;
+            // SMS 발송하지 않음
             break;
     }
 }
@@ -235,8 +262,22 @@ WHERE num = :num;
 - 취소/거절 상태에서 다시 정상 처리로 변경할 수 있는지?
 
 ### 6.3 SMS 발송 조건
-- 가입완료/해지완료: sms=1 (자동 메시지 생성)
-- 취소/거절: sms=2 (사용자 입력 메시지 사용)
+
+#### SMS 발송이 필요한 경우
+- **청약 처리 (가입완료)**: `divi = 2` (월납입, 12회분납)인 경우에만 발송
+  - 월보험료, 배서보험료 문자 메시지를 대리운전 담당자에게 발송
+- **해지 처리 (해지완료)**: `divi = 2` (월납입, 12회분납)인 경우에만 발송
+  - 월보험료, 배서보험료 문자 메시지를 대리운전 담당자에게 발송
+
+#### SMS 발송하지 않는 경우
+- 청약 취소 (cancel=12): SMS 발송하지 않음
+- 청약 거절 (cancel=13): SMS 발송하지 않음
+- 해지 취소 (cancel=45): SMS 발송하지 않음
+- 정상분납 (divi=1)인 경우: 청약/해지 처리 시에도 SMS 발송하지 않음
+
+#### divi 값 정의
+- **divi = 1**: 정상분납 (정상납)
+- **divi = 2**: 월납입 (12회분납, 월납)
 
 ## 7. 다음 단계
 

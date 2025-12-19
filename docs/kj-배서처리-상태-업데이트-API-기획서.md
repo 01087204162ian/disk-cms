@@ -46,8 +46,9 @@
    - 보험회사 보험료 계산 (calculateEndorsePremium)
 
 2. **SMS 발송**
-   - 가입완료/해지완료 SMS
-   - 청약취소/거절 SMS
+   - 청약 처리 (가입완료): `divi = 2` (월납입)인 경우에만 월보험료, 배서보험료 SMS 발송
+   - 해지 처리 (해지완료): `divi = 2` (월납입)인 경우에만 월보험료, 배서보험료 SMS 발송
+   - 청약 취소/거절, 해지 취소: SMS 발송하지 않음
 
 3. **기타 업데이트**
    - 배서건수 정리 (2012EndorseList 테이블)
@@ -142,16 +143,19 @@ WHERE num = :num
    - push: 1 → 4
    - cancel: null
    - 설명: 청약을 정상적으로 처리하여 가입완료 상태로 변경
+   - SMS: `divi = 2` (월납입)인 경우에만 월보험료, 배서보험료 문자 메시지 발송
 
 2. **"취소" 선택** (청약 취소):
    - push: 1 → 1 (유지)
    - cancel: 12
    - 설명: 청약을 취소 처리, push는 청약 상태 유지
+   - SMS: 발송하지 않음
 
 3. **"거절" 선택** (청약 거절):
    - push: 1 → 1 (유지)
    - cancel: 13
    - 설명: 청약을 거절 처리, push는 청약 상태 유지
+   - SMS: 발송하지 않음
 
 **해지 상태 (현재 push=4)에서:**
 
@@ -159,11 +163,17 @@ WHERE num = :num
    - push: 4 → 2
    - cancel: 42
    - 설명: 해지 신청을 처리하여 해지 완료 상태로 변경
+   - SMS: `divi = 2` (월납입)인 경우에만 월보험료, 배서보험료 문자 메시지 발송
 
 2. **"취소" 선택** (해지 취소):
    - push: 4 → 4 (유지)
    - cancel: 45
    - 설명: 해지 신청을 취소하여 정상 처리 상태로 복귀 (또는 유지)
+   - SMS: 발송하지 않음
+
+**참고**: `divi` 값은 `2012CertiTable` 테이블에서 조회
+- `divi = 1`: 정상분납 (정상납)
+- `divi = 2`: 월납입 (12회분납, 월납)
 
 ## 5. 개발 단계
 
@@ -184,21 +194,36 @@ WHERE num = :num
    $currentPush = $row['push'];
    $endorseProcess = $input['endorseProcess'] ?? '청약';
    
+   // divi 값 조회 (SMS 발송 조건 확인용)
+   $certiTableSql = "SELECT divi FROM 2012CertiTable WHERE num = :cNum";
+   $certiTableStmt = $pdo->prepare($certiTableSql);
+   $certiTableStmt->bindParam(':cNum', $row['CertiTableNum'], PDO::PARAM_INT);
+   $certiTableStmt->execute();
+   $certiTableRow = $certiTableStmt->fetch(PDO::FETCH_ASSOC);
+   $divi = $certiTableRow['divi'] ?? null; // 1=정상분납, 2=월납입
+   
    // push 값과 endorseProcess에 따른 처리
+   $sendSms = false; // SMS 발송 여부
    if ($currentPush == 1) {
        // 청약 상태
        switch ($endorseProcess) {
            case '청약':
                $newPush = 4;
                $newCancel = null;
+               // divi=2 (월납입)인 경우에만 SMS 발송
+               if ($divi == 2) {
+                   $sendSms = true;
+               }
                break;
            case '취소':
                $newPush = 1;
                $newCancel = 12;
+               // SMS 발송하지 않음
                break;
            case '거절':
                $newPush = 1;
                $newCancel = 13;
+               // SMS 발송하지 않음
                break;
        }
    } else if ($currentPush == 4) {
@@ -207,10 +232,15 @@ WHERE num = :num
            case '해지':
                $newPush = 2;
                $newCancel = 42;
+               // divi=2 (월납입)인 경우에만 SMS 발송
+               if ($divi == 2) {
+                   $sendSms = true;
+               }
                break;
            case '취소':
                $newPush = 4;
                $newCancel = 45;
+               // SMS 발송하지 않음
                break;
        }
    }
@@ -234,7 +264,13 @@ WHERE num = :num
 2. **SMS 발송**
    - smsAligo API 연동
    - 보험회사별 메시지 템플릿
-   - push 값에 따른 SMS 발송 로직
+   - **SMS 발송 조건**:
+     - 청약 처리 (가입완료): `divi = 2` (월납입, 12회분납)인 경우에만 발송
+       - 월보험료, 배서보험료 문자 메시지를 대리운전 담당자에게 발송
+     - 해지 처리 (해지완료): `divi = 2` (월납입, 12회분납)인 경우에만 발송
+       - 월보험료, 배서보험료 문자 메시지를 대리운전 담당자에게 발송
+     - 청약 취소/거절, 해지 취소: SMS 발송하지 않음
+     - 정상분납 (`divi = 1`)인 경우: 청약/해지 처리 시에도 SMS 발송하지 않음
 
 3. **기타 업데이트**
    - 2012EndorseList 테이블 업데이트
