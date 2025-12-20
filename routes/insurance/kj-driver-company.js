@@ -744,8 +744,7 @@ router.get('/kj-migrate-cpreminum-to-premium-data', async (req, res) => {
 // 일일배서리스트 조회 API
 router.post('/kj-daily-endorse/search', async (req, res) => {
   try {
-    // 실제 PHP 파일 경로 (kj/api/kjDaeri/)
-    const apiUrl = `https://pcikorea.com/kj/api/kjDaeri/dailyEndorseSearch.php`;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-daily-endorse-search.php`;
     
     // FormData 형식으로 데이터 준비 (URLSearchParams 사용)
     const params = new URLSearchParams();
@@ -777,8 +776,7 @@ router.post('/kj-daily-endorse/search', async (req, res) => {
 router.get('/kj-daily-endorse/company-list', async (req, res) => {
   try {
     const { endorseDay } = req.query;
-    // 실제 PHP 파일 경로 (kj/api/kjDaeri/)
-    const apiUrl = `https://pcikorea.com/kj/api/kjDaeri/todayEendorseCompanySerarch.php`;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-daily-endorse-company-list.php`;
     
     const response = await axios.get(apiUrl, {
       params: { endorseDay },
@@ -801,8 +799,7 @@ router.get('/kj-daily-endorse/company-list', async (req, res) => {
 router.get('/kj-daily-endorse/certi-list', async (req, res) => {
   try {
     const { endorseDay, dNum, policyNum, sort } = req.query;
-    // 실제 PHP 파일 경로 (kj/api/kjDaeri/)
-    const apiUrl = `https://pcikorea.com/kj/api/kjDaeri/todayEendorseCertiSearch.php`;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-daily-endorse-certi-list.php`;
     
     const response = await axios.get(apiUrl, {
       params: { endorseDay, dNum, policyNum, sort },
@@ -824,8 +821,7 @@ router.get('/kj-daily-endorse/certi-list', async (req, res) => {
 // 배서현황 조회 API
 router.post('/kj-daily-endorse/status', async (req, res) => {
   try {
-    // 실제 PHP 파일 경로 (kj/api/kjDaeri/)
-    const apiUrl = `https://pcikorea.com/kj/api/kjDaeri/dailyEndorseSearch2.php`;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-daily-endorse-status.php`;
     
     // FormData 형식으로 데이터 준비 (URLSearchParams 사용)
     const params = new URLSearchParams();
