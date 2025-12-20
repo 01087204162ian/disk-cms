@@ -741,5 +741,114 @@ router.get('/kj-migrate-cpreminum-to-premium-data', async (req, res) => {
   }
 });
 
+// 일일배서리스트 조회 API
+router.post('/kj-daily-endorse/search', async (req, res) => {
+  try {
+    // 실제 PHP 파일 경로 (kj/api/kjDaeri/)
+    const apiUrl = `https://pcikorea.com/kj/api/kjDaeri/dailyEndorseSearch.php`;
+    
+    // FormData 형식으로 데이터 준비 (URLSearchParams 사용)
+    const params = new URLSearchParams();
+    if (req.body.todayStr) params.append('todayStr', req.body.todayStr);
+    if (req.body.page) params.append('page', req.body.page);
+    if (req.body.sort) params.append('sort', req.body.sort);
+    if (req.body.dNum) params.append('dNum', req.body.dNum);
+    if (req.body.policyNum) params.append('policyNum', req.body.policyNum);
+
+    const response = await axios.post(apiUrl, params.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ daily endorse search proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '일일배서리스트 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 일일배서 대리운전회사 목록 조회
+router.get('/kj-daily-endorse/company-list', async (req, res) => {
+  try {
+    const { endorseDay } = req.query;
+    // 실제 PHP 파일 경로 (kj/api/kjDaeri/)
+    const apiUrl = `https://pcikorea.com/kj/api/kjDaeri/todayEendorseCompanySerarch.php`;
+    
+    const response = await axios.get(apiUrl, {
+      params: { endorseDay },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ daily endorse company-list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '대리운전회사 목록 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 일일배서 증권번호 목록 조회
+router.get('/kj-daily-endorse/certi-list', async (req, res) => {
+  try {
+    const { endorseDay, dNum, policyNum, sort } = req.query;
+    // 실제 PHP 파일 경로 (kj/api/kjDaeri/)
+    const apiUrl = `https://pcikorea.com/kj/api/kjDaeri/todayEendorseCertiSearch.php`;
+    
+    const response = await axios.get(apiUrl, {
+      params: { endorseDay, dNum, policyNum, sort },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ daily endorse certi-list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권번호 목록 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 배서현황 조회 API
+router.post('/kj-daily-endorse/status', async (req, res) => {
+  try {
+    // 실제 PHP 파일 경로 (kj/api/kjDaeri/)
+    const apiUrl = `https://pcikorea.com/kj/api/kjDaeri/dailyEndorseSearch2.php`;
+    
+    // FormData 형식으로 데이터 준비 (URLSearchParams 사용)
+    const params = new URLSearchParams();
+    if (req.body.todayStr) params.append('todayStr', req.body.todayStr);
+    if (req.body.dNum) params.append('dNum', req.body.dNum);
+
+    const response = await axios.post(apiUrl, params.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ daily endorse status proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '배서현황 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

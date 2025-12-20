@@ -1348,3 +1348,717 @@
   initialize();
 })();
 
+// ==================== 배서현황, 일일배서리스트, 문자리스트 모달 관련 ====================
+
+// 모달 버튼 이벤트 핸들러
+document.addEventListener('DOMContentLoaded', function() {
+  // 배서현황 버튼
+  const btnEndorseStatus = document.getElementById('btnEndorseStatus');
+  if (btnEndorseStatus) {
+    btnEndorseStatus.addEventListener('click', function() {
+      const modal = new bootstrap.Modal(document.getElementById('endorseStatusModal'));
+      modal.show();
+      // 오늘 날짜를 기본값으로 설정
+      const today = new Date();
+      const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      const dateInput = document.getElementById('endorseStatus_date');
+      if (dateInput && !dateInput.value) {
+        dateInput.value = todayStr;
+      }
+    });
+  }
+
+  // 일일배서리스트 버튼
+  const btnDailyEndorseList = document.getElementById('btnDailyEndorseList');
+  if (btnDailyEndorseList) {
+    btnDailyEndorseList.addEventListener('click', function() {
+      const modal = new bootstrap.Modal(document.getElementById('dailyEndorseListModal'));
+      modal.show();
+      // 오늘 날짜를 기본값으로 설정
+      const today = new Date();
+      const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      const dateInput = document.getElementById('dailyDate');
+      if (dateInput && !dateInput.value) {
+        dateInput.value = todayStr;
+      }
+      // 초기 데이터 로드
+      if (dateInput && dateInput.value) {
+        dailyEndorseRequest(1, dateInput.value, '', '', 1);
+      }
+    });
+  }
+
+  // 문자리스트 버튼
+  const btnSmsList = document.getElementById('btnSmsList');
+  if (btnSmsList) {
+    btnSmsList.addEventListener('click', function() {
+      const modal = new bootstrap.Modal(document.getElementById('smsListModal'));
+      modal.show();
+    });
+  }
+});
+
+// 배서현황 조회 버튼 이벤트
+document.addEventListener('DOMContentLoaded', function() {
+  const btnEndorseStatusCheck = document.getElementById('btnEndorseStatusCheck');
+  if (btnEndorseStatusCheck) {
+    btnEndorseStatusCheck.addEventListener('click', function() {
+      dailyCheck();
+    });
+  }
+
+  // 일일배서리스트 조회 버튼
+  const btnDailyEndorseSearch = document.getElementById('btnDailyEndorseSearch');
+  if (btnDailyEndorseSearch) {
+    btnDailyEndorseSearch.addEventListener('click', function() {
+      const dateInput = document.getElementById('dailyDate');
+      const dNum = document.getElementById('daily_endorse_dNumList')?.value || '';
+      const policyNum = document.getElementById('daily_endorse_certiList')?.value || '';
+      
+      let sort = 1;
+      if (dNum && policyNum) sort = 3;
+      else if (dNum) sort = 2;
+      
+      const selectedDate = dateInput?.value || null;
+      dailyEndorseRequest(1, selectedDate, dNum, policyNum, sort);
+    });
+  }
+});
+
+// 일일배서리스트 조회 함수
+async function dailyEndorseRequest(page = 1, selectedDate = null, dNum = '', policyNum = '', sort = 1) {
+  console.log('dailyEndorseRequest 호출:', { page, selectedDate, dNum, policyNum, sort });
+  
+  const m_dailyEndoseElement = document.getElementById("m_dailyEndose");
+  if (!m_dailyEndoseElement) {
+    console.error("m_dailyEndose 요소를 찾을 수 없습니다.");
+    return;
+  }
+  
+  m_dailyEndoseElement.innerHTML = `
+    <tr>
+      <td colspan='15' style="text-align: center; padding: 20px;">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">로딩 중...</span>
+        </div>
+        <p class="mt-2">데이터를 불러오는 중입니다...</p>
+      </td>
+    </tr>
+  `;
+  
+  try {
+    const today = new Date();
+    
+    // 날짜 처리
+    let selectedDay;
+    let todayIs;
+    
+    if (selectedDate) {
+      selectedDay = selectedDate;
+    } else {
+      const dailyDateElement = document.getElementById("dailyDate");
+      if (dailyDateElement && dailyDateElement.value) {
+        selectedDay = dailyDateElement.value;
+      } else {
+        selectedDay = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      }
+    }
+    
+    // 오늘 날짜
+    todayIs = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    
+    // 오늘이 아닌 배서리스트 조회하는 경우 대리운전회사별, 일자별 증권번호 조회
+    if (selectedDay !== todayIs && sort == 1) {
+      todayEndorsedNumloadSearchTable(selectedDay);  // 대리운전회사별 
+      todayEndorseloadSearchTable(selectedDay, '', '', 1);  // 일자별 증권번호
+    }
+    
+    // API 요청 파라미터 설정 (JSON으로 전송)
+    const requestData = {
+      todayStr: selectedDay,
+      page: page,
+      sort: sort,
+      dNum: dNum || '',
+      policyNum: policyNum || ''
+    };
+    
+    // API 요청 전송 (Node.js 프록시를 통해)
+    const response = await fetch(`/api/insurance/kj-daily-endorse/search`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`서버 응답 오류: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    let m_smsList = '';
+    
+    if (result.success && result.data && result.data.length > 0) {
+      console.log('데이터:', result);
+      
+      // 페이지네이션 설정
+      const itemsPerPage = 20;
+      const totalItems = result.data.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      const currentPage = Math.max(1, Math.min(page, totalPages));
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+      const currentPageItems = result.data.slice(startIndex, endIndex);
+      
+      // 현재 페이지 데이터 행 추가
+      currentPageItems.forEach((item, index) => {
+        const lastTime = item.LastTime || '';
+        let formattedDate = '';
+        
+        if (lastTime.length === 14) {
+          formattedDate = `${lastTime.substring(0, 4)}-${lastTime.substring(4, 6)}-${lastTime.substring(6, 8)} ${lastTime.substring(8, 10)}:${lastTime.substring(10, 12)}:${lastTime.substring(12, 14)}`;
+        } else {
+          formattedDate = lastTime;
+        }
+        
+        const formattedPreminum = item.preminum ? parseFloat(item.preminum).toLocaleString("en-US") : "0";
+        const formattedC_preminum = item.c_preminum ? parseFloat(item.c_preminum).toLocaleString("en-US") : "0";
+        
+        const iType = {"1": "대리", "2": "탁송", "3": "대리렌트", "4": "탁송렌트"};
+        const certiType = iType[item.etag] || "알 수 없음";
+        
+        const periods = { "1": "흥국", "2": "DB", "3": "kb", "4": "현대", "5": "현대", "6": "롯데", "7": "MG", "8": "삼성" };
+        const InsuranceCompany = periods[item.insuranceCom] || "알 수 없음";
+        
+        const pushType = {"1": "청약", "2": "해지", "3": "청약거절", "4": "정상", "5": "해지취소", "6": "청약취소"};
+        
+        let statusStyle = '';
+        if (item.push === '2') {
+          statusStyle = 'color: red; font-weight: bold;';
+        } else if (item.push === '4') {
+          statusStyle = 'color: green; font-weight: bold;';
+        }
+        
+        const pushName = pushType[item.push] || '';
+        
+        m_smsList += `
+          <tr>
+            <td>${startIndex + index + 1}</td>
+            <td>${item.name || ''}</td>
+            <td>${item.Jumin || ''}</td>
+            <td>${item.hphone || ''}</td>
+            <td style="${statusStyle}">${pushName}</td>
+            <td>${item.policyNum || ''}</td>
+            <td>${certiType}</td>
+            <td>${InsuranceCompany}</td>
+            <td>${item.company || ''}</td>
+            <td>${item.Rphone1 || ''}-${item.Rphone2 || ''}-${item.Rphone3 || ''}</td>
+            <td>${item.rate || ''}</td>
+            <td class="kje-preiminum"><input type='text' id='mothly-${item.SeqNo}' value="${formattedPreminum}" class='form-control form-control-sm memoInput'   
+              onkeypress="if(event.key === 'Enter') { mothlyPremiumUpdate(this, ${item.SeqNo}); return false; }" autocomplete="off"></td>
+            <td class="kje-preiminum"><input type='text' id='mothlyC-${item.SeqNo}' value="${formattedC_preminum}" class='form-control form-control-sm memoInput'   
+              onkeypress="if(event.key === 'Enter') { mothlyC_PremiumUpdate(this, ${item.SeqNo}); return false; }" autocomplete="off"></td>
+            <td>${item.manager || ''}</td>
+            <td>${formattedDate}</td>
+          </tr>
+        `;
+      });
+      
+      m_dailyEndoseElement.innerHTML = m_smsList;
+      
+      // 페이징 UI 생성 및 추가
+      createEPagination(totalPages, currentPage, selectedDay);
+    } else {
+      m_smsList = `
+        <tr>
+          <td colspan='15' style="text-align: center; padding: 20px;">
+            조회 결과가 없습니다.
+          </td>
+        </tr>
+      `;
+      
+      const existingPagination = document.getElementById("sms-pagination");
+      if (existingPagination) {
+        existingPagination.remove();
+      }
+      
+      m_dailyEndoseElement.innerHTML = m_smsList;
+    }
+  } catch (error) {
+    console.error("데이터 로딩 실패:", error);
+    
+    m_dailyEndoseElement.innerHTML = `
+      <tr>
+        <td colspan='15'>
+          <div style="text-align: center; padding: 20px; color: #d9534f;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
+            <p>데이터 로딩 실패: ${error.message}</p>
+          </div>
+        </td>
+      </tr>
+    `;
+    
+    const existingPagination = document.getElementById("sms-pagination");
+    if (existingPagination) {
+      existingPagination.remove();
+    }
+    
+    if (error.name === 'AbortError') {
+      alert('요청 시간이 초과되었습니다. 나중에 다시 시도해주세요.');
+    } else {
+      alert(`데이터 로딩 실패: ${error.message}`);
+    }
+  }
+}
+
+// 페이지네이션 UI 생성 함수
+function createEPagination(totalPages, currentPage, selectedDay) {
+  const existingPagination = document.getElementById("sms-pagination");
+  if (existingPagination) {
+    existingPagination.remove();
+  }
+  
+  const paginationContainer = document.createElement("div");
+  paginationContainer.id = "sms-pagination";
+  paginationContainer.className = "pagination justify-content-center";
+  
+  // 처음 페이지 버튼
+  const firstPageBtn = document.createElement("button");
+  firstPageBtn.className = "btn btn-sm btn-outline-secondary";
+  firstPageBtn.innerHTML = "&laquo;";
+  firstPageBtn.disabled = currentPage === 1;
+  firstPageBtn.onclick = () => {
+    const dNum = document.getElementById('daily_endorse_dNumList')?.value || '';
+    const policyNum = document.getElementById('daily_endorse_certiList')?.value || '';
+    let sort = 1;
+    if (dNum && policyNum) sort = 3;
+    else if (dNum) sort = 2;
+    dailyEndorseRequest(1, selectedDay, dNum, policyNum, sort);
+  };
+  paginationContainer.appendChild(firstPageBtn);
+  
+  // 이전 페이지 버튼
+  const prevPageBtn = document.createElement("button");
+  prevPageBtn.className = "btn btn-sm btn-outline-secondary";
+  prevPageBtn.innerHTML = "&lsaquo;";
+  prevPageBtn.disabled = currentPage === 1;
+  prevPageBtn.onclick = () => {
+    const dNum = document.getElementById('daily_endorse_dNumList')?.value || '';
+    const policyNum = document.getElementById('daily_endorse_certiList')?.value || '';
+    let sort = 1;
+    if (dNum && policyNum) sort = 3;
+    else if (dNum) sort = 2;
+    dailyEndorseRequest(currentPage - 1, selectedDay, dNum, policyNum, sort);
+  };
+  paginationContainer.appendChild(prevPageBtn);
+  
+  // 페이지 번호 버튼
+  const maxPageButtons = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+  let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+  
+  if (endPage - startPage + 1 < maxPageButtons && startPage > 1) {
+    startPage = Math.max(1, endPage - maxPageButtons + 1);
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    const pageBtn = document.createElement("button");
+    pageBtn.className = `btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-secondary'}`;
+    pageBtn.textContent = i;
+    pageBtn.onclick = () => {
+      const dNum = document.getElementById('daily_endorse_dNumList')?.value || '';
+      const policyNum = document.getElementById('daily_endorse_certiList')?.value || '';
+      let sort = 1;
+      if (dNum && policyNum) sort = 3;
+      else if (dNum) sort = 2;
+      dailyEndorseRequest(i, selectedDay, dNum, policyNum, sort);
+    };
+    paginationContainer.appendChild(pageBtn);
+  }
+  
+  // 다음 페이지 버튼
+  const nextPageBtn = document.createElement("button");
+  nextPageBtn.className = "btn btn-sm btn-outline-secondary";
+  nextPageBtn.innerHTML = "&rsaquo;";
+  nextPageBtn.disabled = currentPage === totalPages;
+  nextPageBtn.onclick = () => {
+    const dNum = document.getElementById('daily_endorse_dNumList')?.value || '';
+    const policyNum = document.getElementById('daily_endorse_certiList')?.value || '';
+    let sort = 1;
+    if (dNum && policyNum) sort = 3;
+    else if (dNum) sort = 2;
+    dailyEndorseRequest(currentPage + 1, selectedDay, dNum, policyNum, sort);
+  };
+  paginationContainer.appendChild(nextPageBtn);
+  
+  // 마지막 페이지 버튼
+  const lastPageBtn = document.createElement("button");
+  lastPageBtn.className = "btn btn-sm btn-outline-secondary";
+  lastPageBtn.innerHTML = "&raquo;";
+  lastPageBtn.disabled = currentPage === totalPages;
+  lastPageBtn.onclick = () => {
+    const dNum = document.getElementById('daily_endorse_dNumList')?.value || '';
+    const policyNum = document.getElementById('daily_endorse_certiList')?.value || '';
+    let sort = 1;
+    if (dNum && policyNum) sort = 3;
+    else if (dNum) sort = 2;
+    dailyEndorseRequest(totalPages, selectedDay, dNum, policyNum, sort);
+  };
+  paginationContainer.appendChild(lastPageBtn);
+  
+  // 페이지네이션을 모달 내부의 적절한 위치에 추가
+  const modalBody = document.querySelector('#dailyEndorseListModal .modal-body');
+  if (modalBody) {
+    modalBody.appendChild(paginationContainer);
+  }
+}
+
+// 일자별 배서 대리운전회사 찾기
+function todayEndorsedNumloadSearchTable(endorseDay) {
+  fetch(`/api/insurance/kj-daily-endorse/company-list?endorseDay=${endorseDay}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      todayPopulatedNumList(data);
+    })
+    .catch((error) => {
+      console.error("Error details:", error);
+      alert("데이터를 불러오는 중 오류가 발생했습니다.");
+    });
+}
+
+// 일자별 배서 증권 찾기
+function todayEndorseloadSearchTable(endorseDay, dNum, policyNum, sort) {
+  const currentSituation = document.getElementById('daily_currentSituation');
+  if (currentSituation) {
+    currentSituation.innerHTML = '';
+  }
+  
+  fetch(`/api/insurance/kj-daily-endorse/certi-list?endorseDay=${endorseDay}&dNum=${dNum || ''}&policyNum=${policyNum || ''}&sort=${sort}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      todayPopulateCertiList(data);
+    })
+    .catch((error) => {
+      console.error("Error details:", error);
+      alert("데이터를 불러오는 중 오류가 발생했습니다.");
+    });
+}
+
+// 대리운전회사 목록 채우기
+function todayPopulatedNumList(data) {
+  const selectElement = document.getElementById('daily_endorse_dNumList');
+  if (!selectElement) {
+    console.error("Element with ID 'daily_endorse_dNumList' not found");
+    return;
+  }
+  
+  selectElement.innerHTML = '';
+  
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = '-- 대리운전회사 선택 --';
+  selectElement.appendChild(defaultOption);
+  
+  if (data.data && data.data.length > 0) {
+    data.data.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.dNum;
+      option.textContent = item.company;
+      selectElement.appendChild(option);
+    });
+    
+    // change 이벤트 리스너 추가
+    selectElement.onchange = function() {
+      const selectedValue = this.value;
+      const todayStr = document.getElementById('dailyDate')?.value || '';
+      
+      if (selectedValue === '') {
+        dailyEndorseRequest(1, todayStr, '', '', 1);
+      } else {
+        dailyEndorseRequest(1, todayStr, selectedValue, '', 2);
+        todayEndorseloadSearchTable(todayStr, selectedValue, '', 2);
+      }
+    };
+  }
+}
+
+// 증권 목록 채우기
+function todayPopulateCertiList(data) {
+  const selectElement = document.getElementById('daily_endorse_certiList');
+  if (!selectElement) {
+    console.error("Element with ID 'daily_endorse_certiList' not found");
+    return;
+  }
+  
+  selectElement.innerHTML = '';
+  
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = '-- 증권 선택 --';
+  selectElement.appendChild(defaultOption);
+  
+  const defaultOption2 = document.createElement('option');
+  defaultOption2.value = '1';
+  defaultOption2.textContent = '-- 모든 증권 --';
+  selectElement.appendChild(defaultOption2);
+  
+  if (data.data && data.data.length > 0) {
+    const periods = { "1": "흥국", "2": "DB", "3": "kb", "4": "현대", "5": "현대", "6": "롯데", "7": "MG", "8": "삼성" };
+    
+    data.data.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.policyNum;
+      const InsuranceCompany = periods[item.insuranceCom] || "알 수 없음";
+      option.textContent = `${InsuranceCompany}[${item.policyNum}]`;
+      selectElement.appendChild(option);
+    });
+  }
+  
+  // 현재 상황 업데이트
+  const currentSituation = document.getElementById('daily_currentSituation');
+  if (currentSituation && data.pushCounts) {
+    let situationHTML = '';
+    if (data.pushCounts.subscription) situationHTML += `청약:${data.pushCounts.subscription} `;
+    if (data.pushCounts.subscriptionCancel) situationHTML += `청약취소:${data.pushCounts.subscriptionCancel} `;
+    if (data.pushCounts.subscriptionReject) situationHTML += `청약거절:${data.pushCounts.subscriptionReject} `;
+    if (data.pushCounts.termination) situationHTML += `해지:${data.pushCounts.termination} `;
+    if (data.pushCounts.terminationCancel) situationHTML += `해지취소:${data.pushCounts.terminationCancel} `;
+    if (data.pushCounts.total) situationHTML += `계:${data.pushCounts.total}`;
+    currentSituation.innerHTML = situationHTML;
+  }
+  
+  // change 이벤트 리스너 추가
+  selectElement.onchange = function() {
+    const selectedValue = this.value;
+    const todayStr = document.getElementById('dailyDate')?.value || '';
+    const dNum = document.getElementById('daily_endorse_dNumList')?.value || '';
+    
+    if (selectedValue === '') {
+      dailyEndorseRequest(1, todayStr, dNum, '', 2);
+    } else if (selectedValue === '1') {
+      dailyEndorseRequest(1, todayStr, dNum, selectedValue, 3);
+    } else {
+      dailyEndorseRequest(1, todayStr, dNum, selectedValue, 3);
+    }
+  };
+}
+
+// 배서현황 조회 함수
+async function dailyCheck() {
+  const dailyDate = document.getElementById('endorseStatus_date')?.value;
+  const dNumElement = document.getElementById('endorseStatus_companySelect');
+  const dNum = dNumElement?.value;
+  
+  if (!dNum) {
+    alert('대리운전회사 선택부터 하세요!!');
+    if (dNumElement) dNumElement.focus();
+    return;
+  }
+  
+  if (!dailyDate) {
+    alert('날짜를 선택해주세요.');
+    return;
+  }
+  
+  const m_endorseCheck = document.getElementById('m_endorseCheck');
+  if (m_endorseCheck) {
+    m_endorseCheck.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"></div><p class="mt-2">데이터를 불러오는 중...</p></div>';
+  }
+  
+  const requestData = {
+    todayStr: dailyDate,
+    dNum: dNum
+  };
+  
+  try {
+    const response = await fetch(`/api/insurance/kj-daily-endorse/status`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`서버 응답 오류: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('배서현황 result', result);
+    
+    processEndorseData(result, dailyDate);
+    
+  } catch (error) {
+    console.error('데이터 조회 오류:', error);
+    alert('데이터 조회 중 오류가 발생했습니다: ' + error.message);
+    if (m_endorseCheck) {
+      m_endorseCheck.innerHTML = '<div class="alert alert-danger">데이터 조회 중 오류가 발생했습니다.</div>';
+    }
+  }
+}
+
+// 배서현황 데이터 처리 및 보고서 생성 함수
+function processEndorseData(result, dateStr) {
+  console.log("받은 데이터:", result);
+  
+  const reportElement = document.getElementById("m_endorseCheck");
+  if (!reportElement) {
+    console.error("m_endorseCheck 요소를 찾을 수 없습니다.");
+    return;
+  }
+  
+  if (!result.success || !result.data || result.data.length === 0) {
+    reportElement.innerHTML = "조회된 데이터가 없습니다.";
+    return;
+  }
+  
+  // 회사명 표시
+  if (result.data[0] && result.data[0].company) {
+    const companyElement = document.getElementById("endorseCheck_daeriCompany");
+    if (companyElement) {
+      companyElement.innerHTML = result.data[0].company;
+    }
+  }
+  
+  // 데이터 분류
+  const daeriRegistrations = [];
+  const daeriTerminations = [];
+  const taksongRegistrations = [];
+  const taksongTerminations = [];
+  
+  let daeriRegPremium = 0;
+  let daeriTermPremium = 0;
+  let taksongRegPremium = 0;
+  let taksongTermPremium = 0;
+  let haldungCount = 0;
+  
+  result.data.forEach(item => {
+    const premium = parseInt(item.c_preminum || item.preminum || 0);
+    const etagStr = String(item.etag);
+    const isDaeri = (etagStr === "1" || etagStr === "3");
+    const isTaksong = !isDaeri;
+    const pushStr = String(item.push);
+    const isRegistration = (pushStr === "4");
+    const isTermination = (pushStr === "2");
+    
+    if (isDaeri && isRegistration) {
+      daeriRegistrations.push(item);
+      daeriRegPremium += premium;
+    } else if (isDaeri && isTermination) {
+      daeriTerminations.push(item);
+      daeriTermPremium -= premium;
+    } else if (isTaksong && isRegistration) {
+      taksongRegistrations.push(item);
+      taksongRegPremium += premium;
+    } else if (isTaksong && isTermination) {
+      taksongTerminations.push(item);
+      taksongTermPremium -= premium;
+    }
+    
+    if (isRegistration && item.rate && parseInt(item.rate) > 1) {
+      haldungCount++;
+    }
+  });
+  
+  function formatCurrency(number) {
+    return new Intl.NumberFormat('ko-KR').format(Math.abs(number));
+  }
+  
+  const reportDate = new Date(dateStr || result.todayStr);
+  const formattedDate = `${reportDate.getFullYear()}.${String(reportDate.getMonth() + 1).padStart(2, '0')}.${String(reportDate.getDate()).padStart(2, '0')}`;
+  const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][reportDate.getDay()];
+  
+  const daeriTotal = daeriRegPremium + daeriTermPremium;
+  const taksongTotal = taksongRegPremium + taksongTermPremium;
+  const overallTotal = daeriTotal + taksongTotal;
+  
+  let reportHTML = `<div class="report-container">
+    <h3>${formattedDate} (${dayOfWeek}) 배서현황</h3>
+    <div class="report-section">
+      <h4>*대리 가입자</h4>
+      <ul>`;
+  
+  daeriRegistrations.forEach(item => {
+    reportHTML += `<li>${item.name}</li>`;
+  });
+  
+  reportHTML += `</ul>
+      <p>총 ${daeriRegistrations.length}명</p>
+    </div>
+    
+    <div class="report-section">
+      <h4>*대리 해지자</h4>
+      <ul>`;
+  
+  daeriTerminations.forEach(item => {
+    reportHTML += `<li>${item.name}</li>`;
+  });
+  
+  reportHTML += `</ul>
+      <p>총 ${daeriTerminations.length}명</p>
+    </div>
+    
+    <div class="report-section">
+      <h4>*탁송 가입자</h4>
+      <ul>`;
+  
+  taksongRegistrations.forEach(item => {
+    reportHTML += `<li>${item.name}</li>`;
+  });
+  
+  reportHTML += `</ul>
+      <p>총 ${taksongRegistrations.length}명</p>
+    </div>
+    
+    <div class="report-section">
+      <h4>*탁송 해지자</h4>
+      <ul>`;
+  
+  taksongTerminations.forEach(item => {
+    reportHTML += `<li>${item.name}</li>`;
+  });
+  
+  reportHTML += `</ul>
+      <p>총 ${taksongTerminations.length}명</p>
+    </div>
+    
+    <div class="report-section">
+      <h4>영수보험료 (+추징/-환급)</h4>
+      <p>대리: ${formatCurrency(daeriTotal)}원 ${daeriTotal >= 0 ? '추징' : '환급'}</p>
+      <p>탁송: ${formatCurrency(taksongTotal)}원 ${taksongTotal >= 0 ? '추징' : '환급'}</p>
+      <p>합계: ${formatCurrency(overallTotal)}원 ${overallTotal >= 0 ? '추징' : '환급'}</p>
+    </div>
+    
+    <div class="report-section">
+      <p>금일 가입자 중 할증자는 ${haldungCount} 명입니다.</p>
+      <p>보험료 파일은 정리하여 메일로 발송하겠습니다.</p>
+    </div>
+  </div>`;
+  
+  reportElement.innerHTML = reportHTML;
+}
+
+// 보험료 업데이트 함수 (임시 구현)
+function mothlyPremiumUpdate(inputElement, smsDataNum) {
+  console.log('보험료 업데이트:', inputElement.value, smsDataNum);
+  // TODO: API 호출 구현
+  alert('보험료 업데이트 기능은 구현 중입니다.');
+}
+
+function mothlyC_PremiumUpdate(inputElement, smsDataNum) {
+  console.log('C보험료 업데이트:', inputElement.value, smsDataNum);
+  // TODO: API 호출 구현
+  alert('C보험료 업데이트 기능은 구현 중입니다.');
+}
+
