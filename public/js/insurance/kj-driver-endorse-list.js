@@ -1423,6 +1423,14 @@ document.addEventListener('DOMContentLoaded', function() {
       dailyEndorseRequest(1, selectedDate, dNum, policyNum, sort);
     });
   }
+
+  // 일일배서리스트 검토 버튼
+  const btnDailyEndorseCheck = document.getElementById('btnDailyEndorseCheck');
+  if (btnDailyEndorseCheck) {
+    btnDailyEndorseCheck.addEventListener('click', function() {
+      dailyCheckForDailyList();
+    });
+  }
 });
 
 // 일일배서리스트 조회 함수
@@ -1555,9 +1563,9 @@ async function dailyEndorseRequest(page = 1, selectedDate = null, dNum = '', pol
             <td>${item.company || ''}</td>
             <td>${item.Rphone1 || ''}-${item.Rphone2 || ''}-${item.Rphone3 || ''}</td>
             <td>${item.rate || ''}</td>
-            <td class="kje-preiminum"><input type='text' id='mothly-${item.SeqNo}' value="${formattedPreminum}" class='form-control form-control-sm memoInput'   
+            <td class="kje-preiminum" style="padding: 0;"><input type='text' id='mothly-${item.SeqNo}' value="${formattedPreminum}" class='premium-input'   
               onkeypress="if(event.key === 'Enter') { mothlyPremiumUpdate(this, ${item.SeqNo}); return false; }" autocomplete="off"></td>
-            <td class="kje-preiminum"><input type='text' id='mothlyC-${item.SeqNo}' value="${formattedC_preminum}" class='form-control form-control-sm memoInput'   
+            <td class="kje-preiminum" style="padding: 0;"><input type='text' id='mothlyC-${item.SeqNo}' value="${formattedC_preminum}" class='premium-input'   
               onkeypress="if(event.key === 'Enter') { mothlyC_PremiumUpdate(this, ${item.SeqNo}); return false; }" autocomplete="off"></td>
             <td>${item.manager || ''}</td>
             <td>${formattedDate}</td>
@@ -1783,6 +1791,12 @@ function todayPopulatedNumList(data) {
       const selectedValue = this.value;
       const todayStr = document.getElementById('dailyDate')?.value || '';
       
+      // 검토 버튼 활성화/비활성화
+      const btnCheck = document.getElementById('btnDailyEndorseCheck');
+      if (btnCheck) {
+        btnCheck.disabled = !selectedValue;
+      }
+      
       if (selectedValue === '') {
         dailyEndorseRequest(1, todayStr, '', '', 1);
       } else {
@@ -1854,10 +1868,50 @@ function todayPopulateCertiList(data) {
   };
 }
 
+// 일일배서리스트용 배서현황 조회 함수
+async function dailyCheckForDailyList() {
+  const dailyDate = document.getElementById('dailyDate')?.value;
+  const dNumElement = document.getElementById('daily_endorse_dNumList');
+  const dNum = dNumElement?.value;
+  
+  if (!dNum) {
+    alert('대리운전회사 선택부터 하세요!!');
+    if (dNumElement) dNumElement.focus();
+    return;
+  }
+  
+  if (!dailyDate) {
+    alert('날짜를 선택해주세요.');
+    return;
+  }
+  
+  // 배서현황 모달 열기
+  const modal = new bootstrap.Modal(document.getElementById('endorseStatusModal'));
+  modal.show();
+  
+  // 배서현황 모달의 날짜와 대리운전회사 설정
+  const endorseStatusDate = document.getElementById('endorseStatus_date');
+  const endorseStatusCompany = document.getElementById('endorseStatus_companySelect');
+  if (endorseStatusDate) endorseStatusDate.value = dailyDate;
+  if (endorseStatusCompany) {
+    // 대리운전회사 목록에 없으면 추가
+    if (!endorseStatusCompany.querySelector(`option[value="${dNum}"]`)) {
+      const option = document.createElement('option');
+      option.value = dNum;
+      option.textContent = dNumElement.options[dNumElement.selectedIndex]?.textContent || dNum;
+      endorseStatusCompany.appendChild(option);
+    }
+    endorseStatusCompany.value = dNum;
+  }
+  
+  // 배서현황 조회 실행
+  await dailyCheck();
+}
+
 // 배서현황 조회 함수
 async function dailyCheck() {
-  const dailyDate = document.getElementById('endorseStatus_date')?.value;
-  const dNumElement = document.getElementById('endorseStatus_companySelect');
+  const dailyDate = document.getElementById('endorseStatus_date')?.value || document.getElementById('dailyDate')?.value;
+  const dNumElement = document.getElementById('endorseStatus_companySelect') || document.getElementById('daily_endorse_dNumList');
   const dNum = dNumElement?.value;
   
   if (!dNum) {
@@ -1876,18 +1930,18 @@ async function dailyCheck() {
     m_endorseCheck.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"></div><p class="mt-2">데이터를 불러오는 중...</p></div>';
   }
   
-  const requestData = {
-    todayStr: dailyDate,
-    dNum: dNum
-  };
+  // URLSearchParams로 FormData 형식 전송
+  const params = new URLSearchParams();
+  params.append('todayStr', dailyDate);
+  params.append('dNum', dNum);
   
   try {
     const response = await fetch(`/api/insurance/kj-daily-endorse/status`, {
       method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify(requestData),
+      body: params.toString(),
     });
     
     if (!response.ok) {

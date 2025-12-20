@@ -379,8 +379,8 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
         </div>
         <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
-          <div class="row mb-3">
-            <div class="col-md-3">
+          <div class="row mb-3 align-items-end">
+            <div class="col-md-2">
               <input type="date" id="dailyDate" class="form-control form-control-sm" placeholder="날짜">
             </div>
             <div class="col-md-3">
@@ -388,18 +388,23 @@
                 <option value="">-- 대리운전회사 선택 --</option>
               </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <select id="daily_endorse_certiList" class="form-control form-control-sm">
                 <option value="">-- 증권 선택 --</option>
               </select>
             </div>
-            <div class="col-md-3 d-flex align-items-end">
-              <button type="button" class="btn btn-primary btn-sm" id="btnDailyEndorseSearch">
+            <div class="col-md-2">
+              <button type="button" class="btn btn-primary btn-sm w-100" id="btnDailyEndorseSearch">
                 <i class="fas fa-search me-1"></i>조회
               </button>
             </div>
+            <div class="col-md-3 d-flex align-items-center justify-content-end gap-2">
+              <div id="daily_currentSituation" class="text-info fw-bold"></div>
+              <button type="button" class="btn btn-sm btn-secondary" id="btnDailyEndorseCheck" disabled>
+                <i class="fas fa-check me-1"></i>검토
+              </button>
+            </div>
           </div>
-          <div id="daily_currentSituation" class="mb-2 text-info"></div>
           <div class="table-responsive">
             <table class="table table-bordered table-sm table-hover">
               <thead class="table-light">
@@ -458,6 +463,25 @@
       </div>
     </div>
   </div>
+
+  <style>
+    /* 일일배서리스트 보험료 입력 필드 스타일 */
+    .premium-input {
+      width: 60% !important;
+      border: none !important;
+      background-color: white !important;
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.875rem !important;
+      text-align: right;
+    }
+    .premium-input:focus {
+      outline: 1px solid #86b7fe;
+      outline-offset: -1px;
+    }
+    .kje-preiminum {
+      padding: 0 !important;
+    }
+  </style>
 
   <script src="/js/insurance/kj-driver-endorse-list.js"></script>
 </body>
