@@ -1519,6 +1519,11 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
       }
+      
+      // 모달이 열릴 때 자동으로 조회 (약간의 지연을 두어 DOM이 완전히 렌더링된 후 실행)
+      setTimeout(() => {
+        smsListSearch(1);
+      }, 100);
     });
   }
 });
