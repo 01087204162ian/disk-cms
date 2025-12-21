@@ -1510,7 +1510,7 @@ async function dailyEndorseRequest(page = 1, selectedDate = null, dNum = '', pol
       console.log('데이터:', result);
       
       // 페이지네이션 설정
-      const itemsPerPage = 20;
+      const itemsPerPage = 15;
       const totalItems = result.data.length;
       const totalPages = Math.ceil(totalItems / itemsPerPage);
       const currentPage = Math.max(1, Math.min(page, totalPages));
@@ -1694,7 +1694,9 @@ function createEPagination(totalPages, currentPage, selectedDay) {
   
   const paginationContainer = document.createElement("div");
   paginationContainer.id = "sms-pagination";
-  paginationContainer.className = "pagination justify-content-center";
+  paginationContainer.className = "pagination justify-content-center pagination-spacing";
+  paginationContainer.style.marginTop = "5rem";
+  paginationContainer.style.marginBottom = "1.5rem";
   
   // 처음 페이지 버튼
   const firstPageBtn = document.createElement("button");
