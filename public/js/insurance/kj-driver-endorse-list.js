@@ -1982,7 +1982,16 @@ function todayPopulatedNumList(data) {
   selectElement.appendChild(defaultOption);
   
   if (data.data && data.data.length > 0) {
-    data.data.forEach(item => {
+    // 케이드라이브(dNum: "653")를 최상단에 표시하기 위해 정렬
+    const sortedData = [...data.data].sort((a, b) => {
+      // 케이드라이브(dNum: "653")를 항상 맨 앞으로
+      if (a.dNum === "653") return -1;
+      if (b.dNum === "653") return 1;
+      // 나머지는 원래 순서 유지
+      return 0;
+    });
+    
+    sortedData.forEach(item => {
       const option = document.createElement('option');
       option.value = item.dNum;
       option.textContent = item.company;
