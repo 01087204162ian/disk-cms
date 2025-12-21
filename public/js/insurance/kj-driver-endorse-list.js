@@ -1388,15 +1388,36 @@ document.addEventListener('DOMContentLoaded', function() {
         keyboard: false
       });
       modal.show();
-      // 오늘 날짜를 기본값으로 설정
+      // 필터 초기화
       const today = new Date();
       const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      
+      // 날짜 필터 초기화
       const dateInput = document.getElementById('dailyDate');
       if (dateInput) {
         dateInput.value = todayStr;
-        // 모달 열 때 당일 데이터 자동 조회
-        dailyEndorseRequest(1, todayStr, '', '', 1);
       }
+      
+      // 대리운전회사 필터 초기화
+      const dNumList = document.getElementById('daily_endorse_dNumList');
+      if (dNumList) {
+        dNumList.value = '';
+      }
+      
+      // 증권번호 필터 초기화
+      const certiList = document.getElementById('daily_endorse_certiList');
+      if (certiList) {
+        certiList.value = '';
+      }
+      
+      // 검토 버튼 비활성화
+      const btnCheck = document.getElementById('btnDailyEndorseCheck');
+      if (btnCheck) {
+        btnCheck.disabled = true;
+      }
+      
+      // 모달 열 때 당일 데이터 자동 조회
+      dailyEndorseRequest(1, todayStr, '', '', 1);
     });
   }
 
