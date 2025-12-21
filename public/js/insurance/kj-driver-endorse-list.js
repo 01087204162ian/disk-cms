@@ -2142,6 +2142,11 @@ function processEndorseData(result, dateStr) {
   });
   
   function formatCurrency(number) {
+    // NaN이나 undefined 체크
+    if (number === null || number === undefined || isNaN(number)) {
+      console.warn('formatCurrency: 유효하지 않은 숫자', number);
+      return '0';
+    }
     return new Intl.NumberFormat('ko-KR').format(Math.abs(number));
   }
   
@@ -2161,8 +2166,19 @@ function processEndorseData(result, dateStr) {
     taksongRegPremium,
     taksongTermPremium,
     taksongTotal,
-    overallTotal
+    overallTotal,
+    daeriRegistrations: daeriRegistrations.length,
+    daeriTerminations: daeriTerminations.length,
+    taksongRegistrations: taksongRegistrations.length,
+    taksongTerminations: taksongTerminations.length
   });
+  
+  // 보험료 정산 값이 NaN이거나 유효하지 않은지 확인
+  if (isNaN(daeriTotal) || isNaN(taksongTotal) || isNaN(overallTotal)) {
+    console.error('보험료 계산 오류: NaN 값 발견', {
+      daeriRegPremium, daeriTermPremium, taksongRegPremium, taksongTermPremium
+    });
+  }
   
   let reportHTML = `<div class="report-container">
     <h3>${formattedDate} (${dayOfWeek}) 배서현황</h3>
@@ -2214,11 +2230,11 @@ function processEndorseData(result, dateStr) {
       <p>총 ${taksongTerminations.length}명</p>
     </div>
     
-    <div class="report-section">
-      <h4>영수보험료 (+추징/-환급)</h4>
-      <p>대리: ${formatCurrency(daeriTotal)}원 ${daeriTotal >= 0 ? '추징' : '환급'}</p>
-      <p>탁송: ${formatCurrency(taksongTotal)}원 ${taksongTotal >= 0 ? '추징' : '환급'}</p>
-      <p>합계: ${formatCurrency(overallTotal)}원 ${overallTotal >= 0 ? '추징' : '환급'}</p>
+    <div class="report-section" id="premium-settlement-section" style="border: 2px solid #007bff !important; padding: 15px !important; margin: 15px 0 !important; background-color: #f8f9fa !important; display: block !important; visibility: visible !important;">
+      <h4 style="color: #007bff; font-weight: bold; margin-bottom: 10px;">영수보험료 (+추징/-환급)</h4>
+      <p style="font-size: 1rem; margin: 5px 0;"><strong>대리:</strong> ${formatCurrency(daeriTotal)}원 ${daeriTotal >= 0 ? '추징' : '환급'}</p>
+      <p style="font-size: 1rem; margin: 5px 0;"><strong>탁송:</strong> ${formatCurrency(taksongTotal)}원 ${taksongTotal >= 0 ? '추징' : '환급'}</p>
+      <p style="font-size: 1.1rem; margin: 10px 0; font-weight: bold; color: #28a745;"><strong>합계:</strong> ${formatCurrency(overallTotal)}원 ${overallTotal >= 0 ? '추징' : '환급'}</p>
     </div>
     
     <div class="report-section">
@@ -2227,7 +2243,10 @@ function processEndorseData(result, dateStr) {
     </div>
   </div>`;
   
+  console.log('생성된 HTML:', reportHTML);
+  console.log('reportElement:', reportElement);
   reportElement.innerHTML = reportHTML;
+  console.log('HTML 할당 후 innerHTML:', reportElement.innerHTML.substring(0, 200));
 }
 
 // 보험료 업데이트 함수 (임시 구현)
