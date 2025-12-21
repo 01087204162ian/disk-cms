@@ -1535,8 +1535,11 @@ async function dailyEndorseRequest(page = 1, selectedDate = null, dNum = '', pol
         const iType = {"1": "대리", "2": "탁송", "3": "대리렌트", "4": "탁송렌트"};
         const certiType = iType[item.etag] || "알 수 없음";
         
-        const periods = { "1": "흥국", "2": "DB", "3": "kb", "4": "현대", "5": "현대", "6": "롯데", "7": "MG", "8": "삼성" };
-        const InsuranceCompany = periods[item.insuranceCom] || "알 수 없음";
+        // 공통 모듈 사용하여 보험회사 이름 가져오기
+        const insuranceComCode = parseInt(item.insuranceCom) || 0;
+        const InsuranceCompany = window.KJConstants 
+          ? window.KJConstants.getInsurerName(insuranceComCode) 
+          : (item.insuranceCom || '알 수 없음');
         
         const pushType = {"1": "청약", "2": "해지", "3": "청약거절", "4": "정상", "5": "해지취소", "6": "청약취소"};
         
@@ -1827,12 +1830,14 @@ function todayPopulateCertiList(data) {
   selectElement.appendChild(defaultOption2);
   
   if (data.data && data.data.length > 0) {
-    const periods = { "1": "흥국", "2": "DB", "3": "kb", "4": "현대", "5": "현대", "6": "롯데", "7": "MG", "8": "삼성" };
-    
     data.data.forEach(item => {
       const option = document.createElement('option');
       option.value = item.policyNum;
-      const InsuranceCompany = periods[item.insuranceCom] || "알 수 없음";
+      // 공통 모듈 사용하여 보험회사 이름 가져오기
+      const insuranceComCode = parseInt(item.insuranceCom) || 0;
+      const InsuranceCompany = window.KJConstants 
+        ? window.KJConstants.getInsurerName(insuranceComCode) 
+        : (item.insuranceCom || '알 수 없음');
       option.textContent = `${InsuranceCompany}[${item.policyNum}]`;
       selectElement.appendChild(option);
     });
