@@ -2248,12 +2248,129 @@ function processEndorseData(result, dateStr) {
       <p>금일 가입자 중 할증자는 ${haldungCount} 명입니다.</p>
       <p>보험료 파일은 정리하여 메일로 발송하겠습니다.</p>
     </div>
+  </div>
+  <div class="text-end mt-3">
+    <button type="button" class="btn btn-sm btn-outline-primary" id="btnCopyEndorseStatus" title="배서현황 내용을 클립보드에 복사합니다">
+      <i class="fas fa-copy me-1"></i>복사
+    </button>
   </div>`;
   
   console.log('생성된 HTML:', reportHTML);
   console.log('reportElement:', reportElement);
   reportElement.innerHTML = reportHTML;
   console.log('HTML 할당 후 innerHTML:', reportElement.innerHTML.substring(0, 200));
+  
+  // 복사 버튼 이벤트 리스너 추가
+  const copyBtn = document.getElementById('btnCopyEndorseStatus');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async function() {
+      try {
+        // HTML 태그를 제거하고 텍스트만 추출
+        const reportContainer = reportElement.querySelector('.report-container');
+        if (!reportContainer) {
+          alert('복사할 내용을 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 텍스트 추출 함수 (사용자 요청 형식에 맞게)
+        const extractText = (element) => {
+          let text = '';
+          const sections = element.querySelectorAll('.report-section');
+          
+          sections.forEach((section, index) => {
+            const h4 = section.querySelector('h4');
+            const ul = section.querySelector('ul');
+            const pTags = section.querySelectorAll('p');
+            
+            if (h4) {
+              // 제목 추가
+              text += h4.textContent.trim() + '\n\n';
+              
+              // 목록이 있으면 항목들 추가
+              if (ul) {
+                const items = ul.querySelectorAll('li');
+                items.forEach(li => {
+                  text += li.textContent.trim() + '\n';
+                });
+                text += '\n';
+              }
+              
+              // p 태그 추가 (총 인원수 등)
+              pTags.forEach(p => {
+                if (!p.closest('#premium-settlement-section')) {
+                  text += p.textContent.trim() + '\n';
+                }
+              });
+              text += '\n';
+            } else {
+              // 보험료 정산 섹션 또는 기타 섹션
+              const sectionText = section.textContent.trim();
+              text += sectionText + '\n\n';
+            }
+          });
+          
+          // 마지막 문구 추가 (할증자 정보가 있으면 포함)
+          const lastSection = sections[sections.length - 1];
+          if (lastSection && lastSection.querySelector('p:last-of-type')) {
+            const lastP = lastSection.querySelector('p:last-of-type');
+            if (lastP && lastP.textContent.includes('할증자')) {
+              // 할증자 정보가 있으면 해당 문구 사용
+              text += lastP.textContent.trim() + '\n';
+            }
+          }
+          
+          // 마지막 메일 발송 문구
+          const mailSection = element.querySelector('.report-section:last-of-type');
+          if (mailSection) {
+            const mailText = mailSection.textContent.trim();
+            if (mailText.includes('메일')) {
+              text += mailText;
+            } else {
+              text += '보험료 파일은 할증 관련 내용 정리하여 메일로 발송하겠습니다.';
+            }
+          } else {
+            text += '보험료 파일은 할증 관련 내용 정리하여 메일로 발송하겠습니다.';
+          }
+          
+          return text;
+        };
+        
+        let copyText = extractText(reportContainer);
+        
+        // 날짜 제목 추가 (h3)
+        const h3 = reportContainer.querySelector('h3');
+        if (h3) {
+          copyText = h3.textContent.trim() + '\n\n' + copyText;
+        }
+        
+        // 보기 좋게 포맷팅
+        copyText = copyText
+          .replace(/\n{4,}/g, '\n\n\n') // 연속된 줄바꿈 최대 3개로 제한
+          .replace(/\s+\n/g, '\n') // 공백 후 줄바꿈 정리
+          .replace(/\n\s+/g, '\n') // 줄바꿈 후 공백 정리
+          .trim();
+        
+        // 클립보드에 복사
+        await navigator.clipboard.writeText(copyText);
+        
+        // 복사 성공 메시지
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="fas fa-check me-1"></i>복사됨';
+        copyBtn.classList.remove('btn-outline-primary');
+        copyBtn.classList.add('btn-success');
+        
+        setTimeout(() => {
+          copyBtn.innerHTML = originalText;
+          copyBtn.classList.remove('btn-success');
+          copyBtn.classList.add('btn-outline-primary');
+        }, 2000);
+        
+      } catch (error) {
+        console.error('복사 실패:', error);
+        alert('복사에 실패했습니다. 브라우저가 클립보드 접근을 지원하지 않을 수 있습니다.');
+      }
+    });
+  }
 }
 
 // 보험료 업데이트 함수 (임시 구현)
