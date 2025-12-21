@@ -553,6 +553,111 @@ cms/
 
 ---
 
-**문서 버전**: 1.1  
+---
+
+### 2025-12-20 (추가 작업)
+
+#### ✅ 완료된 작업
+
+1. **업체 I.D 관리 기능 추가**
+   - 대리운전회사 정보 모달에서 "읽기 전용 ID" → "업체 I.D"로 변경
+   - 업체 I.D 링크 클릭 시 업체 ID 관리 모달 표시
+   - 업체 ID 목록 조회 기능
+   - 신규 아이디 생성 기능
+   - ID 중복 검사 기능
+   - 담당자명, 전화번호, 비밀번호, 권한, 허용/차단 상태 업데이트 기능
+
+2. **PHP API 파일 생성 (8개)**
+   - `kj-company-id-list.php` - 업체 I.D 목록 조회
+   - `kj-company-id-save.php` - 신규 아이디 저장
+   - `kj-company-check-id.php` - ID 중복 검사
+   - `kj-company-id-update-user.php` - 담당자명 업데이트
+   - `kj-company-id-update-phone.php` - 전화번호 업데이트
+   - `kj-company-id-update-password.php` - 비밀번호 업데이트
+   - `kj-company-id-update-readis.php` - 읽기 권한 업데이트 (1: 읽기전용, 2: 모든권한)
+   - `kj-company-id-update-permit.php` - 허용/차단 업데이트 (1: 허용, 2: 차단)
+
+3. **Node.js 프록시 라우트 추가 (8개)**
+   - `POST /api/insurance/kj-company/id-list`
+   - `POST /api/insurance/kj-company/check-id`
+   - `POST /api/insurance/kj-company/id-save`
+   - `POST /api/insurance/kj-company/id-update-user`
+   - `POST /api/insurance/kj-company/id-update-phone`
+   - `POST /api/insurance/kj-company/id-update-password`
+   - `POST /api/insurance/kj-company/id-update-readis`
+   - `POST /api/insurance/kj-company/id-update-permit`
+
+4. **프론트엔드 구현**
+   - 업체 ID 관리 모달 UI 구현 (`kj-id-modal`)
+   - `handleIdClick()` 함수 구현 - 업체 ID 모달 열기
+   - ID/비밀번호 검증 함수 구현
+   - 전화번호 포맷팅 함수 구현
+   - 업데이트 함수들 구현 (담당자명, 전화번호, 비밀번호, 권한, 허용/차단)
+
+#### 📁 생성/수정된 파일
+
+**새로 생성된 파일**:
+- `pci0327/api/insurance/kj-company-id-list.php`
+- `pci0327/api/insurance/kj-company-id-save.php`
+- `pci0327/api/insurance/kj-company-check-id.php`
+- `pci0327/api/insurance/kj-company-id-update-user.php`
+- `pci0327/api/insurance/kj-company-id-update-phone.php`
+- `pci0327/api/insurance/kj-company-id-update-password.php`
+- `pci0327/api/insurance/kj-company-id-update-readis.php`
+- `pci0327/api/insurance/kj-company-id-update-permit.php`
+
+**수정된 파일**:
+- `disk-cms/public/pages/insurance/kj-driver-company.html` - 업체 ID 관리 모달 추가
+- `disk-cms/public/js/insurance/kj-company-modal.js` - 업체 ID 관리 기능 구현
+- `disk-cms/routes/insurance/kj-driver-company.js` - 업체 ID 관련 API 프록시 추가
+
+#### 🔧 기술 세부사항
+
+**데이터베이스 테이블**:
+- `2012Costomer`: 업체 ID 관리 테이블
+  - `num`: 고유 번호 (PK)
+  - `2012DaeriCompanyNum`: 대리운전회사 번호 (FK)
+  - `mem_id`: 아이디
+  - `passwd`: 비밀번호 (MD5 암호화)
+  - `user`: 담당자명
+  - `hphone`: 전화번호
+  - `readIs`: 읽기 권한 (1: 읽기전용, 2: 모든권한)
+  - `permit`: 허용/차단 (1: 허용, 2: 차단)
+
+**API 요청/응답 형식**:
+```json
+// 업체 ID 목록 조회 응답
+{
+  "success": true,
+  "dNum": "653",
+  "data": [
+    {
+      "company": "케이드라이브",
+      "num": 443,
+      "mem_id": "kdrive",
+      "hphone": "010-4356-0718",
+      "permit": "1",
+      "readIs": "2",
+      "user": "담당자명"
+    }
+  ]
+}
+
+// ID 중복 검사 응답
+{
+  "available": true  // true: 사용 가능, false: 사용 불가
+}
+```
+
+**주요 기능**:
+- 비밀번호는 8자 이상, 영문과 숫자 포함해야 함
+- ID는 20자 이하로 제한
+- 전화번호는 하이픈 자동 추가 (010-XXXX-XXXX 형식)
+- 실시간 ID 중복 검사
+- 엔터키로 빠른 업데이트 지원
+
+---
+
+**문서 버전**: 1.2  
 **최종 업데이트**: 2025-12-20
 
