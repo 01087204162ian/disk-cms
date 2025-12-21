@@ -913,8 +913,10 @@ router.post('/kj-sms/list', async (req, res) => {
 router.post('/kj-company/id-list', async (req, res) => {
   try {
     const apiUrl = `${PHP_API_BASE_URL}/kj-company-id-list.php`;
+    // PHP API는 POST의 FormData 형식을 기대하므로 URLSearchParams 사용
     const formData = new URLSearchParams();
-    if (req.body.dNum) formData.append('dNum', req.body.dNum);
+    const dNum = req.body.dNum || '';
+    if (dNum) formData.append('dNum', dNum);
     
     const response = await axios.post(apiUrl, formData.toString(), {
       timeout: DEFAULT_TIMEOUT,

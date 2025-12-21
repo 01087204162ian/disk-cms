@@ -1776,12 +1776,12 @@
       modalBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">데이터를 불러오는 중...</td></tr>';
       
       // API 호출
-      const formData = new FormData();
-      formData.append('dNum', dNum);
-      
       const response = await fetch('/api/insurance/kj-company/id-list', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ dNum: dNum })
       });
       
       const result = await response.json();
