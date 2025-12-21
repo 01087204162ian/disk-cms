@@ -221,8 +221,13 @@
                 <td>${company.lNumber || ''}</td>
                 <th class="bg-light">보험료 받는날</th>
                 <td><input type="date" class="form-control form-control-sm" id="companyFirstStart" value="${company.FirstStart || ''}" style="width: 100%;"></td>
-                <th class="bg-light">읽기 전용 ID</th>
-                <td colspan="3">${company.mem_id || ''}${company.permit == 1 ? '허용' : (company.permit == 2 ? '차단' : '')}</td>
+                <th class="bg-light">업체 I.D</th>
+                <td colspan="3">
+                  <a href="#" class="text-primary company-id-link" data-role="open-company-id-modal" data-company-num="${companyNum}" style="text-decoration: underline; cursor: pointer;">
+                    ${company.mem_id || '클릭하여 관리'}
+                  </a>
+                  ${company.permit == 1 ? ' (허용)' : (company.permit == 2 ? ' (차단)' : '')}
+                </td>
               </tr>
               <tr>
                 <th class="bg-light">주소</th>
@@ -1748,6 +1753,116 @@
     });
   };
 
+  // ==================== 업체 I.D 모달 ====================
+
+  // 업체 I.D 모달 열기
+  const handleIdClick = async (dNum) => {
+    try {
+      const modalElement = document.getElementById('kj-id-modal');
+      const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+      const modalBody = document.getElementById('id_list');
+      const companyNameEl = document.getElementById('id_daeriCompany');
+      
+      if (!modalElement || !modalBody || !companyNameEl) {
+        console.error('업체 I.D 모달 요소를 찾을 수 없습니다.');
+        return;
+      }
+      
+      // 모달 표시
+      modal.show();
+      
+      // 로딩 표시
+      companyNameEl.textContent = '';
+      modalBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">데이터를 불러오는 중...</td></tr>';
+      
+      // API 호출
+      const formData = new FormData();
+      formData.append('dNum', dNum);
+      
+      const response = await fetch('/api/insurance/kj-company/id-list', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      // 회사명 표시
+      companyNameEl.textContent = '';
+      
+      // 테이블에 데이터 표시할 변수 초기화
+      let id_list = '';
+      
+      if (result.success && result.data && result.data.length > 0) {
+        console.log('대리점 데이터:', result);
+        
+        // 회사명 표시
+        companyNameEl.textContent = result.data[0].company || '';
+        
+        // 데이터가 배열 형태로 반환되므로 반복문으로 처리
+        result.data.forEach(item => {
+          if (item.readIs == null || item.readIs === '') {
+            item.readIs = '2';
+          }
+          id_list += `<tr>
+            <input type='hidden' id='idNum-${item.num}' value='${item.num}'>
+            <td><input type='text' id='newDamdang-${item.num}' value="${item.user || ''}" class='form-control form-control-sm'   
+              onkeypress="if(event.key === 'Enter') { validateAndUpdateUser(this, ${item.num}); return false; }" autocomplete="off"></td>
+            <td><input type='text' id='newId-${item.num}' value="${item.mem_id || ''}" class='form-control form-control-sm' readonly></td>
+            <td><input type='text' id='phone-${item.num}' value="${item.hphone || ''}" class='form-control form-control-sm' oninput="formatPhoneNumber(this)" autocomplete="off"
+              onkeypress="if(event.key === 'Enter') { validateAndUpdatePhone(this, ${item.num}); return false; }"  ></td>
+            <td><select id='readIs-${item.num}' class='form-select form-select-sm' onChange="updateReadStatus(this, ${item.num})">
+                <option value="-1" >선택</option>
+                <option value="1" ${item.readIs === '1' ? 'selected' : ''}>읽기전용</option>
+                <option value="2" ${item.readIs === '2' ? 'selected' : ''}>모든권한</option>
+              </select></td>
+            <td><input type='text' id='newPassword-${item.num}' placeholder="비밀번호 입력" class='form-control form-control-sm'
+                  onkeypress="if(event.key === 'Enter') { validateAndUpdatePassword(this, ${item.num}); return false; }"
+                  oninput="validatePasswordLength(this)"></td>
+            <td>
+              <select id='newPermit-${item.num}' class='form-select form-select-sm' onChange="updatePermitStatus(this, ${item.num})">
+                <option value="-1" >선택</option>
+                <option value="1" ${item.permit === '1' ? 'selected' : ''}>허용</option>
+                <option value="2" ${item.permit === '2' ? 'selected' : ''}>차단</option>
+              </select>
+            </td>
+          </tr>`;
+        });
+      } else {
+        console.log("데이터가 없거나 API 응답 실패:", result);
+      }
+      
+      // 새 항목 추가를 위한 행은 항상 추가 (데이터가 없는 경우에도)
+      const companyValue = (result.success && result.data && result.data.length > 0) ? result.data[0].company : '';
+      const hphoneValue = (result.success && result.data && result.data.length > 0) ? result.data[0].hphone : '';
+      
+      id_list += `<tr>
+        <td><input type='text' id='newDamdang' class='form-control form-control-sm' placeholder="담당자성명" autocomplete="off"></td>
+        <td><input type='text' id='newId' class='form-control form-control-sm' placeholder="아이디"
+               onkeypress="if(event.key === 'Enter') { validateAndCheckId(this); return false; }"
+               oninput="validateIdLength(this)" autocomplete="off"></td>
+        <td><input type='text' id='phone-new' class='form-control form-control-sm' oninput="formatPhoneNumber(this)" autocomplete="off"></td>
+        <td></td>
+        <td><input type='text' id='newPassword' placeholder="비밀번호 입력" class='form-control form-control-sm' 
+                oninput="validatePasswordLength(this)" autocomplete="off"></td>
+        <td><button class="btn btn-primary btn-sm" onclick="id_store('${dNum}','${hphoneValue}','${companyValue}')" >신규아이디 생성</button></td>
+      </tr>`;
+      
+      // 테이블 본문 업데이트
+      modalBody.innerHTML = id_list;
+      
+    } catch (error) {
+      console.error("데이터 불러오기 실패:", error);
+      alert("데이터를 불러오는 중 오류가 발생했습니다.");
+      const modalBody = document.getElementById('id_list');
+      if (modalBody) {
+        modalBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>';
+      }
+    }
+  };
+  
+  // 업체 I.D 전역 노출
+  window.handleIdClick = handleIdClick;
+
   // ==================== 전역 노출 ====================
 
   // window 객체에 모듈 노출
@@ -1756,7 +1871,8 @@
     renderCompanyModal: renderCompanyModal,
     openMemberListModal: openMemberListModal,
     openEndorseModal: openEndorseModal,
-    openPremiumModal: openPremiumModal
+    openPremiumModal: openPremiumModal,
+    handleIdClick: handleIdClick
   };
 
   // ==================== 모달 닫기 시 포커스 관리 ====================
@@ -1791,6 +1907,18 @@
       const companyName = trigger.dataset.companyName;
       if (companyNum) {
         openCompanyModal(companyNum, companyName);
+      }
+      return;
+    }
+    
+    // 업체 I.D 모달 열기
+    const idTrigger = e.target.closest('[data-role="open-company-id-modal"]');
+    if (idTrigger) {
+      e.preventDefault();
+      e.stopPropagation();
+      const companyNum = idTrigger.dataset.companyNum;
+      if (companyNum) {
+        handleIdClick(companyNum);
       }
     }
   });
@@ -2095,6 +2223,372 @@
       });
     }
   });
+
+  // ==================== 업체 I.D 관련 유틸리티 함수 ====================
+
+  // 전화번호 포맷팅 (하이픈 자동 추가)
+  window.formatPhoneNumber = function(input) {
+    let value = input.value.replace(/[^0-9]/g, '');
+    if (value.length > 11) value = value.substring(0, 11);
+    
+    if (value.length > 10) {
+      value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+    } else if (value.length > 7) {
+      value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+    } else if (value.length > 3) {
+      value = value.substring(0, 3) + '-' + value.substring(3);
+    }
+    input.value = value;
+  };
+
+  // ID 길이 검증
+  window.validateIdLength = function(input) {
+    if (input.value.length > 20) {
+      input.value = input.value.substring(0, 20);
+    }
+  };
+
+  // 비밀번호 길이 검증
+  window.validatePasswordLength = function(input) {
+    const value = input.value;
+    const explainEl = document.getElementById('idExplain2');
+    if (explainEl) {
+      if (value.length >= 8 && /^(?=.*[a-zA-Z])(?=.*[0-9])/.test(value)) {
+        explainEl.textContent = '유효한 비밀번호 형식입니다.';
+        explainEl.style.color = 'green';
+      } else if (value.length > 0) {
+        explainEl.textContent = '비밀번호는 8자 이상이며 영문과 숫자를 포함해야 합니다.';
+        explainEl.style.color = 'red';
+      } else {
+        explainEl.textContent = '';
+      }
+    }
+  };
+
+  // ID 중복 검사
+  window.validateAndCheckId = async function(input) {
+    const newId = input.value.trim();
+    const explainEl = document.getElementById('idExplain');
+    
+    if (!newId) {
+      if (explainEl) explainEl.textContent = '';
+      return;
+    }
+    
+    if (explainEl) {
+      explainEl.textContent = '확인 중...';
+      explainEl.style.color = 'blue';
+    }
+    
+    try {
+      const formData = new FormData();
+      formData.append('mem_id', newId);
+      
+      const response = await fetch('/api/insurance/kj-company/check-id', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (explainEl) {
+        if (result.available) {
+          explainEl.textContent = '사용할 수 있는 ID 입니다';
+          explainEl.style.color = 'green';
+        } else {
+          explainEl.textContent = '이미 사용 중인 ID 입니다';
+          explainEl.style.color = 'red';
+        }
+      }
+    } catch (error) {
+      console.error('ID 중복 검사 오류:', error);
+      if (explainEl) {
+        explainEl.textContent = 'ID 중복 검사 중 오류가 발생했습니다.';
+        explainEl.style.color = 'red';
+      }
+    }
+  };
+
+  // 담당자 업데이트
+  window.validateAndUpdateUser = async function(input, num) {
+    const user = input.value.trim();
+    if (!user) {
+      alert('담당자명을 입력해주세요.');
+      input.focus();
+      return;
+    }
+    
+    try {
+      const formData = new FormData();
+      formData.append('num', num);
+      formData.append('user', user);
+      
+      const response = await fetch('/api/insurance/kj-company/id-update-user', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('담당자명이 업데이트되었습니다.');
+      } else {
+        alert('업데이트 실패: ' + (result.error || '알 수 없는 오류'));
+      }
+    } catch (error) {
+      console.error('담당자 업데이트 오류:', error);
+      alert('업데이트 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 전화번호 업데이트
+  window.validateAndUpdatePhone = async function(input, num) {
+    const phone = input.value.trim();
+    if (!phone) {
+      alert('전화번호를 입력해주세요.');
+      input.focus();
+      return;
+    }
+    
+    try {
+      const formData = new FormData();
+      formData.append('num', num);
+      formData.append('hphone', phone);
+      
+      const response = await fetch('/api/insurance/kj-company/id-update-phone', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('전화번호가 업데이트되었습니다.');
+      } else {
+        alert('업데이트 실패: ' + (result.error || '알 수 없는 오류'));
+      }
+    } catch (error) {
+      console.error('전화번호 업데이트 오류:', error);
+      alert('업데이트 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 비밀번호 업데이트
+  window.validateAndUpdatePassword = async function(input, num) {
+    const password = input.value.trim();
+    if (!password) {
+      alert('비밀번호를 입력해주세요.');
+      input.focus();
+      return;
+    }
+    
+    if (password.length < 8) {
+      alert('비밀번호는 최소 8자 이상이어야 합니다.');
+      input.focus();
+      return;
+    }
+    
+    const explainEl = document.getElementById('idExplain2');
+    if (explainEl && explainEl.textContent !== '유효한 비밀번호 형식입니다.') {
+      alert('비밀번호 형식을 확인하세요.');
+      input.focus();
+      return;
+    }
+    
+    try {
+      const formData = new FormData();
+      formData.append('num', num);
+      formData.append('password', password);
+      
+      const response = await fetch('/api/insurance/kj-company/id-update-password', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('비밀번호가 업데이트되었습니다.');
+        input.value = '';
+      } else {
+        alert('업데이트 실패: ' + (result.error || '알 수 없는 오류'));
+      }
+    } catch (error) {
+      console.error('비밀번호 업데이트 오류:', error);
+      alert('업데이트 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 읽기 권한 업데이트
+  window.updateReadStatus = async function(select, num) {
+    const readIs = select.value;
+    if (readIs === '-1') {
+      select.value = '';
+      return;
+    }
+    
+    try {
+      const formData = new FormData();
+      formData.append('num', num);
+      formData.append('readIs', readIs);
+      
+      const response = await fetch('/api/insurance/kj-company/id-update-readis', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // 성공 메시지는 선택적으로 표시
+      } else {
+        alert('업데이트 실패: ' + (result.error || '알 수 없는 오류'));
+        // 원래 값으로 복원
+        const originalValue = select.dataset.originalValue || '';
+        select.value = originalValue;
+      }
+    } catch (error) {
+      console.error('권한 업데이트 오류:', error);
+      alert('업데이트 중 오류가 발생했습니다.');
+      const originalValue = select.dataset.originalValue || '';
+      select.value = originalValue;
+    }
+  };
+
+  // 허용/차단 업데이트
+  window.updatePermitStatus = async function(select, num) {
+    const permit = select.value;
+    if (permit === '-1') {
+      select.value = '';
+      return;
+    }
+    
+    try {
+      const formData = new FormData();
+      formData.append('num', num);
+      formData.append('permit', permit);
+      
+      const response = await fetch('/api/insurance/kj-company/id-update-permit', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // 성공 메시지는 선택적으로 표시
+      } else {
+        alert('업데이트 실패: ' + (result.error || '알 수 없는 오류'));
+        // 원래 값으로 복원
+        const originalValue = select.dataset.originalValue || '';
+        select.value = originalValue;
+      }
+    } catch (error) {
+      console.error('허용/차단 업데이트 오류:', error);
+      alert('업데이트 중 오류가 발생했습니다.');
+      const originalValue = select.dataset.originalValue || '';
+      select.value = originalValue;
+    }
+  };
+
+  // 신규 아이디 생성
+  window.id_store = async function(dNum, phone, company) {
+    try {
+      // 입력값 가져오기
+      const newId = document.getElementById('newId')?.value.trim();
+      const newPassword = document.getElementById('newPassword')?.value.trim();
+      const user = document.getElementById('newDamdang')?.value.trim();
+      const phoneInput = document.getElementById('phone-new')?.value.trim();
+      
+      // 입력 유효성 검사
+      if (!user) {
+        alert('사용자를 입력해주세요.');
+        document.getElementById('newDamdang')?.focus();
+        return;
+      }
+      if (!phoneInput) {
+        alert('사용자 핸드폰번호를 입력해주세요.');
+        document.getElementById('phone-new')?.focus();
+        return;
+      }
+      if (!newId) {
+        alert('ID를 입력해주세요.');
+        document.getElementById('newId')?.focus();
+        return;
+      }
+      
+      const idExplainEl = document.getElementById('idExplain');
+      if (idExplainEl && idExplainEl.textContent !== '사용할 수 있는 ID 입니다') {
+        alert('ID 중복검사하세요!!');
+        document.getElementById('newId')?.focus();
+        return;
+      }
+      
+      if (!newPassword) {
+        alert('비밀번호를 입력해주세요.');
+        document.getElementById('newPassword')?.focus();
+        return;
+      }
+      
+      if (newPassword.length < 8) {
+        alert('비밀번호는 최소 8자 이상이어야 합니다.');
+        document.getElementById('newPassword')?.focus();
+        return;
+      }
+      
+      const idExplain2El = document.getElementById('idExplain2');
+      if (idExplain2El && idExplain2El.textContent !== '유효한 비밀번호 형식입니다.') {
+        alert('비밀번호 확인하세요!!');
+        document.getElementById('newPassword')?.focus();
+        return;
+      }
+      
+      // 저장 전 사용자 확인
+      if (!confirm('새로운 ID 정보를 저장하시겠습니까?')) {
+        return;
+      }
+      
+      // FormData 객체 생성 및 데이터 추가
+      const formData = new FormData();
+      formData.append('dNum', dNum);
+      formData.append('mem_id', newId);
+      formData.append('password', newPassword);
+      formData.append('phone', phoneInput);
+      formData.append('company', company);
+      formData.append('user', user);
+      
+      // API 호출
+      const response = await fetch('/api/insurance/kj-company/id-save', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('ID 정보가 성공적으로 저장되었습니다.');
+        if (idExplainEl) idExplainEl.textContent = '';
+        if (idExplain2El) idExplain2El.textContent = '';
+        // 저장 후 목록 새로고침
+        handleIdClick(dNum);
+        
+        // 입력 필드 초기화
+        const newIdInput = document.getElementById('newId');
+        const newPasswordInput = document.getElementById('newPassword');
+        const newDamdangInput = document.getElementById('newDamdang');
+        const phoneNewInput = document.getElementById('phone-new');
+        if (newIdInput) newIdInput.value = '';
+        if (newPasswordInput) newPasswordInput.value = '';
+        if (newDamdangInput) newDamdangInput.value = '';
+        if (phoneNewInput) phoneNewInput.value = '';
+      } else {
+        alert('저장 실패: ' + (result.message || '알 수 없는 오류가 발생했습니다.'));
+      }
+    } catch (error) {
+      console.error('ID 저장 중 오류 발생:', error);
+      alert('ID 정보 저장 중 오류가 발생했습니다.');
+    }
+  };
 
 })();
 

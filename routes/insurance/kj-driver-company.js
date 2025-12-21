@@ -907,5 +907,217 @@ router.post('/kj-sms/list', async (req, res) => {
   }
 });
 
+// ==================== 업체 I.D 관련 API ====================
+
+// 업체 I.D 목록 조회
+router.post('/kj-company/id-list', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-id-list.php`;
+    const formData = new URLSearchParams();
+    if (req.body.dNum) formData.append('dNum', req.body.dNum);
+    
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company id-list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '업체 I.D 목록 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// ID 중복 검사
+router.post('/kj-company/check-id', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-check-id.php`;
+    const formData = new URLSearchParams();
+    if (req.body.mem_id) formData.append('mem_id', req.body.mem_id);
+    
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company check-id proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      available: false,
+      error: 'ID 중복 검사 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 신규 아이디 저장
+router.post('/kj-company/id-save', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-id-save.php`;
+    const formData = new URLSearchParams();
+    if (req.body.dNum) formData.append('dNum', req.body.dNum);
+    if (req.body.mem_id) formData.append('mem_id', req.body.mem_id);
+    if (req.body.password) formData.append('password', req.body.password);
+    if (req.body.phone) formData.append('phone', req.body.phone);
+    if (req.body.company) formData.append('company', req.body.company);
+    if (req.body.user) formData.append('user', req.body.user);
+    
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company id-save proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: 'ID 저장 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 담당자명 업데이트
+router.post('/kj-company/id-update-user', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-id-update-user.php`;
+    const formData = new URLSearchParams();
+    if (req.body.num) formData.append('num', req.body.num);
+    if (req.body.user) formData.append('user', req.body.user);
+    
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company id-update-user proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '담당자명 업데이트 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 전화번호 업데이트
+router.post('/kj-company/id-update-phone', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-id-update-phone.php`;
+    const formData = new URLSearchParams();
+    if (req.body.num) formData.append('num', req.body.num);
+    if (req.body.hphone) formData.append('hphone', req.body.hphone);
+    
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company id-update-phone proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '전화번호 업데이트 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 비밀번호 업데이트
+router.post('/kj-company/id-update-password', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-id-update-password.php`;
+    const formData = new URLSearchParams();
+    if (req.body.num) formData.append('num', req.body.num);
+    if (req.body.password) formData.append('password', req.body.password);
+    
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company id-update-password proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '비밀번호 업데이트 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 읽기 권한 업데이트
+router.post('/kj-company/id-update-readis', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-id-update-readis.php`;
+    const formData = new URLSearchParams();
+    if (req.body.num) formData.append('num', req.body.num);
+    if (req.body.readIs) formData.append('readIs', req.body.readIs);
+    
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company id-update-readis proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '권한 업데이트 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 허용/차단 업데이트
+router.post('/kj-company/id-update-permit', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-id-update-permit.php`;
+    const formData = new URLSearchParams();
+    if (req.body.num) formData.append('num', req.body.num);
+    if (req.body.permit) formData.append('permit', req.body.permit);
+    
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company id-update-permit proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '허용/차단 업데이트 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 
