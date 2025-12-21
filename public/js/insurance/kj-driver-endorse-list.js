@@ -1356,7 +1356,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnEndorseStatus = document.getElementById('btnEndorseStatus');
   if (btnEndorseStatus) {
     btnEndorseStatus.addEventListener('click', function() {
-      const modal = new bootstrap.Modal(document.getElementById('endorseStatusModal'));
+      const modalEl = document.getElementById('endorseStatusModal');
+      const modal = new bootstrap.Modal(modalEl, {
+        backdrop: 'static',
+        keyboard: false
+      });
       modal.show();
       // 오늘 날짜를 기본값으로 설정
       const today = new Date();
@@ -1980,8 +1984,11 @@ async function dailyCheckForDailyList() {
     endorseStatusModalEl.classList.add('modal-side-by-side');
   }
   
-  // 배서현황 모달 열기
-  const modal = new bootstrap.Modal(endorseStatusModalEl);
+  // 배서현황 모달 열기 (backdrop을 static으로 설정하여 다른 모달 클릭 시 닫히지 않도록)
+  const modal = new bootstrap.Modal(endorseStatusModalEl, {
+    backdrop: 'static',
+    keyboard: false
+  });
   modal.show();
   
   // 배서현황 모달의 날짜와 대리운전회사 설정

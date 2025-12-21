@@ -332,7 +332,7 @@
   </div>
 
   <!-- 배서현황 모달 -->
-  <div class="modal fade" id="endorseStatusModal" tabindex="-1" aria-labelledby="endorseStatusModalLabel" aria-hidden="true">
+  <div class="modal fade" id="endorseStatusModal" tabindex="-1" aria-labelledby="endorseStatusModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
@@ -344,13 +344,11 @@
         <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
           <div class="row mb-3 align-items-end">
             <div class="col-md-4">
-              <label class="form-label">대리운전회사</label>
               <select id="endorseStatus_companySelect" class="form-control form-control-sm">
                 <option value="">-- 대리운전회사 선택 --</option>
               </select>
             </div>
             <div class="col-md-4">
-              <label class="form-label">날짜</label>
               <input type="date" id="endorseStatus_date" class="form-control form-control-sm">
             </div>
             <div class="col-md-4">
