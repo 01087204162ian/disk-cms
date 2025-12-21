@@ -2020,6 +2020,15 @@ async function dailyCheck() {
     return;
   }
   
+  // side-by-side 상태 유지
+  const endorseStatusModalEl = document.getElementById('endorseStatusModal');
+  const dailyEndorseListModal = document.getElementById('dailyEndorseListModal');
+  if (endorseStatusModalEl && dailyEndorseListModal) {
+    // 두 모달 모두 side-by-side 클래스 유지
+    endorseStatusModalEl.classList.add('modal-side-by-side');
+    dailyEndorseListModal.classList.add('modal-side-by-side');
+  }
+  
   const m_endorseCheck = document.getElementById('m_endorseCheck');
   if (m_endorseCheck) {
     m_endorseCheck.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"></div><p class="mt-2">데이터를 불러오는 중...</p></div>';
@@ -2060,6 +2069,15 @@ async function dailyCheck() {
 // 배서현황 데이터 처리 및 보고서 생성 함수
 function processEndorseData(result, dateStr) {
   console.log("받은 데이터:", result);
+  
+  // side-by-side 상태 유지 (데이터 처리 중에도)
+  const endorseStatusModalEl = document.getElementById('endorseStatusModal');
+  const dailyEndorseListModal = document.getElementById('dailyEndorseListModal');
+  if (endorseStatusModalEl && dailyEndorseListModal && 
+      endorseStatusModalEl.classList.contains('modal-side-by-side')) {
+    endorseStatusModalEl.classList.add('modal-side-by-side');
+    dailyEndorseListModal.classList.add('modal-side-by-side');
+  }
   
   const reportElement = document.getElementById("m_endorseCheck");
   if (!reportElement) {
