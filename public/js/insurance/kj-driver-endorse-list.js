@@ -2272,83 +2272,69 @@ function processEndorseData(result, dateStr) {
           return;
         }
         
-        // 텍스트 추출 함수 (사용자 요청 형식에 맞게)
-        const extractText = (element) => {
-          let text = '';
-          const sections = element.querySelectorAll('.report-section');
-          
-          sections.forEach((section, index) => {
-            const h4 = section.querySelector('h4');
-            const ul = section.querySelector('ul');
-            const pTags = section.querySelectorAll('p');
-            
-            if (h4) {
-              // 제목 추가
-              text += h4.textContent.trim() + '\n\n';
-              
-              // 목록이 있으면 항목들 추가
-              if (ul) {
-                const items = ul.querySelectorAll('li');
-                items.forEach(li => {
-                  text += li.textContent.trim() + '\n';
-                });
-                text += '\n';
-              }
-              
-              // p 태그 추가 (총 인원수 등)
-              pTags.forEach(p => {
-                if (!p.closest('#premium-settlement-section')) {
-                  text += p.textContent.trim() + '\n';
-                }
-              });
-              text += '\n';
-            } else {
-              // 보험료 정산 섹션 또는 기타 섹션
-              const sectionText = section.textContent.trim();
-              text += sectionText + '\n\n';
-            }
-          });
-          
-          // 마지막 문구 추가 (할증자 정보가 있으면 포함)
-          const lastSection = sections[sections.length - 1];
-          if (lastSection && lastSection.querySelector('p:last-of-type')) {
-            const lastP = lastSection.querySelector('p:last-of-type');
-            if (lastP && lastP.textContent.includes('할증자')) {
-              // 할증자 정보가 있으면 해당 문구 사용
-              text += lastP.textContent.trim() + '\n';
-            }
-          }
-          
-          // 마지막 메일 발송 문구
-          const mailSection = element.querySelector('.report-section:last-of-type');
-          if (mailSection) {
-            const mailText = mailSection.textContent.trim();
-            if (mailText.includes('메일')) {
-              text += mailText;
-            } else {
-              text += '보험료 파일은 할증 관련 내용 정리하여 메일로 발송하겠습니다.';
-            }
-          } else {
-            text += '보험료 파일은 할증 관련 내용 정리하여 메일로 발송하겠습니다.';
-          }
-          
-          return text;
-        };
-        
-        let copyText = extractText(reportContainer);
-        
-        // 날짜 제목 추가 (h3)
+        // 날짜 제목 가져오기
         const h3 = reportContainer.querySelector('h3');
-        if (h3) {
-          copyText = h3.textContent.trim() + '\n\n' + copyText;
-        }
+        let copyText = h3 ? h3.textContent.trim() + '\n\n' : '';
         
-        // 보기 좋게 포맷팅
-        copyText = copyText
-          .replace(/\n{4,}/g, '\n\n\n') // 연속된 줄바꿈 최대 3개로 제한
-          .replace(/\s+\n/g, '\n') // 공백 후 줄바꿈 정리
-          .replace(/\n\s+/g, '\n') // 줄바꿈 후 공백 정리
-          .trim();
+        // 각 섹션 처리
+        const sections = reportContainer.querySelectorAll('.report-section');
+        sections.forEach((section, index) => {
+          const h4 = section.querySelector('h4');
+          const sectionId = section.id;
+          
+          // 보험료 정산 섹션은 별도 처리
+          if (sectionId === 'premium-settlement-section') {
+            copyText += '영수보험료 (+추징/-환급)\n';
+            const pTags = section.querySelectorAll('p');
+            pTags.forEach(p => {
+              // "대리:", "탁송:", "합계:" 텍스트 추출
+              let pText = p.textContent.trim();
+              // strong 태그 내부의 텍스트에서 콜론 뒤 공백 추가
+              pText = pText.replace(/대리:/g, '대리 :').replace(/탁송:/g, '탁송 :').replace(/합계:/g, '합계 :');
+              // "원" 다음에 오는 공백 제거 후 "추징" 또는 "환급" 추가
+              pText = pText.replace(/원\s+/g, '원 ');
+              copyText += pText + '\n';
+            });
+            copyText += '\n';
+            return;
+          }
+          
+          // 할증자/메일 섹션은 마지막에 처리
+          if (h4 && (h4.textContent.includes('할증') || section.textContent.includes('메일'))) {
+            return; // 나중에 처리
+          }
+          
+          // 일반 섹션 처리
+          if (h4) {
+            copyText += h4.textContent.trim() + '\n\n';
+            
+            // 목록 항목 추가
+            const ul = section.querySelector('ul');
+            if (ul) {
+              const items = ul.querySelectorAll('li');
+              items.forEach(li => {
+                copyText += li.textContent.trim() + '\n';
+              });
+              if (items.length > 0) {
+                copyText += '\n';
+              }
+            }
+            
+            // 총 인원수 추가
+            const pTags = section.querySelectorAll('p');
+            pTags.forEach(p => {
+              if (p.textContent.includes('총') && p.textContent.includes('명')) {
+                copyText += p.textContent.trim() + '\n\n';
+              }
+            });
+          }
+        });
+        
+        // 마지막 메일 발송 문구만 추가 (할증자 정보 제외)
+        copyText += '보험료 파일은 할증 관련 내용 정리하여 메일로 발송하겠습니다.';
+        
+        // 연속된 빈 줄 정리 (최대 2개 연속)
+        copyText = copyText.replace(/\n{3,}/g, '\n\n').trim();
         
         // 클립보드에 복사
         await navigator.clipboard.writeText(copyText);
