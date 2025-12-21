@@ -332,7 +332,7 @@
   </div>
 
   <!-- 배서현황 모달 -->
-  <div class="modal fade" id="endorseStatusModal" tabindex="-1" aria-labelledby="endorseStatusModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal fade" id="endorseStatusModal" tabindex="-1" aria-labelledby="endorseStatusModalLabel" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="false">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
@@ -369,7 +369,7 @@
   </div>
 
   <!-- 일일배서리스트 모달 -->
-  <div class="modal fade" id="dailyEndorseListModal" tabindex="-1" aria-labelledby="dailyEndorseListModalLabel" aria-hidden="true">
+  <div class="modal fade" id="dailyEndorseListModal" tabindex="-1" aria-labelledby="dailyEndorseListModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
@@ -588,6 +588,16 @@
     /* 두 모달이 동시에 표시되도록 */
     body:has(.modal-side-by-side.show) .modal:not(.modal-side-by-side) {
       z-index: 1056 !important;
+    }
+    
+    /* 모달 backdrop이 여러 개 있을 때 모두 표시되도록 */
+    .modal-backdrop.show:not(:last-of-type) {
+      z-index: 1054 !important;
+    }
+    
+    /* side-by-side 상태일 때 모달이 닫히지 않도록 */
+    .modal-side-by-side.show {
+      pointer-events: auto !important;
     }
   </style>
 

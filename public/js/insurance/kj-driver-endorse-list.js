@@ -1376,7 +1376,17 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnDailyEndorseList = document.getElementById('btnDailyEndorseList');
   if (btnDailyEndorseList) {
     btnDailyEndorseList.addEventListener('click', function() {
-      const modal = new bootstrap.Modal(document.getElementById('dailyEndorseListModal'));
+      const modalEl = document.getElementById('dailyEndorseListModal');
+      // 기존 모달 인스턴스가 있으면 제거
+      const existingModal = bootstrap.Modal.getInstance(modalEl);
+      if (existingModal) {
+        existingModal.dispose();
+      }
+      // backdrop을 static으로 설정하여 외부 클릭 시 닫히지 않도록
+      const modal = new bootstrap.Modal(modalEl, {
+        backdrop: 'static',
+        keyboard: false
+      });
       modal.show();
       // 오늘 날짜를 기본값으로 설정
       const today = new Date();
@@ -1438,12 +1448,59 @@ document.addEventListener('DOMContentLoaded', function() {
   // 배서현황 모달 닫기 시 원래 위치로 복원
   const endorseStatusModalEl = document.getElementById('endorseStatusModal');
   if (endorseStatusModalEl) {
+    // 배서현황 모달이 닫히려고 할 때, side-by-side 상태이고 일일배서리스트 모달이 열려있으면 닫히지 않도록
+    endorseStatusModalEl.addEventListener('hide.bs.modal', function(e) {
+      const dailyEndorseListModal = document.getElementById('dailyEndorseListModal');
+      if (dailyEndorseListModal && 
+          endorseStatusModalEl.classList.contains('modal-side-by-side') &&
+          dailyEndorseListModal.classList.contains('show')) {
+        // 닫기 버튼 클릭이 아닌 경우에만 방지
+        const relatedTarget = e.relatedTarget || document.activeElement;
+        const isCloseButton = relatedTarget && (
+          relatedTarget.classList.contains('btn-close') || 
+          relatedTarget.hasAttribute('data-bs-dismiss') ||
+          relatedTarget.closest('[data-bs-dismiss="modal"]')
+        );
+        if (!isCloseButton) {
+          e.preventDefault();
+          return false;
+        }
+      }
+    });
+    
+    // 모달 자체 클릭 이벤트도 방지
+    endorseStatusModalEl.addEventListener('click', function(e) {
+      const dailyEndorseListModal = document.getElementById('dailyEndorseListModal');
+      if (dailyEndorseListModal && 
+          endorseStatusModalEl.classList.contains('modal-side-by-side') &&
+          dailyEndorseListModal.classList.contains('show')) {
+        // 모달 자체를 클릭한 경우 (modal-dialog가 아닌 경우)
+        if (e.target === endorseStatusModalEl) {
+          e.stopPropagation();
+        }
+      }
+    });
+    
     endorseStatusModalEl.addEventListener('hidden.bs.modal', function() {
+      // 커스텀 backdrop 제거
+      const customBackdrop = document.querySelector('.modal-backdrop[data-modal-id="endorseStatusModal"]');
+      if (customBackdrop) {
+        customBackdrop.remove();
+      }
+      
       // 두 모달 모두에서 side-by-side 클래스 제거
       endorseStatusModalEl.classList.remove('modal-side-by-side');
       const dailyEndorseListModal = document.getElementById('dailyEndorseListModal');
       if (dailyEndorseListModal) {
         dailyEndorseListModal.classList.remove('modal-side-by-side');
+      }
+      
+      // 다른 모달이 열려있지 않으면 modal-open 클래스 제거
+      const otherOpenModals = document.querySelectorAll('.modal.show:not(#endorseStatusModal)');
+      if (otherOpenModals.length === 0) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
       }
     });
   }
@@ -1451,10 +1508,61 @@ document.addEventListener('DOMContentLoaded', function() {
   // 일일배서리스트 모달 닫기 시에도 원래 위치로 복원
   const dailyEndorseListModal = document.getElementById('dailyEndorseListModal');
   if (dailyEndorseListModal) {
+    // 일일배서리스트 모달이 닫히려고 할 때, side-by-side 상태이고 배서현황 모달이 열려있으면 닫히지 않도록
+    dailyEndorseListModal.addEventListener('hide.bs.modal', function(e) {
+      if (endorseStatusModalEl && 
+          dailyEndorseListModal.classList.contains('modal-side-by-side') &&
+          endorseStatusModalEl.classList.contains('show')) {
+        // 닫기 버튼 클릭이 아닌 경우에만 방지
+        const relatedTarget = e.relatedTarget || document.activeElement;
+        const isCloseButton = relatedTarget && (
+          relatedTarget.classList.contains('btn-close') || 
+          relatedTarget.hasAttribute('data-bs-dismiss') ||
+          relatedTarget.closest('[data-bs-dismiss="modal"]')
+        );
+        if (!isCloseButton) {
+          e.preventDefault();
+          return false;
+        }
+      }
+    });
+    
+    // 모달 자체 클릭 이벤트도 방지
+    dailyEndorseListModal.addEventListener('click', function(e) {
+      if (endorseStatusModalEl && 
+          dailyEndorseListModal.classList.contains('modal-side-by-side') &&
+          endorseStatusModalEl.classList.contains('show')) {
+        // 모달 자체를 클릭한 경우 (modal-dialog가 아닌 경우)
+        if (e.target === dailyEndorseListModal) {
+          e.stopPropagation();
+        }
+      }
+    });
+    
+    // 모달 자체 클릭 이벤트도 방지
+    dailyEndorseListModal.addEventListener('click', function(e) {
+      if (endorseStatusModalEl && 
+          dailyEndorseListModal.classList.contains('modal-side-by-side') &&
+          endorseStatusModalEl.classList.contains('show')) {
+        // 모달 자체를 클릭한 경우 (modal-dialog가 아닌 경우)
+        if (e.target === dailyEndorseListModal) {
+          e.stopPropagation();
+        }
+      }
+    });
+    
     dailyEndorseListModal.addEventListener('hidden.bs.modal', function() {
       dailyEndorseListModal.classList.remove('modal-side-by-side');
       if (endorseStatusModalEl) {
         endorseStatusModalEl.classList.remove('modal-side-by-side');
+      }
+      
+      // 다른 모달이 열려있지 않으면 modal-open 클래스 제거
+      const otherOpenModals = document.querySelectorAll('.modal.show:not(#dailyEndorseListModal)');
+      if (otherOpenModals.length === 0) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
       }
     });
   }
@@ -1984,12 +2092,43 @@ async function dailyCheckForDailyList() {
     endorseStatusModalEl.classList.add('modal-side-by-side');
   }
   
-  // 배서현황 모달 열기 (backdrop을 static으로 설정하여 다른 모달 클릭 시 닫히지 않도록)
+  // 배서현황 모달 열기 (backdrop을 false로 설정하여 다른 모달과 독립적으로 작동)
+  // 기존 모달 인스턴스가 있으면 제거
+  const existingModal = bootstrap.Modal.getInstance(endorseStatusModalEl);
+  if (existingModal) {
+    existingModal.dispose();
+  }
+  
+  // backdrop을 false로 설정하여 Bootstrap의 기본 backdrop 관리 비활성화
   const modal = new bootstrap.Modal(endorseStatusModalEl, {
-    backdrop: 'static',
+    backdrop: false,
     keyboard: false
   });
   modal.show();
+  
+  // 커스텀 backdrop 추가 (다른 모달과 독립적으로 작동)
+  setTimeout(() => {
+    // Bootstrap이 자동으로 추가한 backdrop이 있으면 제거
+    const existingBackdrops = document.querySelectorAll('.modal-backdrop');
+    existingBackdrops.forEach(backdrop => {
+      if (backdrop.getAttribute('data-modal-id') === 'endorseStatusModal') {
+        backdrop.remove();
+      }
+    });
+    
+    // 커스텀 backdrop 생성 (다른 모달과 겹치지 않도록)
+    if (!document.querySelector('.modal-backdrop[data-modal-id="endorseStatusModal"]')) {
+      const customBackdrop = document.createElement('div');
+      customBackdrop.className = 'modal-backdrop fade show';
+      customBackdrop.setAttribute('data-modal-id', 'endorseStatusModal');
+      customBackdrop.style.zIndex = '1054';
+      customBackdrop.style.pointerEvents = 'none'; // 클릭 이벤트 무시
+      document.body.appendChild(customBackdrop);
+    }
+    
+    // body에 modal-open 클래스 유지
+    document.body.classList.add('modal-open');
+  }, 50);
   
   // 배서현황 모달의 날짜와 대리운전회사 설정
   const endorseStatusDate = document.getElementById('endorseStatus_date');
