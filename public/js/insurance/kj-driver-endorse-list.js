@@ -1695,8 +1695,8 @@ function createEPagination(totalPages, currentPage, selectedDay) {
   const paginationContainer = document.createElement("div");
   paginationContainer.id = "sms-pagination";
   paginationContainer.className = "pagination justify-content-center pagination-spacing";
-  paginationContainer.style.marginTop = "5rem";
-  paginationContainer.style.marginBottom = "1.5rem";
+  paginationContainer.style.marginTop = "3.33rem";
+  paginationContainer.style.marginBottom = "1rem";
   
   // 처음 페이지 버튼
   const firstPageBtn = document.createElement("button");
