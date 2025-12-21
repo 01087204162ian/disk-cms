@@ -1430,6 +1430,30 @@ document.addEventListener('DOMContentLoaded', function() {
       dailyCheckForDailyList();
     });
   }
+
+  // 배서현황 모달 닫기 시 원래 위치로 복원
+  const endorseStatusModalEl = document.getElementById('endorseStatusModal');
+  if (endorseStatusModalEl) {
+    endorseStatusModalEl.addEventListener('hidden.bs.modal', function() {
+      // 두 모달 모두에서 side-by-side 클래스 제거
+      endorseStatusModalEl.classList.remove('modal-side-by-side');
+      const dailyEndorseListModal = document.getElementById('dailyEndorseListModal');
+      if (dailyEndorseListModal) {
+        dailyEndorseListModal.classList.remove('modal-side-by-side');
+      }
+    });
+  }
+
+  // 일일배서리스트 모달 닫기 시에도 원래 위치로 복원
+  const dailyEndorseListModal = document.getElementById('dailyEndorseListModal');
+  if (dailyEndorseListModal) {
+    dailyEndorseListModal.addEventListener('hidden.bs.modal', function() {
+      dailyEndorseListModal.classList.remove('modal-side-by-side');
+      if (endorseStatusModalEl) {
+        endorseStatusModalEl.classList.remove('modal-side-by-side');
+      }
+    });
+  }
 });
 
 // 일일배서리스트 조회 함수
@@ -1944,8 +1968,20 @@ async function dailyCheckForDailyList() {
     return;
   }
   
+  // 일일배서리스트 모달에 side-by-side 클래스 추가하여 오른쪽으로 이동
+  const dailyEndorseListModal = document.getElementById('dailyEndorseListModal');
+  if (dailyEndorseListModal) {
+    dailyEndorseListModal.classList.add('modal-side-by-side');
+  }
+  
+  // 배서현황 모달에 side-by-side 클래스 추가하여 왼쪽에 표시
+  const endorseStatusModalEl = document.getElementById('endorseStatusModal');
+  if (endorseStatusModalEl) {
+    endorseStatusModalEl.classList.add('modal-side-by-side');
+  }
+  
   // 배서현황 모달 열기
-  const modal = new bootstrap.Modal(document.getElementById('endorseStatusModal'));
+  const modal = new bootstrap.Modal(endorseStatusModalEl);
   modal.show();
   
   // 배서현황 모달의 날짜와 대리운전회사 설정
