@@ -846,6 +846,34 @@ router.post('/kj-daily-endorse/status', async (req, res) => {
   }
 });
 
+// 일일배서현황 조회 API
+router.post('/kj-daily-endorse/current-situation', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-daily-endorse-current-situation.php`;
+    
+    // FormData 형식으로 데이터 준비 (URLSearchParams 사용)
+    const params = new URLSearchParams();
+    if (req.body.fromDate) params.append('fromDate', req.body.fromDate);
+    if (req.body.toDate) params.append('toDate', req.body.toDate);
+
+    const response = await axios.post(apiUrl, params.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ daily endorse current situation proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '일일배서현황 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 // 문자리스트 조회 API
 router.post('/kj-sms/list', async (req, res) => {
   try {

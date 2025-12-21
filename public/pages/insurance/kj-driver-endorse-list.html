@@ -331,6 +331,41 @@
     </div>
   </div>
 
+  <!-- 일일배서현황 모달 -->
+  <div class="modal fade" id="dailyEndorseStatusModal" tabindex="-1" aria-labelledby="dailyEndorseStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+          <h5 class="modal-title" id="dailyEndorseStatusModalLabel">
+            <i class="fas fa-chart-line me-2"></i>일일배서현황
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+          <!-- 필터 영역 -->
+          <div class="row mb-3 align-items-end">
+            <div class="col-md-3">
+              <input type="date" id="dailyEndorseStatusFromDate" class="form-control form-control-sm" title="시작일">
+            </div>
+            <div class="col-md-3">
+              <input type="date" id="dailyEndorseStatusToDate" class="form-control form-control-sm" title="종료일">
+            </div>
+            <div class="col-md-2">
+              <button type="button" class="btn btn-sm btn-primary w-100" id="btnDailyEndorseStatusSearch">
+                <i class="fas fa-search me-1"></i>조회
+              </button>
+            </div>
+          </div>
+          
+          <!-- 데이터 표시 영역 -->
+          <div id="m_dailyEndorseStatus">
+            <!-- 배서현황 데이터가 여기에 표시됩니다 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 배서현황 모달 -->
   <div class="modal fade" id="endorseStatusModal" tabindex="-1" aria-labelledby="endorseStatusModalLabel" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="false">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">

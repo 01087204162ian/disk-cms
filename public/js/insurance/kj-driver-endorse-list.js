@@ -1352,10 +1352,49 @@
 
 // 모달 버튼 이벤트 핸들러
 document.addEventListener('DOMContentLoaded', function() {
-  // 배서현황 버튼
+  // 배서현황 버튼 (일일배서현황 모달 열기)
   const btnEndorseStatus = document.getElementById('btnEndorseStatus');
   if (btnEndorseStatus) {
     btnEndorseStatus.addEventListener('click', function() {
+      const modalEl = document.getElementById('dailyEndorseStatusModal');
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+      
+      // 날짜 필터 초기화 및 기본값 설정
+      const today = new Date();
+      const prevMonth = new Date(today);
+      prevMonth.setMonth(today.getMonth() - 1);
+      prevMonth.setDate(1); // 첫날로 설정
+      
+      const fromDateInput = document.getElementById('dailyEndorseStatusFromDate');
+      const toDateInput = document.getElementById('dailyEndorseStatusToDate');
+      
+      if (fromDateInput) {
+        fromDateInput.value = prevMonth.toISOString().split('T')[0];
+      }
+      if (toDateInput) {
+        toDateInput.value = today.toISOString().split('T')[0];
+      }
+      
+      // 모달이 열릴 때 자동으로 조회
+      setTimeout(() => {
+        requestDailyEndorseStatus();
+      }, 100);
+    });
+  }
+  
+  // 일일배서현황 조회 버튼
+  const btnDailyEndorseStatusSearch = document.getElementById('btnDailyEndorseStatusSearch');
+  if (btnDailyEndorseStatusSearch) {
+    btnDailyEndorseStatusSearch.addEventListener('click', function() {
+      requestDailyEndorseStatus();
+    });
+  }
+  
+  // 기존 배서현황 버튼 (검토 버튼용 - 유지)
+  const btnEndorseStatusOld = document.getElementById('btnEndorseStatusOld');
+  if (btnEndorseStatusOld) {
+    btnEndorseStatusOld.addEventListener('click', function() {
       const modalEl = document.getElementById('endorseStatusModal');
       const modal = new bootstrap.Modal(modalEl, {
         backdrop: 'static',
@@ -2787,6 +2826,368 @@ function renderSmsListPagination(currentPage, totalPages) {
   
   html += '</ul></nav>';
   paginationEl.innerHTML = html;
+}
+
+// 일일배서현황 조회 함수
+async function requestDailyEndorseStatus() {
+  const fromDate = document.getElementById('dailyEndorseStatusFromDate')?.value || '';
+  const toDate = document.getElementById('dailyEndorseStatusToDate')?.value || '';
+  
+  if (!fromDate || !toDate) {
+    alert('시작일과 종료일을 선택해주세요.');
+    return;
+  }
+  
+  const params = new URLSearchParams();
+  params.append('fromDate', fromDate);
+  params.append('toDate', toDate);
+  
+  try {
+    const response = await fetch('/api/insurance/kj-daily-endorse/current-situation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString()
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      alert('일일배서현황 조회 중 오류가 발생했습니다: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+    
+    // 데이터 처리 및 표시
+    processDailyEndorseStatus(result);
+    
+  } catch (error) {
+    console.error('일일배서현황 조회 오류:', error);
+    alert('일일배서현황 조회 중 오류가 발생했습니다: ' + error.message);
+  }
+}
+
+// 일일배서현황 데이터 처리 함수
+function processDailyEndorseStatus(data) {
+  // 현재 월과 이전 월 구분
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+  const currentYear = today.getFullYear();
+  const prevYear = prevMonth === 12 ? currentYear - 1 : currentYear;
+  
+  // 월별 데이터 분리
+  const prevMonthData = [];
+  const currentMonthData = [];
+  
+  if (data.data && data.data.length > 0) {
+    data.data.forEach(item => {
+      if (!item.date) return;
+      
+      const itemDate = new Date(item.date);
+      const itemMonth = itemDate.getMonth() + 1;
+      const itemYear = itemDate.getFullYear();
+      
+      if ((itemYear === prevYear && itemMonth === prevMonth)) {
+        prevMonthData.push(item);
+      } else if ((itemYear === currentYear && itemMonth === currentMonth)) {
+        currentMonthData.push(item);
+      }
+    });
+  }
+  
+  // 요일별 데이터 정리 (월~일: 1~7)
+  const weekdayNames = ['월', '화', '수', '목', '금', '토', '일'];
+  const prevMonthByWeekday = {};
+  const currentMonthByWeekday = {};
+  
+  // 초기화
+  weekdayNames.forEach((name, index) => {
+    const weekdayIndex = index + 1;
+    prevMonthByWeekday[weekdayIndex] = {
+      name: name,
+      subscription: 0,
+      termination: 0,
+      subscriptionReject: 0,
+      subscriptionCancel: 0,
+      terminationCancel: 0,
+      total: 0,
+      count: 0
+    };
+    
+    currentMonthByWeekday[weekdayIndex] = {
+      name: name,
+      subscription: 0,
+      termination: 0,
+      subscriptionReject: 0,
+      subscriptionCancel: 0,
+      terminationCancel: 0,
+      total: 0,
+      count: 0
+    };
+  });
+  
+  // 이전 달 데이터 요일별 집계
+  prevMonthData.forEach(item => {
+    const date = new Date(item.date);
+    let weekday = date.getDay();
+    weekday = weekday === 0 ? 7 : weekday; // 일요일은 7로 변환
+    
+    prevMonthByWeekday[weekday].subscription += (item.subscription || 0);
+    prevMonthByWeekday[weekday].termination += (item.termination || 0);
+    prevMonthByWeekday[weekday].subscriptionReject += (item.subscriptionReject || 0);
+    prevMonthByWeekday[weekday].subscriptionCancel += (item.subscriptionCancel || 0);
+    prevMonthByWeekday[weekday].terminationCancel += (item.terminationCancel || 0);
+    prevMonthByWeekday[weekday].total += (item.total || 0);
+    prevMonthByWeekday[weekday].count++;
+  });
+  
+  // 현재 달 데이터 요일별 집계
+  currentMonthData.forEach(item => {
+    const date = new Date(item.date);
+    let weekday = date.getDay();
+    weekday = weekday === 0 ? 7 : weekday;
+    
+    currentMonthByWeekday[weekday].subscription += (item.subscription || 0);
+    currentMonthByWeekday[weekday].termination += (item.termination || 0);
+    currentMonthByWeekday[weekday].subscriptionReject += (item.subscriptionReject || 0);
+    currentMonthByWeekday[weekday].subscriptionCancel += (item.subscriptionCancel || 0);
+    currentMonthByWeekday[weekday].terminationCancel += (item.terminationCancel || 0);
+    currentMonthByWeekday[weekday].total += (item.total || 0);
+    currentMonthByWeekday[weekday].count++;
+  });
+  
+  // 평균 계산
+  for (let i = 1; i <= 7; i++) {
+    if (prevMonthByWeekday[i].count > 0) {
+      prevMonthByWeekday[i].subscription = Math.round(prevMonthByWeekday[i].subscription / prevMonthByWeekday[i].count);
+      prevMonthByWeekday[i].termination = Math.round(prevMonthByWeekday[i].termination / prevMonthByWeekday[i].count);
+      prevMonthByWeekday[i].subscriptionReject = Math.round(prevMonthByWeekday[i].subscriptionReject / prevMonthByWeekday[i].count);
+      prevMonthByWeekday[i].subscriptionCancel = Math.round(prevMonthByWeekday[i].subscriptionCancel / prevMonthByWeekday[i].count);
+      prevMonthByWeekday[i].terminationCancel = Math.round(prevMonthByWeekday[i].terminationCancel / prevMonthByWeekday[i].count);
+      prevMonthByWeekday[i].total = Math.round(prevMonthByWeekday[i].total / prevMonthByWeekday[i].count);
+    }
+    
+    if (currentMonthByWeekday[i].count > 0) {
+      currentMonthByWeekday[i].subscription = Math.round(currentMonthByWeekday[i].subscription / currentMonthByWeekday[i].count);
+      currentMonthByWeekday[i].termination = Math.round(currentMonthByWeekday[i].termination / currentMonthByWeekday[i].count);
+      currentMonthByWeekday[i].subscriptionReject = Math.round(currentMonthByWeekday[i].subscriptionReject / currentMonthByWeekday[i].count);
+      currentMonthByWeekday[i].subscriptionCancel = Math.round(currentMonthByWeekday[i].subscriptionCancel / currentMonthByWeekday[i].count);
+      currentMonthByWeekday[i].terminationCancel = Math.round(currentMonthByWeekday[i].terminationCancel / currentMonthByWeekday[i].count);
+      currentMonthByWeekday[i].total = Math.round(currentMonthByWeekday[i].total / currentMonthByWeekday[i].count);
+    }
+  }
+  
+  // 테이블 1: 요일별 평균 데이터
+  let html = '';
+  html += `<table class="table table-bordered table-sm">
+    <thead class="table-light">
+      <tr>
+        <th colspan="7">${prevYear}년 ${prevMonth}월 요일별 평균</th>
+        <th colspan="7">${currentYear}년 ${currentMonth}월 요일별 평균</th>
+      </tr>
+      <tr>
+        <th>요일</th>
+        <th>정상</th>
+        <th>해지</th>
+        <th>청약거절</th>
+        <th>청약취소</th>
+        <th>해지취소</th>
+        <th>소계</th>
+        <th>요일</th>
+        <th>정상</th>
+        <th>해지</th>
+        <th>청약거절</th>
+        <th>청약취소</th>
+        <th>해지취소</th>
+        <th>소계</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  
+  // 월요일부터 일요일까지 순서대로 데이터 표시
+  for (let i = 1; i <= 7; i++) {
+    html += `
+      <tr>
+        <td>${prevMonthByWeekday[i].name}</td>
+        <td>${prevMonthByWeekday[i].subscription}</td>
+        <td>${prevMonthByWeekday[i].termination}</td>
+        <td>${prevMonthByWeekday[i].subscriptionReject}</td>
+        <td>${prevMonthByWeekday[i].subscriptionCancel}</td>
+        <td>${prevMonthByWeekday[i].terminationCancel}</td>
+        <td>${prevMonthByWeekday[i].total}</td>
+        <td>${currentMonthByWeekday[i].name}</td>
+        <td>${currentMonthByWeekday[i].subscription}</td>
+        <td>${currentMonthByWeekday[i].termination}</td>
+        <td>${currentMonthByWeekday[i].subscriptionReject}</td>
+        <td>${currentMonthByWeekday[i].subscriptionCancel}</td>
+        <td>${currentMonthByWeekday[i].terminationCancel}</td>
+        <td>${currentMonthByWeekday[i].total}</td>
+      </tr>`;
+  }
+  
+  // 월별 총 평균 계산
+  const prevMonthAvg = {
+    subscription: 0,
+    termination: 0,
+    subscriptionReject: 0,
+    subscriptionCancel: 0,
+    terminationCancel: 0,
+    total: 0
+  };
+  
+  const currentMonthAvg = {
+    subscription: 0,
+    termination: 0,
+    subscriptionReject: 0,
+    subscriptionCancel: 0,
+    terminationCancel: 0,
+    total: 0
+  };
+  
+  // 이전 달 평균 계산
+  if (prevMonthData.length > 0) {
+    prevMonthData.forEach(item => {
+      prevMonthAvg.subscription += (item.subscription || 0);
+      prevMonthAvg.termination += (item.termination || 0);
+      prevMonthAvg.subscriptionReject += (item.subscriptionReject || 0);
+      prevMonthAvg.subscriptionCancel += (item.subscriptionCancel || 0);
+      prevMonthAvg.terminationCancel += (item.terminationCancel || 0);
+      prevMonthAvg.total += (item.total || 0);
+    });
+    
+    prevMonthAvg.subscription = Math.round(prevMonthAvg.subscription / prevMonthData.length);
+    prevMonthAvg.termination = Math.round(prevMonthAvg.termination / prevMonthData.length);
+    prevMonthAvg.subscriptionReject = Math.round(prevMonthAvg.subscriptionReject / prevMonthData.length);
+    prevMonthAvg.subscriptionCancel = Math.round(prevMonthAvg.subscriptionCancel / prevMonthData.length);
+    prevMonthAvg.terminationCancel = Math.round(prevMonthAvg.terminationCancel / prevMonthData.length);
+    prevMonthAvg.total = Math.round(prevMonthAvg.total / prevMonthData.length);
+  }
+  
+  // 현재 달 평균 계산
+  if (currentMonthData.length > 0) {
+    currentMonthData.forEach(item => {
+      currentMonthAvg.subscription += (item.subscription || 0);
+      currentMonthAvg.termination += (item.termination || 0);
+      currentMonthAvg.subscriptionReject += (item.subscriptionReject || 0);
+      currentMonthAvg.subscriptionCancel += (item.subscriptionCancel || 0);
+      currentMonthAvg.terminationCancel += (item.terminationCancel || 0);
+      currentMonthAvg.total += (item.total || 0);
+    });
+    
+    currentMonthAvg.subscription = Math.round(currentMonthAvg.subscription / currentMonthData.length);
+    currentMonthAvg.termination = Math.round(currentMonthAvg.termination / currentMonthData.length);
+    currentMonthAvg.subscriptionReject = Math.round(currentMonthAvg.subscriptionReject / currentMonthData.length);
+    currentMonthAvg.subscriptionCancel = Math.round(currentMonthAvg.subscriptionCancel / currentMonthData.length);
+    currentMonthAvg.terminationCancel = Math.round(currentMonthAvg.terminationCancel / currentMonthData.length);
+    currentMonthAvg.total = Math.round(currentMonthAvg.total / currentMonthData.length);
+  }
+  
+  // 월별 총 평균 행 추가
+  html += `
+    <tr class="table-secondary">
+      <td><strong>월평균</strong></td>
+      <td><strong>${prevMonthAvg.subscription}</strong></td>
+      <td><strong>${prevMonthAvg.termination}</strong></td>
+      <td><strong>${prevMonthAvg.subscriptionReject}</strong></td>
+      <td><strong>${prevMonthAvg.subscriptionCancel}</strong></td>
+      <td><strong>${prevMonthAvg.terminationCancel}</strong></td>
+      <td><strong>${prevMonthAvg.total}</strong></td>
+      <td><strong>월평균</strong></td>
+      <td><strong>${currentMonthAvg.subscription}</strong></td>
+      <td><strong>${currentMonthAvg.termination}</strong></td>
+      <td><strong>${currentMonthAvg.subscriptionReject}</strong></td>
+      <td><strong>${currentMonthAvg.subscriptionCancel}</strong></td>
+      <td><strong>${currentMonthAvg.terminationCancel}</strong></td>
+      <td><strong>${currentMonthAvg.total}</strong></td>
+    </tr>`;
+  
+  html += `</tbody></table>`;
+  
+  // 테이블 2: 일별 상세 데이터
+  html += `<br><h5>일별 상세 데이터</h5>`;
+  html += `<table class="table table-bordered table-sm">
+    <thead class="table-light">
+      <tr>
+        <th>날짜</th>
+        <th>정상</th>
+        <th>해지</th>
+        <th>청약거절</th>
+        <th>청약취소</th>
+        <th>해지취소</th>
+        <th>소계</th>
+        <th>날짜</th>
+        <th>정상</th>
+        <th>해지</th>
+        <th>청약거절</th>
+        <th>청약취소</th>
+        <th>해지취소</th>
+        <th>소계</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  
+  // 요일 이름 배열
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  
+  // 데이터를 두 열로 표시하기 위한 처리
+  const halfLength = Math.ceil((data.data?.length || 0) / 2);
+  
+  for (let i = 0; i < halfLength; i++) {
+    const firstItem = data.data[i] || {};
+    const secondItem = (i + halfLength < (data.data?.length || 0)) ? data.data[i + halfLength] : {
+      date: "",
+      subscription: 0,
+      subscriptionReject: 0,
+      subscriptionCancel: 0,
+      termination: 0,
+      terminationCancel: 0,
+      total: 0
+    };
+    
+    // 첫 번째 항목의 요일 계산
+    let firstDayOfWeek = "";
+    if (firstItem.date) {
+      const firstDate = new Date(firstItem.date);
+      firstDayOfWeek = weekdays[firstDate.getDay()];
+    }
+    
+    // 두 번째 항목의 요일 계산
+    let secondDayOfWeek = "";
+    if (secondItem.date) {
+      const secondDate = new Date(secondItem.date);
+      secondDayOfWeek = weekdays[secondDate.getDay()];
+    }
+    
+    html += `
+      <tr>
+        <td>${firstItem.date ? `${firstItem.date}(${firstDayOfWeek})` : ""}</td>
+        <td>${firstItem.subscription || 0}</td>
+        <td>${firstItem.termination || 0}</td>
+        <td>${firstItem.subscriptionReject || 0}</td>
+        <td>${firstItem.subscriptionCancel || 0}</td>
+        <td>${firstItem.terminationCancel || 0}</td>
+        <td>${firstItem.total || 0}</td>
+        <td>${secondItem.date ? `${secondItem.date}(${secondDayOfWeek})` : ""}</td>
+        <td>${secondItem.subscription || 0}</td>
+        <td>${secondItem.termination || 0}</td>
+        <td>${secondItem.subscriptionReject || 0}</td>
+        <td>${secondItem.subscriptionCancel || 0}</td>
+        <td>${secondItem.terminationCancel || 0}</td>
+        <td>${secondItem.total || 0}</td>
+      </tr>`;
+  }
+  
+  html += `</tbody></table>`;
+  
+  const displayEl = document.getElementById('m_dailyEndorseStatus');
+  if (displayEl) {
+    displayEl.innerHTML = html;
+  }
 }
 
 // 요율 상세 설명 모달 열기
