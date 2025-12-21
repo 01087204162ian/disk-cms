@@ -1482,16 +1482,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
       
-      // 엔터키 검색
+      // 전화번호 입력 시 하이푼 자동 추가
       const smsPhone = document.getElementById('smsPhone');
-      const smsCompany = document.getElementById('smsCompany');
       if (smsPhone) {
+        // 입력 시 하이푼 자동 추가
+        smsPhone.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 추출
+          if (value.length > 0) {
+            if (value.length <= 3) {
+              value = value;
+            } else if (value.length <= 7) {
+              value = value.substring(0, 3) + '-' + value.substring(3);
+            } else if (value.length <= 11) {
+              value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+            } else {
+              value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7, 11);
+            }
+            e.target.value = value;
+          }
+        });
+        
+        // 엔터키 검색
         smsPhone.addEventListener('keypress', function(e) {
           if (e.key === 'Enter') {
             smsListSearch(1);
           }
         });
       }
+      
+      // 엔터키 검색
+      const smsCompany = document.getElementById('smsCompany');
       if (smsCompany) {
         smsCompany.addEventListener('keypress', function(e) {
           if (e.key === 'Enter') {
@@ -2681,7 +2701,7 @@ function renderSmsListTable(data, currentPage, totalPages, totalRecords) {
     return;
   }
   
-  const perPage = 20;
+  const perPage = 15;
   const startIndex = (currentPage - 1) * perPage;
   
   tbody.innerHTML = data.map((item, index) => {
