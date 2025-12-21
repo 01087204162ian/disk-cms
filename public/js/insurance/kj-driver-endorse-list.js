@@ -2111,11 +2111,14 @@ function processEndorseData(result, dateStr) {
   let haldungCount = 0;
   
   result.data.forEach(item => {
-    const premium = parseInt(item.c_preminum || item.preminum || 0);
-    const etagStr = String(item.etag);
+    // 보험료 필드 확인: c_preminum 우선, 없으면 preminum 사용
+    const premiumValue = item.c_preminum || item.preminum || 0;
+    const premium = parseInt(premiumValue, 10);
+    
+    const etagStr = String(item.etag || '');
     const isDaeri = (etagStr === "1" || etagStr === "3");
     const isTaksong = !isDaeri;
-    const pushStr = String(item.push);
+    const pushStr = String(item.push || '');
     const isRegistration = (pushStr === "4");
     const isTermination = (pushStr === "2");
     
@@ -2133,7 +2136,7 @@ function processEndorseData(result, dateStr) {
       taksongTermPremium -= premium;
     }
     
-    if (isRegistration && item.rate && parseInt(item.rate) > 1) {
+    if (isRegistration && item.rate && parseInt(item.rate, 10) > 1) {
       haldungCount++;
     }
   });
@@ -2149,6 +2152,17 @@ function processEndorseData(result, dateStr) {
   const daeriTotal = daeriRegPremium + daeriTermPremium;
   const taksongTotal = taksongRegPremium + taksongTermPremium;
   const overallTotal = daeriTotal + taksongTotal;
+  
+  // 디버깅 로그
+  console.log('보험료 계산 결과:', {
+    daeriRegPremium,
+    daeriTermPremium,
+    daeriTotal,
+    taksongRegPremium,
+    taksongTermPremium,
+    taksongTotal,
+    overallTotal
+  });
   
   let reportHTML = `<div class="report-container">
     <h3>${formattedDate} (${dayOfWeek}) 배서현황</h3>
