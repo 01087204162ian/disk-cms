@@ -846,5 +846,38 @@ router.post('/kj-daily-endorse/status', async (req, res) => {
   }
 });
 
+// 문자리스트 조회 API
+router.post('/kj-sms/list', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-sms-list.php`;
+    
+    // FormData 형식으로 데이터 준비 (URLSearchParams 사용)
+    const params = new URLSearchParams();
+    if (req.body.sort) params.append('sort', req.body.sort);
+    if (req.body.phone) params.append('phone', req.body.phone);
+    if (req.body.startDate) params.append('startDate', req.body.startDate);
+    if (req.body.endDate) params.append('endDate', req.body.endDate);
+    if (req.body.company) params.append('company', req.body.company);
+    if (req.body.dnum) params.append('dnum', req.body.dnum);
+    if (req.body.page) params.append('page', req.body.page);
+
+    const response = await axios.post(apiUrl, params.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ SMS list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '문자리스트 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

@@ -1427,6 +1427,78 @@ document.addEventListener('DOMContentLoaded', function() {
     btnSmsList.addEventListener('click', function() {
       const modal = new bootstrap.Modal(document.getElementById('smsListModal'));
       modal.show();
+      
+      // 필터 초기화 및 기본값 설정
+      const today = new Date();
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(today.getMonth() - 1);
+      
+      const startDateInput = document.getElementById('smsStartDate');
+      const endDateInput = document.getElementById('smsEndDate');
+      
+      if (startDateInput) {
+        startDateInput.value = oneMonthAgo.toISOString().split('T')[0];
+      }
+      if (endDateInput) {
+        endDateInput.value = today.toISOString().split('T')[0];
+      }
+      
+      // 검색 방식 변경 이벤트
+      const smsSort = document.getElementById('smsSort');
+      if (smsSort) {
+        smsSort.addEventListener('change', function() {
+          const sortValue = this.value;
+          const phoneFilter = document.getElementById('smsPhoneFilter');
+          const dateStartFilter = document.getElementById('smsDateStartFilter');
+          const dateEndFilter = document.getElementById('smsDateEndFilter');
+          const companyFilter = document.getElementById('smsCompanyFilter');
+          
+          // 모든 필터 숨기기
+          if (phoneFilter) phoneFilter.style.display = 'none';
+          if (dateStartFilter) dateStartFilter.style.display = 'none';
+          if (dateEndFilter) dateEndFilter.style.display = 'none';
+          if (companyFilter) companyFilter.style.display = 'none';
+          
+          // 선택된 방식에 따라 필터 표시
+          if (sortValue === '1') {
+            if (phoneFilter) phoneFilter.style.display = 'block';
+          } else if (sortValue === '2') {
+            if (dateStartFilter) dateStartFilter.style.display = 'block';
+            if (dateEndFilter) dateEndFilter.style.display = 'block';
+          } else if (sortValue === '3') {
+            if (companyFilter) companyFilter.style.display = 'block';
+          }
+        });
+        
+        // 초기 상태 설정
+        smsSort.dispatchEvent(new Event('change'));
+      }
+      
+      // 조회 버튼 이벤트
+      const btnSmsSearch = document.getElementById('btnSmsSearch');
+      if (btnSmsSearch) {
+        btnSmsSearch.addEventListener('click', function() {
+          smsListSearch(1);
+        });
+      }
+      
+      // 엔터키 검색
+      const smsPhone = document.getElementById('smsPhone');
+      const smsCompany = document.getElementById('smsCompany');
+      if (smsPhone) {
+        smsPhone.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            smsListSearch(1);
+          }
+        });
+      }
+      if (smsCompany) {
+        smsCompany.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            smsListSearch(1);
+          }
+        });
+      }
     });
   }
 });
@@ -2543,6 +2615,153 @@ function mothlyC_PremiumUpdate(inputElement, smsDataNum) {
   console.log('C보험료 업데이트:', inputElement.value, smsDataNum);
   // TODO: API 호출 구현
   alert('C보험료 업데이트 기능은 구현 중입니다.');
+}
+
+// 문자리스트 조회 함수
+async function smsListSearch(page = 1) {
+  const sort = document.getElementById('smsSort')?.value || '2';
+  const phone = document.getElementById('smsPhone')?.value || '';
+  const startDate = document.getElementById('smsStartDate')?.value || '';
+  const endDate = document.getElementById('smsEndDate')?.value || '';
+  const company = document.getElementById('smsCompany')?.value || '';
+  
+  const params = new URLSearchParams();
+  params.append('sort', sort);
+  params.append('page', page);
+  if (phone) params.append('phone', phone);
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  if (company) params.append('company', company);
+  
+  try {
+    const response = await fetch('/api/insurance/kj-sms/list', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString()
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      alert('문자리스트 조회 중 오류가 발생했습니다: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+    
+    // 총 개수 표시
+    const totalCountEl = document.getElementById('smsTotalCount');
+    if (totalCountEl) {
+      totalCountEl.textContent = result.totalRecords || 0;
+    }
+    
+    // 테이블 렌더링
+    renderSmsListTable(result.data || [], result.page || 1, result.totalPages || 1, result.totalRecords || 0);
+    
+    // 페이지네이션 렌더링
+    renderSmsListPagination(result.page || 1, result.totalPages || 1);
+    
+  } catch (error) {
+    console.error('문자리스트 조회 오류:', error);
+    alert('문자리스트 조회 중 오류가 발생했습니다: ' + error.message);
+  }
+}
+
+// 문자리스트 테이블 렌더링
+function renderSmsListTable(data, currentPage, totalPages, totalRecords) {
+  const tbody = document.getElementById('smsListTableBody');
+  if (!tbody) return;
+  
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">데이터가 없습니다.</td></tr>';
+    return;
+  }
+  
+  const perPage = 20;
+  const startIndex = (currentPage - 1) * perPage;
+  
+  tbody.innerHTML = data.map((item, index) => {
+    const phone = `${item.Rphone1 || ''}-${item.Rphone2 || ''}-${item.Rphone3 || ''}`;
+    const msg = (item.Msg || '').replace(/\n/g, '<br>');
+    const lastTime = formatSmsDateTime(item.LastTime || '');
+    
+    return `
+      <tr>
+        <td>${startIndex + index + 1}</td>
+        <td>${phone}</td>
+        <td style="word-break: break-word;">${msg}</td>
+        <td>${lastTime}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// SMS 날짜/시간 포맷팅
+function formatSmsDateTime(dateStr) {
+  if (!dateStr || dateStr.length < 14) return '-';
+  
+  const year = dateStr.substring(0, 4);
+  const month = dateStr.substring(4, 6);
+  const day = dateStr.substring(6, 8);
+  const hour = dateStr.substring(8, 10);
+  const minute = dateStr.substring(10, 12);
+  const second = dateStr.substring(12, 14);
+  
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
+
+// 문자리스트 페이지네이션 렌더링
+function renderSmsListPagination(currentPage, totalPages) {
+  const paginationEl = document.getElementById('smsPagination');
+  if (!paginationEl) return;
+  
+  if (totalPages <= 1) {
+    paginationEl.innerHTML = '';
+    return;
+  }
+  
+  let html = '<nav><ul class="pagination pagination-sm mb-0">';
+  
+  // 이전 페이지
+  html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+    <a class="page-link" href="#" onclick="smsListSearch(${currentPage - 1}); return false;">이전</a>
+  </li>`;
+  
+  // 페이지 번호
+  const startPage = Math.max(1, currentPage - 2);
+  const endPage = Math.min(totalPages, currentPage + 2);
+  
+  if (startPage > 1) {
+    html += `<li class="page-item"><a class="page-link" href="#" onclick="smsListSearch(1); return false;">1</a></li>`;
+    if (startPage > 2) {
+      html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+    }
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+      <a class="page-link" href="#" onclick="smsListSearch(${i}); return false;">${i}</a>
+    </li>`;
+  }
+  
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+    }
+    html += `<li class="page-item"><a class="page-link" href="#" onclick="smsListSearch(${totalPages}); return false;">${totalPages}</a></li>`;
+  }
+  
+  // 다음 페이지
+  html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+    <a class="page-link" href="#" onclick="smsListSearch(${currentPage + 1}); return false;">다음</a>
+  </li>`;
+  
+  html += '</ul></nav>';
+  paginationEl.innerHTML = html;
 }
 
 // 요율 상세 설명 모달 열기
