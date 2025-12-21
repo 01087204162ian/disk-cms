@@ -1890,18 +1890,8 @@ function todayPopulateCertiList(data) {
     });
   }
   
-  // 현재 상황 업데이트
-  const currentSituation = document.getElementById('daily_currentSituation');
-  if (currentSituation && data.pushCounts) {
-    let situationHTML = '';
-    if (data.pushCounts.subscription) situationHTML += `청약:${data.pushCounts.subscription} `;
-    if (data.pushCounts.subscriptionCancel) situationHTML += `청약취소:${data.pushCounts.subscriptionCancel} `;
-    if (data.pushCounts.subscriptionReject) situationHTML += `청약거절:${data.pushCounts.subscriptionReject} `;
-    if (data.pushCounts.termination) situationHTML += `해지:${data.pushCounts.termination} `;
-    if (data.pushCounts.terminationCancel) situationHTML += `해지취소:${data.pushCounts.terminationCancel} `;
-    if (data.pushCounts.total) situationHTML += `계:${data.pushCounts.total}`;
-    currentSituation.innerHTML = situationHTML;
-  }
+  // 통계 업데이트는 dailyEndorseRequest 함수에서 실제 리스트 데이터를 기반으로 계산하므로
+  // 여기서는 업데이트하지 않음 (certi-list API의 pushCounts는 전체 증권 기준이므로 불일치 발생)
   
   // change 이벤트 리스너 추가
   selectElement.onchange = function() {
