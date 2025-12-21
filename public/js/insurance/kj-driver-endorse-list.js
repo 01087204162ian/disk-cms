@@ -2188,7 +2188,12 @@ function processEndorseData(result, dateStr) {
   }
   
   let reportHTML = `<div class="report-container">
-    <h3>${formattedDate} (${dayOfWeek}) 배서현황</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="mb-0">${formattedDate} (${dayOfWeek}) 배서현황</h3>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="btnCopyEndorseStatus" title="배서현황 내용을 클립보드에 복사합니다">
+        <i class="fas fa-copy me-1"></i>복사
+      </button>
+    </div>
     <div class="report-section">
       <h4>*대리 가입자</h4>
       <ul>`;
@@ -2248,11 +2253,6 @@ function processEndorseData(result, dateStr) {
       <p>금일 가입자 중 할증자는 ${haldungCount} 명입니다.</p>
       <p>보험료 파일은 정리하여 메일로 발송하겠습니다.</p>
     </div>
-  </div>
-  <div class="text-end mt-3">
-    <button type="button" class="btn btn-sm btn-outline-primary" id="btnCopyEndorseStatus" title="배서현황 내용을 클립보드에 복사합니다">
-      <i class="fas fa-copy me-1"></i>복사
-    </button>
   </div>`;
   
   console.log('생성된 HTML:', reportHTML);
