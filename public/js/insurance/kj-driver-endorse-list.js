@@ -1611,7 +1611,13 @@ async function dailyEndorseRequest(page = 1, selectedDate = null, dNum = '', pol
             <td>${InsuranceCompany}</td>
             <td>${item.company || ''}</td>
             <td>${item.Rphone1 || ''}-${item.Rphone2 || ''}-${item.Rphone3 || ''}</td>
-            <td>${item.rate || ''}</td>
+            <td>
+              <a href="#" class="rate-detail-link text-primary" 
+                 data-rate="${item.rate || '1'}" 
+                 style="cursor: pointer; text-decoration: underline;">
+                ${item.rate || '1'}
+              </a>
+            </td>
             <td class="kje-preiminum" style="padding: 0;"><input type='text' id='mothly-${item.SeqNo}' value="${formattedPreminum}" class='premium-input'   
               onkeypress="if(event.key === 'Enter') { mothlyPremiumUpdate(this, ${item.SeqNo}); return false; }" autocomplete="off"></td>
             <td class="kje-preiminum" style="padding: 0;"><input type='text' id='mothlyC-${item.SeqNo}' value="${formattedC_preminum}" class='premium-input'   
@@ -1623,6 +1629,16 @@ async function dailyEndorseRequest(page = 1, selectedDate = null, dNum = '', pol
       });
       
       m_dailyEndoseElement.innerHTML = m_smsList;
+      
+      // 요율 상세 설명 모달 이벤트 리스너 추가
+      const rateDetailLinks = m_dailyEndoseElement.querySelectorAll('a.rate-detail-link');
+      rateDetailLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const rateCode = link.getAttribute('data-rate');
+          openRateDetailModal(rateCode);
+        });
+      });
       
       // 페이징 UI 생성 및 추가
       createEPagination(totalPages, currentPage, selectedDay);
@@ -2155,5 +2171,87 @@ function mothlyC_PremiumUpdate(inputElement, smsDataNum) {
   console.log('C보험료 업데이트:', inputElement.value, smsDataNum);
   // TODO: API 호출 구현
   alert('C보험료 업데이트 기능은 구현 중입니다.');
+}
+
+// 요율 상세 설명 모달 열기
+function openRateDetailModal(rateCode) {
+  const rateCodeNum = parseInt(rateCode) || 1;
+  
+  // 공통 모듈에서 요율 정보 가져오기
+  const rateValue = window.KJConstants 
+    ? window.KJConstants.getRateValue(rateCodeNum)
+    : 1.000;
+  const rateName = window.KJConstants
+    ? window.KJConstants.getRateName(rateCodeNum)
+    : '기본';
+  
+  const modalBody = document.getElementById('rateDetailModalBody');
+  if (!modalBody) return;
+  
+  // 모달 내용 생성
+  let content = `
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="card-title mb-4">
+          <span class="badge bg-primary me-2">요율 코드: ${rateCodeNum}</span>
+          <span class="badge bg-info">요율: ${rateValue.toFixed(3)}</span>
+        </h5>
+        <div class="alert alert-light border-start border-primary border-4" role="alert">
+          <h6 class="alert-heading mb-2">
+            <i class="fas fa-info-circle me-2 text-primary"></i>요율 설명
+          </h6>
+          <p class="mb-0" style="font-size: 1rem; line-height: 1.6;">
+            ${rateName}
+          </p>
+        </div>
+        
+        <div class="mt-4">
+          <h6 class="mb-3">할인할증 요율 전체 목록</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 80px;">코드</th>
+                  <th style="width: 100px;">요율</th>
+                  <th>설명</th>
+                </tr>
+              </thead>
+              <tbody>
+  `;
+  
+  // 모든 요율 목록 추가
+  if (window.KJConstants && window.KJConstants.RATE_OPTIONS) {
+    window.KJConstants.RATE_OPTIONS.forEach(opt => {
+      if (opt.value !== '-1') {
+        const code = parseInt(opt.value);
+        const value = window.KJConstants.getRateValue(code);
+        const name = window.KJConstants.getRateName(code);
+        const isSelected = code === rateCodeNum;
+        
+        content += `
+          <tr ${isSelected ? 'class="table-primary"' : ''}>
+            <td class="text-center">${code}</td>
+            <td class="text-center"><strong>${value.toFixed(3)}</strong></td>
+            <td>${name}</td>
+          </tr>
+        `;
+      }
+    });
+  }
+  
+  content += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  modalBody.innerHTML = content;
+  
+  // 모달 표시
+  const modal = new bootstrap.Modal(document.getElementById('rateDetailModal'));
+  modal.show();
 }
 

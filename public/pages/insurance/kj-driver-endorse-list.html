@@ -428,7 +428,27 @@
               </tbody>
             </table>
           </div>
-          <div id="sms-pagination" class="mt-3"></div>
+          <div id="sms-pagination" class="mt-5 mb-3"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 요율 상세 설명 모달 -->
+  <div class="modal fade" id="rateDetailModal" tabindex="-1" aria-labelledby="rateDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+          <h5 class="modal-title" id="rateDetailModalLabel">
+            <i class="fas fa-percent me-2"></i>할인할증 요율 상세 설명
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body" id="rateDetailModalBody" style="max-height: 70vh; overflow-y: auto;">
+          <!-- 내용은 JavaScript에서 동적으로 생성 -->
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
