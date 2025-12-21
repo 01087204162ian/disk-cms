@@ -1518,6 +1518,53 @@ async function dailyEndorseRequest(page = 1, selectedDate = null, dNum = '', pol
       const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
       const currentPageItems = result.data.slice(startIndex, endIndex);
       
+      // 통계 계산 (실제 리스트 데이터 기반)
+      const pushCounts = {
+        subscription: 0,
+        subscriptionCancel: 0,
+        subscriptionReject: 0,
+        termination: 0,
+        terminationCancel: 0,
+        total: result.data.length
+      };
+      
+      result.data.forEach(item => {
+        const push = String(item.push);
+        if (push === '1') {
+          // 청약 상태인 경우 cancel 값 확인
+          const cancel = String(item.cancel || '');
+          if (cancel === '12') {
+            pushCounts.subscriptionCancel++;
+          } else if (cancel === '13') {
+            pushCounts.subscriptionReject++;
+          } else {
+            pushCounts.subscription++;
+          }
+        } else if (push === '2') {
+          pushCounts.termination++;
+        } else if (push === '4') {
+          const cancel = String(item.cancel || '');
+          if (cancel === '45') {
+            pushCounts.terminationCancel++;
+          } else {
+            pushCounts.subscription++;
+          }
+        }
+      });
+      
+      // 통계 정보 업데이트
+      const currentSituation = document.getElementById('daily_currentSituation');
+      if (currentSituation) {
+        let situationHTML = '';
+        if (pushCounts.subscription) situationHTML += `청약:${pushCounts.subscription} `;
+        if (pushCounts.subscriptionCancel) situationHTML += `청약취소:${pushCounts.subscriptionCancel} `;
+        if (pushCounts.subscriptionReject) situationHTML += `청약거절:${pushCounts.subscriptionReject} `;
+        if (pushCounts.termination) situationHTML += `해지:${pushCounts.termination} `;
+        if (pushCounts.terminationCancel) situationHTML += `해지취소:${pushCounts.terminationCancel} `;
+        if (pushCounts.total) situationHTML += `계:${pushCounts.total}`;
+        currentSituation.innerHTML = situationHTML;
+      }
+      
       // 현재 페이지 데이터 행 추가
       currentPageItems.forEach((item, index) => {
         const lastTime = item.LastTime || '';
