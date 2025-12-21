@@ -1378,12 +1378,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const today = new Date();
       const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
       const dateInput = document.getElementById('dailyDate');
-      if (dateInput && !dateInput.value) {
+      if (dateInput) {
         dateInput.value = todayStr;
-      }
-      // 초기 데이터 로드
-      if (dateInput && dateInput.value) {
-        dailyEndorseRequest(1, dateInput.value, '', '', 1);
+        // 모달 열 때 당일 데이터 자동 조회
+        dailyEndorseRequest(1, todayStr, '', '', 1);
       }
     });
   }
@@ -1407,20 +1405,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // 일일배서리스트 조회 버튼
-  const btnDailyEndorseSearch = document.getElementById('btnDailyEndorseSearch');
-  if (btnDailyEndorseSearch) {
-    btnDailyEndorseSearch.addEventListener('click', function() {
-      const dateInput = document.getElementById('dailyDate');
-      const dNum = document.getElementById('daily_endorse_dNumList')?.value || '';
-      const policyNum = document.getElementById('daily_endorse_certiList')?.value || '';
-      
-      let sort = 1;
-      if (dNum && policyNum) sort = 3;
-      else if (dNum) sort = 2;
-      
-      const selectedDate = dateInput?.value || null;
-      dailyEndorseRequest(1, selectedDate, dNum, policyNum, sort);
+  // 일일배서리스트 날짜 필터 변경 시 자동 조회
+  const dailyDateInput = document.getElementById('dailyDate');
+  if (dailyDateInput) {
+    dailyDateInput.addEventListener('change', function() {
+      const selectedDate = this.value;
+      if (selectedDate) {
+        const dNum = document.getElementById('daily_endorse_dNumList')?.value || '';
+        const policyNum = document.getElementById('daily_endorse_certiList')?.value || '';
+        
+        let sort = 1;
+        if (dNum && policyNum) sort = 3;
+        else if (dNum) sort = 2;
+        
+        dailyEndorseRequest(1, selectedDate, dNum, policyNum, sort);
+      }
     });
   }
 
