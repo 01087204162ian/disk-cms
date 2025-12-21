@@ -60,7 +60,7 @@
 
 ## 백엔드 API 구조
 
-### PHP API 파일 (27개)
+### PHP API 파일 (33개)
 
 #### 업체 관리 (3개)
 - `kj-company-list.php` - 업체 목록 조회
@@ -86,6 +86,16 @@
 - `kj-endorse-termination.php` - 해지 신청
 - `kj-endorse-policy-list.php` - 증권번호 목록
 - `kj-endorse-company-list.php` - 대리운전회사 목록
+
+#### 일일배서 처리 (5개)
+- `kj-daily-endorse-search.php` - 일일배서리스트 조회
+- `kj-daily-endorse-company-list.php` - 일일배서 대리운전회사 목록
+- `kj-daily-endorse-certi-list.php` - 일일배서 증권번호 목록
+- `kj-daily-endorse-status.php` - 배서현황 조회 (검토 버튼용)
+- `kj-daily-endorse-current-situation.php` - 일일배서현황 조회 (요일별 평균)
+
+#### 문자(SMS) 처리 (1개)
+- `kj-sms-list.php` - 문자리스트 조회
 
 #### 보험료 관리 (6개)
 - `kj-policy-stats.php` - 증권별 보험료 통계 (담당자별 지원)
@@ -285,6 +295,22 @@
 | GET | `/api/insurance/kj-endorse/company-list` | 대리운전회사 목록 |
 | POST | `/api/insurance/kj-endorse/rate-update` | 할인할증률 업데이트 |
 
+### 일일배서 관련
+
+| 메서드 | 엔드포인트 | 설명 |
+|--------|-----------|------|
+| POST | `/api/insurance/kj-daily-endorse/search` | 일일배서리스트 조회 |
+| GET | `/api/insurance/kj-daily-endorse/company-list` | 일일배서 대리운전회사 목록 |
+| GET | `/api/insurance/kj-daily-endorse/certi-list` | 일일배서 증권번호 목록 |
+| POST | `/api/insurance/kj-daily-endorse/status` | 배서현황 조회 (검토 버튼용) |
+| POST | `/api/insurance/kj-daily-endorse/current-situation` | 일일배서현황 조회 (요일별 평균) |
+
+### 문자(SMS) 관련
+
+| 메서드 | 엔드포인트 | 설명 |
+|--------|-----------|------|
+| POST | `/api/insurance/kj-sms/list` | 문자리스트 조회 (날짜 범위/전화번호/대리운전회사) |
+
 ### 보험료 관련
 
 | 메서드 | 엔드포인트 | 설명 |
@@ -456,6 +482,77 @@ cms/
 
 ---
 
-**문서 버전**: 1.0  
+## 📅 작업 이력
+
+### 2025-12-20
+
+#### ✅ 완료된 작업
+
+1. **일일배서현황 기능 추가**
+   - 배서현황 버튼 클릭 시 새로운 일일배서현황 모달 표시
+   - 날짜 범위 검색 기능 (시작일/종료일)
+   - 요일별 평균 데이터 테이블 (이전 달 vs 현재 달 비교)
+   - 월별 총 평균 계산
+   - 일별 상세 데이터 테이블 (두 열로 표시)
+   - **새 API**: `kj-daily-endorse-current-situation.php`
+   - **프록시**: `POST /api/insurance/kj-daily-endorse/current-situation`
+
+2. **문자리스트 모달 완성**
+   - 검색 방식 선택 (날짜 범위/전화번호/대리운전회사)
+   - 날짜 범위 검색 (기본값: 한 달 전 ~ 오늘)
+   - 전화번호 검색 시 하이푼 자동 추가 기능
+   - SMS 메시지 목록 테이블 표시
+   - 페이지네이션 (페이지당 15개)
+   - 모달 열 때 자동 조회 기능
+   - 필터 레이블 제거 및 풋터 제거
+   - **새 API**: `kj-sms-list.php`
+   - **프록시**: `POST /api/insurance/kj-sms/list`
+
+3. **일일배서리스트 모달 개선**
+   - 모달 열 때 필터 초기화 (날짜: 오늘, 대리운전회사: 빈 값, 증권번호: 빈 값)
+   - 대리운전회사 목록에서 케이드라이브(dNum: "653") 항상 최상단 표시
+   - 검토 버튼 모달과 독립적으로 동작 (기존 기능 유지)
+
+4. **배서현황 모달 개선**
+   - 일일배서리스트 모달과 side-by-side 표시 기능
+   - 두 모달 동시 표시 시 서로 닫히지 않도록 개선
+   - z-index 조정으로 클릭 가능성 보장
+   - 복사 버튼 상단 배치
+
+#### 📁 생성/수정된 파일
+
+**새로 생성된 파일**:
+- `pci0327/api/insurance/kj-daily-endorse-current-situation.php` - 일일배서현황 조회 API
+- `pci0327/api/insurance/kj-sms-list.php` - 문자리스트 조회 API
+
+**수정된 파일**:
+- `disk-cms/public/pages/insurance/kj-driver-endorse-list.html` - 일일배서현황 모달, 문자리스트 모달 UI 개선
+- `disk-cms/public/js/insurance/kj-driver-endorse-list.js` - 일일배서현황, 문자리스트 기능 구현
+- `disk-cms/routes/insurance/kj-driver-company.js` - 일일배서현황, 문자리스트 API 프록시 추가
+
+#### 🔧 기술 세부사항
+
+**일일배서현황 데이터 처리**:
+- 날짜 범위별 배서 데이터 집계
+- 이전 달과 현재 달 데이터 분리
+- 요일별 평균 계산 (월~일)
+- 월별 총 평균 계산
+- 일별 상세 데이터 표시
+
+**문자리스트 검색 기능**:
+- 날짜 범위 검색: `LastTime` 필드 기준
+- 전화번호 검색: `Rphone1`, `Rphone2`, `Rphone3` 필드로 검색
+- 대리운전회사 검색: 회사명 LIKE 검색
+- 페이지당 15개 항목 표시
+
+**모달 상호작용 개선**:
+- `backdrop: false` 또는 `backdrop: 'static'` 설정
+- 커스텀 backdrop 관리
+- z-index 조정 (일일배서리스트: 1055, 배서현황: 1057)
+- `hide.bs.modal` 이벤트 차단 로직
+
+---
+
+**문서 버전**: 1.1  
 **최종 업데이트**: 2025-12-20
 
