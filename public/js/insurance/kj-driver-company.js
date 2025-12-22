@@ -264,6 +264,19 @@
   // 공통 모듈(kj-company-modal.js)을 사용합니다.
   // 모달 열기: window.KJCompanyModal.openCompanyModal(companyNum, companyName, skipShow)
 
+  // 신규 등록 버튼 클릭 이벤트
+  const addCompanyBtn = document.getElementById('addCompany');
+  if (addCompanyBtn) {
+    addCompanyBtn.addEventListener('click', () => {
+      // 신규 등록 모달 열기
+      if (window.KJCompanyModal && window.KJCompanyModal.openNewCompanyModal) {
+        window.KJCompanyModal.openNewCompanyModal();
+      } else {
+        alert('신규 등록 기능을 준비 중입니다.');
+      }
+    });
+  }
+
   // ==================== 초기화 실행 ====================
 
   // 페이지 로드 시 초기화

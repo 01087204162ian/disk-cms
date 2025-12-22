@@ -961,6 +961,69 @@ router.post('/kj-company/check-id', async (req, res) => {
   }
 });
 
+// 주민번호로 회사 조회
+router.get('/kj-company/check-jumin', async (req, res) => {
+  try {
+    const { jumin } = req.query;
+    if (!jumin) {
+      return res.status(400).json({
+        exists: false,
+        error: '주민번호가 필요합니다.'
+      });
+    }
+
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-check-jumin.php`;
+    const response = await axios.get(apiUrl, {
+      params: { jumin },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company check-jumin proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      exists: false,
+      error: '주민번호 확인 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 신규 회사 저장/수정
+router.post('/kj-company/store', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-company-store.php`;
+    
+    // FormData 형식으로 전송
+    const formData = new URLSearchParams();
+    if (req.body.jumin) formData.append('jumin', req.body.jumin);
+    if (req.body.company) formData.append('company', req.body.company);
+    if (req.body.Pname) formData.append('Pname', req.body.Pname);
+    if (req.body.hphone) formData.append('hphone', req.body.hphone);
+    if (req.body.cphone) formData.append('cphone', req.body.cphone);
+    if (req.body.cNumber) formData.append('cNumber', req.body.cNumber);
+    if (req.body.lNumber) formData.append('lNumber', req.body.lNumber);
+    if (req.body.dNum) formData.append('dNum', req.body.dNum);
+
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ company store proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '회사 저장 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 // 신규 아이디 저장
 router.post('/kj-company/id-save', async (req, res) => {
   try {

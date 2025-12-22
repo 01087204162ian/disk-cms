@@ -692,12 +692,422 @@
     });
   };
 
+  // ==================== 신규 등록 모달 ====================
+
+  // 신규 등록 모달 열기
+  const openNewCompanyModal = () => {
+    const modalElement = document.getElementById('companyInfoModal');
+    const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    const modalBody = document.getElementById('companyInfoModalBody');
+    
+    // 모달 제목 변경
+    const modalTitle = document.getElementById('companyInfoModalLabel');
+    if (modalTitle) {
+      modalTitle.textContent = '대리운전회사 신규 등록';
+    }
+    
+    // 신규 등록 모드 표시
+    modalElement.dataset.isNewCompany = 'true';
+    modalElement.dataset.currentCompanyNum = '';
+    
+    // 신규 등록 폼 렌더링
+    modalBody.innerHTML = `
+      <div class="mb-3">
+        <h6>기본 정보</h6>
+        <div class="row">
+          <div class="col-12">
+            <table class="table table-sm table-bordered mb-0">
+              <tr>
+                <th class="bg-light" style="width: 15%;">주민번호 <span class="text-danger">*</span></th>
+                <td style="width: 20%;">
+                  <input type="text" class="form-control form-control-sm" id="d_Jumin" 
+                         placeholder="660327-1069017" 
+                         maxlength="14"
+                         autocomplete="off">
+                  <small class="text-muted">주민번호 입력 후 엔터키를 눌러주세요.</small>
+                </td>
+                <th class="bg-light" style="width: 15%;">대리운전회사 <span class="text-danger">*</span></th>
+                <td style="width: 20%;">
+                  <input type="text" class="form-control form-control-sm" id="d_company" 
+                         placeholder="회사명" autocomplete="off">
+                </td>
+                <th class="bg-light" style="width: 15%;">성명 <span class="text-danger">*</span></th>
+                <td style="width: 15%;">
+                  <input type="text" class="form-control form-control-sm" id="d_Pname" 
+                         placeholder="대표자명" autocomplete="off">
+                </td>
+              </tr>
+              <tr>
+                <th class="bg-light">핸드폰번호</th>
+                <td>
+                  <input type="text" class="form-control form-control-sm" id="daeri_hphone" 
+                         placeholder="010-1234-5678" autocomplete="off">
+                </td>
+                <th class="bg-light">전화번호</th>
+                <td>
+                  <input type="text" class="form-control form-control-sm" id="d_cphone" 
+                         placeholder="02-1234-5678" autocomplete="off">
+                </td>
+                <th class="bg-light">사업자번호</th>
+                <td>
+                  <input type="text" class="form-control form-control-sm" id="d_cNumber" 
+                         placeholder="사업자번호" autocomplete="off">
+                </td>
+              </tr>
+              <tr>
+                <th class="bg-light">법인번호</th>
+                <td colspan="5">
+                  <input type="text" class="form-control form-control-sm" id="d_lNumber" 
+                         placeholder="법인번호" autocomplete="off">
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-info" id="juminCheckResult" style="display: none;">
+        <i class="fas fa-info-circle"></i> <span id="juminCheckMessage"></span>
+      </div>
+      <hr>
+      <div class="mb-3">
+        <h6>증권 정보</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered" style="font-size: 0.85rem;">
+            <thead class="thead-light">
+              <tr>
+                <th style="width: 4%;">순번</th>
+                <th style="width: 8%;">보험사</th>
+                <th style="width: 6%;">시작일</th>
+                <th style="width: 10%;">증권번호</th>
+                <th style="width: 5%;">분납</th>
+                <th style="width: 7%;">저장</th>
+                <th style="width: 9%;">회차</th>
+                <th style="width: 6%;">상태</th>
+                <th style="width: 6%;">인원</th>
+                <th style="width: 6%;">신규<br>입력</th>
+                <th style="width: 6%;">운전자<Br>추가</th>
+                <th style="width: 7%;">결제<Br>방식</th>
+                <th style="width: 7%;">월보험료</th>
+                <th style="width: 11%;">성격</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${renderCertiRow({}, 0, true)}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    
+    modal.show();
+    
+    // 주민번호 입력 필드에 이벤트 리스너 추가
+    setupNewCompanyModalEvents();
+  };
+
+  // 신규 등록 모달 이벤트 설정
+  const setupNewCompanyModalEvents = () => {
+    const juminInput = document.getElementById('d_Jumin');
+    const companyInput = document.getElementById('d_company');
+    const pnameInput = document.getElementById('d_Pname');
+    const hphoneInput = document.getElementById('daeri_hphone');
+    const cphoneInput = document.getElementById('d_cphone');
+    const cNumberInput = document.getElementById('d_cNumber');
+    const lNumberInput = document.getElementById('d_lNumber');
+    
+    // 주민번호 검증 결과 저장
+    const juminCheckResult = {
+      checked: false,
+      exists: false,
+      dNum: null,
+      isValid: false
+    };
+
+    // 주민번호 입력 필드 포맷팅 및 검증
+    if (juminInput) {
+      // 주민번호 하이픈 자동 추가
+      juminInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 6) {
+          value = value.substring(0, 6) + '-' + value.substring(6, 13);
+        }
+        e.target.value = value;
+        
+        // 형식 검증
+        const juminRegex = /^\d{6}-\d{7}$/;
+        juminCheckResult.isValid = juminRegex.test(value);
+        
+        // 검증 결과 초기화
+        if (juminCheckResult.checked) {
+          juminCheckResult.checked = false;
+          juminCheckResult.exists = false;
+          juminCheckResult.dNum = null;
+          const resultDiv = document.getElementById('juminCheckResult');
+          if (resultDiv) resultDiv.style.display = 'none';
+        }
+      });
+
+      // 엔터키로 주민번호 검증
+      juminInput.addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          
+          const juminValue = juminInput.value.trim();
+          
+          // 형식 검증
+          const juminRegex = /^\d{6}-\d{7}$/;
+          if (!juminRegex.test(juminValue)) {
+            alert('주민번호 형식이 올바르지 않습니다. 예: 660327-1069017');
+            juminInput.focus();
+            return;
+          }
+
+          // 주민번호 유효성 검사 (체크섬)
+          const validateFunc = typeof validateJumin === 'function' ? validateJumin : 
+                              (typeof window !== 'undefined' && typeof window.validateJumin === 'function' ? window.validateJumin : null);
+          
+          if (validateFunc) {
+            const validation = validateFunc(juminValue);
+            if (!validation.valid) {
+              alert('주민번호가 유효하지 않습니다.\n' + validation.message);
+              juminInput.focus();
+              return;
+            }
+          }
+
+          // 서버에서 주민번호로 기존 회사 조회
+          try {
+            const resultDiv = document.getElementById('juminCheckResult');
+            const resultMessage = document.getElementById('juminCheckMessage');
+            
+            if (resultDiv && resultMessage) {
+              resultDiv.style.display = 'block';
+              resultDiv.className = 'alert alert-info';
+              resultMessage.textContent = '주민번호 확인 중...';
+            }
+
+            const response = await fetch(`/api/insurance/kj-company/check-jumin?jumin=${encodeURIComponent(juminValue)}`);
+            const data = await response.json();
+
+            juminCheckResult.checked = true;
+            juminCheckResult.exists = data.exists || false;
+            juminCheckResult.dNum = data.dNum || null;
+
+            if (data.exists && data.dNum) {
+              // 기존 회사 존재 - 해당 회사 정보 불러오기
+              if (resultDiv && resultMessage) {
+                resultDiv.className = 'alert alert-warning';
+                resultMessage.textContent = '이미 등록된 주민번호입니다. 기존 회사 정보를 불러옵니다.';
+              }
+              
+              alert('이미 등록된 주민번호입니다. 기존 회사 정보를 불러옵니다.');
+              
+              // 기존 회사 정보 불러오기
+              setTimeout(() => {
+                window.KJCompanyModal.openCompanyModal(data.dNum, '', false);
+              }, 300);
+            } else {
+              // 신규 등록 가능
+              if (resultDiv && resultMessage) {
+                resultDiv.className = 'alert alert-success';
+                resultMessage.textContent = '신규 등록 가능한 주민번호입니다.';
+              }
+              
+              alert('신규 등록 가능한 주민번호입니다.');
+              
+              // 회사명 입력 필드로 포커스 이동
+              if (companyInput) {
+                companyInput.focus();
+              }
+            }
+          } catch (error) {
+            console.error('주민번호 확인 중 오류 발생:', error);
+            alert('주민번호 확인 중 오류가 발생했습니다.');
+            
+            const resultDiv = document.getElementById('juminCheckResult');
+            const resultMessage = document.getElementById('juminCheckMessage');
+            if (resultDiv && resultMessage) {
+              resultDiv.className = 'alert alert-danger';
+              resultMessage.textContent = '주민번호 확인 중 오류가 발생했습니다.';
+            }
+            
+            juminCheckResult.checked = false;
+          }
+        }
+      });
+    }
+
+    // 전화번호 하이픈 자동 추가
+    if (hphoneInput) {
+      hphoneInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 10) {
+          value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+        } else if (value.length > 7) {
+          value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+        } else if (value.length > 3) {
+          value = value.substring(0, 3) + '-' + value.substring(3);
+        }
+        e.target.value = value;
+      });
+    }
+
+    // 저장 버튼 추가 (모달 푸터에)
+    const modalFooter = document.querySelector('#companyInfoModal .modal-footer');
+    if (modalFooter) {
+      // 기존 저장 버튼 제거
+      const existingSaveBtn = modalFooter.querySelector('#saveNewCompanyBtn');
+      if (existingSaveBtn) existingSaveBtn.remove();
+      
+      // 새 저장 버튼 추가
+      const saveBtn = document.createElement('button');
+      saveBtn.id = 'saveNewCompanyBtn';
+      saveBtn.type = 'button';
+      saveBtn.className = 'btn btn-primary';
+      saveBtn.textContent = '저장';
+      saveBtn.addEventListener('click', async () => {
+        await saveNewCompany(juminCheckResult);
+      });
+      
+      // 닫기 버튼 앞에 추가
+      const closeBtn = modalFooter.querySelector('.btn-secondary');
+      if (closeBtn) {
+        modalFooter.insertBefore(saveBtn, closeBtn);
+      } else {
+        modalFooter.appendChild(saveBtn);
+      }
+    }
+  };
+
+  // 신규 회사 저장 함수
+  const saveNewCompany = async (juminCheckResult) => {
+    try {
+      // 주민번호 검증 확인
+      if (!juminCheckResult.checked) {
+        alert('주민번호를 먼저 확인해주세요. (주민번호 입력 후 엔터키)');
+        const juminInput = document.getElementById('d_Jumin');
+        if (juminInput) juminInput.focus();
+        return;
+      }
+
+      if (juminCheckResult.exists) {
+        alert('이미 등록된 주민번호입니다. 기존 회사 정보를 확인해주세요.');
+        return;
+      }
+
+      // 필수 입력 필드 검증
+      const jumin = document.getElementById('d_Jumin')?.value.trim() || '';
+      const company = document.getElementById('d_company')?.value.trim() || '';
+      const Pname = document.getElementById('d_Pname')?.value.trim() || '';
+      const hphone = document.getElementById('daeri_hphone')?.value.trim() || '';
+      const cphone = document.getElementById('d_cphone')?.value.trim() || '';
+      const cNumber = document.getElementById('d_cNumber')?.value.trim() || '';
+      const lNumber = document.getElementById('d_lNumber')?.value.trim() || '';
+
+      if (!jumin) {
+        alert('주민번호는 필수 입력 항목입니다.');
+        document.getElementById('d_Jumin')?.focus();
+        return;
+      }
+
+      if (!company) {
+        alert('대리운전회사명은 필수 입력 항목입니다.');
+        document.getElementById('d_company')?.focus();
+        return;
+      }
+
+      if (!Pname) {
+        alert('대표자는 필수 입력 항목입니다.');
+        document.getElementById('d_Pname')?.focus();
+        return;
+      }
+
+      // 저장 확인
+      if (!confirm('대리운전회사를 신규로 등록하시겠습니까?')) {
+        return;
+      }
+
+      // 저장 버튼 비활성화
+      const saveBtn = document.getElementById('saveNewCompanyBtn');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '저장 중...';
+      }
+
+      // API 호출
+      const response = await fetch('/api/insurance/kj-company/store', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jumin: jumin,
+          company: company,
+          Pname: Pname,
+          hphone: hphone,
+          cphone: cphone,
+          cNumber: cNumber,
+          lNumber: lNumber
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || '저장 실패');
+      }
+
+      // 성공 메시지 표시
+      showSuccessMessage(result.message || '대리운전회사가 신규로 저장되었습니다.');
+
+      // 모달 닫기
+      const modalElement = document.getElementById('companyInfoModal');
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+
+      // 저장된 회사 정보로 모달 다시 열기
+      if (result.dNum) {
+        setTimeout(() => {
+          window.KJCompanyModal.openCompanyModal(result.dNum, company, false);
+        }, 300);
+      }
+
+      // 목록 새로고침 (페이지에 fetchList 함수가 있는 경우)
+      if (typeof fetchList === 'function') {
+        setTimeout(() => {
+          fetchList();
+        }, 500);
+      }
+
+    } catch (error) {
+      console.error('신규 회사 저장 오류:', error);
+      alert('저장 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+      
+      const saveBtn = document.getElementById('saveNewCompanyBtn');
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '저장';
+      }
+    }
+  };
+
   // ==================== 모달 열기 함수 ====================
 
   const openCompanyModal = (companyNum, companyName, skipShow = false) => {
     const modalElement = document.getElementById('companyInfoModal');
     const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
     const modalBody = document.getElementById('companyInfoModalBody');
+    
+    // 모달 제목 복원
+    const modalTitle = document.getElementById('companyInfoModalLabel');
+    if (modalTitle) {
+      modalTitle.textContent = '대리운전회사 정보';
+    }
+    
+    // 신규 등록 모드 해제
+    delete modalElement.dataset.isNewCompany;
     
     // 모달이 이미 열려있고 같은 회사 정보를 로드하는 경우 스킵
     if (!skipShow && modalElement.classList.contains('show')) {
@@ -708,6 +1118,10 @@
     }
     
     modalElement.dataset.currentCompanyNum = String(companyNum);
+    
+    // 신규 등록 저장 버튼 제거
+    const saveBtn = document.getElementById('saveNewCompanyBtn');
+    if (saveBtn) saveBtn.remove();
     
     modalBody.innerHTML = `
       <div class="text-center py-4">
@@ -1868,6 +2282,7 @@
   // window 객체에 모듈 노출
   window.KJCompanyModal = {
     openCompanyModal: openCompanyModal,
+    openNewCompanyModal: openNewCompanyModal,
     renderCompanyModal: renderCompanyModal,
     openMemberListModal: openMemberListModal,
     openEndorseModal: openEndorseModal,
