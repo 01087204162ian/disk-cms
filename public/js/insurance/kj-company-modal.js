@@ -969,6 +969,12 @@
       const existingSaveBtn = modalFooter.querySelector('#saveNewCompanyBtn');
       if (existingSaveBtn) existingSaveBtn.remove();
       
+      // 닫기 버튼 제거 (신규 등록 모달에서는 닫기 버튼 숨김)
+      const closeBtn = modalFooter.querySelector('.btn-secondary');
+      if (closeBtn) {
+        closeBtn.style.display = 'none';
+      }
+      
       // 새 저장 버튼 추가
       const saveBtn = document.createElement('button');
       saveBtn.id = 'saveNewCompanyBtn';
@@ -979,13 +985,7 @@
         await saveNewCompany(juminCheckResult);
       });
       
-      // 닫기 버튼 앞에 추가
-      const closeBtn = modalFooter.querySelector('.btn-secondary');
-      if (closeBtn) {
-        modalFooter.insertBefore(saveBtn, closeBtn);
-      } else {
-        modalFooter.appendChild(saveBtn);
-      }
+      modalFooter.appendChild(saveBtn);
     }
   };
 
@@ -1140,6 +1140,15 @@
     // 신규 등록 저장 버튼 제거
     const saveBtn = document.getElementById('saveNewCompanyBtn');
     if (saveBtn) saveBtn.remove();
+    
+    // 닫기 버튼 다시 표시 (일반 모달에서는 닫기 버튼 필요)
+    const modalFooter = document.querySelector('#companyInfoModal .modal-footer');
+    if (modalFooter) {
+      const closeBtn = modalFooter.querySelector('.btn-secondary');
+      if (closeBtn) {
+        closeBtn.style.display = '';
+      }
+    }
     
     modalBody.innerHTML = `
       <div class="text-center py-4">
