@@ -192,33 +192,38 @@
     // 기본 정보 테이블 HTML
     let html = `
       <div class="mb-3">
-        <h6>기본 정보</h6>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">기본 정보</h6>
+          <button type="button" class="btn btn-sm btn-primary" id="editCompanyInfoBtn">
+            <i class="fas fa-edit"></i> 수정
+          </button>
+        </div>
         <div class="row">
           <div class="col-12">
-            <table class="table table-sm table-bordered mb-0">
+            <table class="table table-sm table-bordered mb-0" id="companyInfoTable">
               <tr>
                 <th class="bg-light">주민번호</th>
-                <td>${company.jumin || ''}</td>
+                <td id="td_jumin">${company.jumin || ''}</td>
                 <th class="bg-light">대리운전회사</th>
-                <td>${company.company || companyName || ''}</td>
+                <td id="td_company">${company.company || companyName || ''}</td>
                 <th class="bg-light">성명</th>
-                <td>${company.Pname || ''}</td>
+                <td id="td_Pname">${company.Pname || ''}</td>
                 <th class="bg-light">핸드폰번호</th>
-                <td>${company.hphone || ''}</td>
+                <td id="td_hphone">${company.hphone || ''}</td>
               </tr>
               <tr>
                 <th class="bg-light">전화번호</th>
-                <td>${company.cphone || ''}</td>
+                <td id="td_cphone">${company.cphone || ''}</td>
                 <th class="bg-light">담당자</th>
                 <td>${company.name || company.damdanga || ''}</td>
                 <th class="bg-light">팩스</th>
                 <td>${company.fax || ''}</td>
                 <th class="bg-light">사업자번호</th>
-                <td>${company.cNumber || ''}</td>
+                <td id="td_cNumber">${company.cNumber || ''}</td>
               </tr>
               <tr>
                 <th class="bg-light">법인번호</th>
-                <td>${company.lNumber || ''}</td>
+                <td id="td_lNumber">${company.lNumber || ''}</td>
                 <th class="bg-light">보험료 받는날</th>
                 <td><input type="date" class="form-control form-control-sm" id="companyFirstStart" value="${company.FirstStart || ''}" style="width: 100%;"></td>
                 <th class="bg-light">업체 I.D</th>
@@ -231,7 +236,7 @@
               </tr>
               <tr>
                 <th class="bg-light">주소</th>
-                <td colspan="7">${company.postNum || ''} ${company.address1 || ''} ${company.address2 || ''}</td>
+                <td colspan="7" id="td_address">${company.postNum || ''} ${company.address1 || ''} ${company.address2 || ''}</td>
               </tr>
             </table>
           </div>
@@ -382,6 +387,287 @@
 
     // 이벤트 핸들러 설정
     setupModalEventHandlers(companyNum, companyName);
+    
+    // 회사 정보 수정 버튼 이벤트 설정
+    setupCompanyInfoEditButton(companyNum, company);
+  };
+
+  // ==================== 회사 정보 수정 기능 ====================
+
+  // 회사 정보 수정 버튼 이벤트 설정
+  const setupCompanyInfoEditButton = (companyNum, companyData) => {
+    const editBtn = document.getElementById('editCompanyInfoBtn');
+    if (!editBtn) return;
+
+    editBtn.addEventListener('click', () => {
+      enterEditMode(companyNum, companyData);
+    });
+  };
+
+  // 수정 모드로 전환
+  const enterEditMode = (companyNum, companyData) => {
+    const company = companyData;
+    
+    // 읽기 전용 셀을 입력 필드로 변경
+    const tdJumin = document.getElementById('td_jumin');
+    const tdCompany = document.getElementById('td_company');
+    const tdPname = document.getElementById('td_Pname');
+    const tdHphone = document.getElementById('td_hphone');
+    const tdCphone = document.getElementById('td_cphone');
+    const tdCNumber = document.getElementById('td_cNumber');
+    const tdLNumber = document.getElementById('td_lNumber');
+
+    if (tdJumin) {
+      tdJumin.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_jumin" value="${company.jumin || ''}" placeholder="660327-1069017" maxlength="14" autocomplete="off">`;
+    }
+    if (tdCompany) {
+      tdCompany.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_company" value="${company.company || ''}" placeholder="회사명" autocomplete="off">`;
+    }
+    if (tdPname) {
+      tdPname.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_Pname" value="${company.Pname || ''}" placeholder="대표자명" autocomplete="off">`;
+    }
+    if (tdHphone) {
+      tdHphone.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_hphone" value="${company.hphone || ''}" placeholder="010-1234-5678" autocomplete="off">`;
+    }
+    if (tdCphone) {
+      tdCphone.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_cphone" value="${company.cphone || ''}" placeholder="02-1234-5678" autocomplete="off">`;
+    }
+    if (tdCNumber) {
+      tdCNumber.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_cNumber" value="${company.cNumber || ''}" placeholder="사업자번호" autocomplete="off">`;
+    }
+    if (tdLNumber) {
+      tdLNumber.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_lNumber" value="${company.lNumber || ''}" placeholder="법인번호" autocomplete="off">`;
+    }
+
+    // 주소 필드 추가
+    const tdAddress = document.getElementById('td_address');
+    if (tdAddress) {
+      tdAddress.innerHTML = `
+        <div class="row g-2">
+          <div class="col-2">
+            <input type="text" class="form-control form-control-sm" id="edit_postNum" value="${company.postNum || ''}" placeholder="우편번호" autocomplete="off">
+          </div>
+          <div class="col-10">
+            <input type="text" class="form-control form-control-sm mb-1" id="edit_address1" value="${company.address1 || ''}" placeholder="기본주소" autocomplete="off">
+            <input type="text" class="form-control form-control-sm" id="edit_address2" value="${company.address2 || ''}" placeholder="상세주소" autocomplete="off">
+          </div>
+        </div>
+      `;
+    }
+
+    // 수정 버튼을 저장/취소 버튼으로 변경
+    const editBtn = document.getElementById('editCompanyInfoBtn');
+    if (editBtn) {
+      editBtn.innerHTML = '<i class="fas fa-save"></i> 저장';
+      editBtn.className = 'btn btn-sm btn-success';
+      editBtn.id = 'saveCompanyInfoBtn';
+      editBtn.onclick = () => saveCompanyInfo(companyNum);
+    }
+
+    // 취소 버튼 추가
+    const buttonContainer = editBtn?.parentElement;
+    if (buttonContainer && !document.getElementById('cancelEditBtn')) {
+      const cancelBtn = document.createElement('button');
+      cancelBtn.id = 'cancelEditBtn';
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'btn btn-sm btn-secondary ms-2';
+      cancelBtn.innerHTML = '<i class="fas fa-times"></i> 취소';
+      cancelBtn.onclick = () => {
+        // 모달 재로드
+        window.KJCompanyModal.openCompanyModal(companyNum, company.company || '', true);
+      };
+      buttonContainer.appendChild(cancelBtn);
+    }
+
+    // 입력 필드 포맷팅 설정
+    setupEditModeFormatting();
+  };
+
+  // 수정 모드 입력 필드 포맷팅 설정
+  const setupEditModeFormatting = () => {
+    // 주민번호 하이픈 자동 추가
+    const juminInput = document.getElementById('edit_jumin');
+    if (juminInput) {
+      juminInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 6) {
+          value = value.substring(0, 6) + '-' + value.substring(6, 13);
+        }
+        e.target.value = value;
+      });
+    }
+
+    // 핸드폰번호 하이픈 자동 추가
+    const hphoneInput = document.getElementById('edit_hphone');
+    if (hphoneInput) {
+      hphoneInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 10) {
+          value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7, 11);
+        } else if (value.length > 7) {
+          value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+        } else if (value.length > 3) {
+          value = value.substring(0, 3) + '-' + value.substring(3);
+        }
+        e.target.value = value;
+      });
+    }
+
+    // 일반전화 하이픈 자동 추가
+    const cphoneInput = document.getElementById('edit_cphone');
+    if (cphoneInput) {
+      cphoneInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 9) {
+          value = value.substring(0, 2) + '-' + value.substring(2, 6) + '-' + value.substring(6, 10);
+        } else if (value.length > 6) {
+          value = value.substring(0, 2) + '-' + value.substring(2, 6) + '-' + value.substring(6);
+        } else if (value.length > 2) {
+          value = value.substring(0, 2) + '-' + value.substring(2);
+        }
+        e.target.value = value;
+      });
+    }
+
+    // 사업자번호 하이픈 자동 추가
+    const cNumberInput = document.getElementById('edit_cNumber');
+    if (cNumberInput) {
+      cNumberInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 10) {
+          value = value.substring(0, 10);
+        }
+        if (value.length > 5) {
+          value = value.substring(0, 3) + '-' + value.substring(3, 5) + '-' + value.substring(5);
+        } else if (value.length > 3) {
+          value = value.substring(0, 3) + '-' + value.substring(3);
+        }
+        e.target.value = value;
+      });
+    }
+
+    // 법인번호 하이픈 자동 추가
+    const lNumberInput = document.getElementById('edit_lNumber');
+    if (lNumberInput) {
+      lNumberInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 13) {
+          value = value.substring(0, 13);
+        }
+        if (value.length > 6) {
+          value = value.substring(0, 6) + '-' + value.substring(6);
+        }
+        e.target.value = value;
+      });
+    }
+  };
+
+  // 회사 정보 저장 함수
+  const saveCompanyInfo = async (companyNum) => {
+    try {
+      // 입력값 가져오기
+      const jumin = document.getElementById('edit_jumin')?.value.trim() || '';
+      const company = document.getElementById('edit_company')?.value.trim() || '';
+      const Pname = document.getElementById('edit_Pname')?.value.trim() || '';
+      const hphone = document.getElementById('edit_hphone')?.value.trim() || '';
+      const cphone = document.getElementById('edit_cphone')?.value.trim() || '';
+      const cNumber = document.getElementById('edit_cNumber')?.value.trim() || '';
+      const lNumber = document.getElementById('edit_lNumber')?.value.trim() || '';
+      const postNum = document.getElementById('edit_postNum')?.value.trim() || '';
+      const address1 = document.getElementById('edit_address1')?.value.trim() || '';
+      const address2 = document.getElementById('edit_address2')?.value.trim() || '';
+
+      // 필수 입력 검증
+      if (!jumin) {
+        alert('주민번호는 필수 입력 항목입니다.');
+        document.getElementById('edit_jumin')?.focus();
+        return;
+      }
+
+      // 주민번호 13자리 확인
+      const juminDigits = jumin.replace(/[^0-9]/g, '');
+      if (juminDigits.length !== 13) {
+        alert('주민번호는 13자리 숫자여야 합니다.');
+        document.getElementById('edit_jumin')?.focus();
+        return;
+      }
+
+      if (!company) {
+        alert('대리운전회사명은 필수 입력 항목입니다.');
+        document.getElementById('edit_company')?.focus();
+        return;
+      }
+
+      if (!Pname) {
+        alert('대표자는 필수 입력 항목입니다.');
+        document.getElementById('edit_Pname')?.focus();
+        return;
+      }
+
+      // 저장 확인
+      if (!confirm('대리운전회사 정보를 수정하시겠습니까?')) {
+        return;
+      }
+
+      // 저장 버튼 비활성화
+      const saveBtn = document.getElementById('saveCompanyInfoBtn');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 저장 중...';
+      }
+
+      // API 호출
+      const response = await fetch('/api/insurance/kj-company/store', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          dNum: companyNum,
+          jumin: jumin,
+          company: company,
+          Pname: Pname,
+          hphone: hphone,
+          cphone: cphone,
+          cNumber: cNumber,
+          lNumber: lNumber,
+          postNum: postNum,
+          address1: address1,
+          address2: address2
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || '저장 실패');
+      }
+
+      // 성공 메시지 표시
+      showSuccessMessage(result.message || '대리운전회사 정보가 수정되었습니다.');
+
+      // 모달 재로드 (수정된 정보 반영)
+      setTimeout(() => {
+        window.KJCompanyModal.openCompanyModal(companyNum, company, true);
+      }, 300);
+
+      // 목록 새로고침 (페이지에 fetchList 함수가 있는 경우)
+      if (typeof fetchList === 'function') {
+        setTimeout(() => {
+          fetchList();
+        }, 500);
+      }
+
+    } catch (error) {
+      console.error('회사 정보 수정 오류:', error);
+      alert('수정 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+      
+      const saveBtn = document.getElementById('saveCompanyInfoBtn');
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> 저장';
+      }
+    }
   };
 
   // ==================== 모달 이벤트 핸들러 설정 ====================

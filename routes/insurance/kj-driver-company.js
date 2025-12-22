@@ -1004,6 +1004,9 @@ router.post('/kj-company/store', async (req, res) => {
     if (req.body.cphone) formData.append('cphone', req.body.cphone);
     if (req.body.cNumber) formData.append('cNumber', req.body.cNumber);
     if (req.body.lNumber) formData.append('lNumber', req.body.lNumber);
+    if (req.body.postNum) formData.append('postNum', req.body.postNum);
+    if (req.body.address1) formData.append('address1', req.body.address1);
+    if (req.body.address2) formData.append('address2', req.body.address2);
     if (req.body.dNum) formData.append('dNum', req.body.dNum);
 
     const response = await axios.post(apiUrl, formData.toString(), {
