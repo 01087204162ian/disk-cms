@@ -225,7 +225,7 @@
                 <th class="bg-light">법인번호</th>
                 <td id="td_lNumber">${company.lNumber || ''}</td>
                 <th class="bg-light">보험료 받는날</th>
-                <td><input type="date" class="form-control form-control-sm" id="companyFirstStart" value="${company.FirstStart || ''}" style="width: 100%;"></td>
+                <td id="td_FirstStart"><input type="date" class="form-control form-control-sm" id="companyFirstStart" value="${company.FirstStart || ''}" style="width: 100%;"></td>
                 <th class="bg-light">업체 I.D</th>
                 <td colspan="3">
                   <a href="#" class="text-primary company-id-link" data-role="open-company-id-modal" data-company-num="${companyNum}" style="text-decoration: underline; cursor: pointer;">
