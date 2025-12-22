@@ -418,38 +418,46 @@
     const tdLNumber = document.getElementById('td_lNumber');
 
     if (tdJumin) {
-      tdJumin.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_jumin" value="${company.jumin || ''}" placeholder="660327-1069017" maxlength="14" autocomplete="off">`;
+      tdJumin.style.padding = '0';
+      tdJumin.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_jumin" value="${company.jumin || ''}" placeholder="660327-1069017" maxlength="14" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">`;
     }
     if (tdCompany) {
-      tdCompany.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_company" value="${company.company || ''}" placeholder="회사명" autocomplete="off">`;
+      tdCompany.style.padding = '0';
+      tdCompany.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_company" value="${company.company || ''}" placeholder="회사명" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">`;
     }
     if (tdPname) {
-      tdPname.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_Pname" value="${company.Pname || ''}" placeholder="대표자명" autocomplete="off">`;
+      tdPname.style.padding = '0';
+      tdPname.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_Pname" value="${company.Pname || ''}" placeholder="대표자명" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">`;
     }
     if (tdHphone) {
-      tdHphone.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_hphone" value="${company.hphone || ''}" placeholder="010-1234-5678" autocomplete="off">`;
+      tdHphone.style.padding = '0';
+      tdHphone.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_hphone" value="${company.hphone || ''}" placeholder="010-1234-5678" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">`;
     }
     if (tdCphone) {
-      tdCphone.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_cphone" value="${company.cphone || ''}" placeholder="02-1234-5678" autocomplete="off">`;
+      tdCphone.style.padding = '0';
+      tdCphone.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_cphone" value="${company.cphone || ''}" placeholder="02-1234-5678" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">`;
     }
     if (tdCNumber) {
-      tdCNumber.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_cNumber" value="${company.cNumber || ''}" placeholder="사업자번호" autocomplete="off">`;
+      tdCNumber.style.padding = '0';
+      tdCNumber.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_cNumber" value="${company.cNumber || ''}" placeholder="사업자번호" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">`;
     }
     if (tdLNumber) {
-      tdLNumber.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_lNumber" value="${company.lNumber || ''}" placeholder="법인번호" autocomplete="off">`;
+      tdLNumber.style.padding = '0';
+      tdLNumber.innerHTML = `<input type="text" class="form-control form-control-sm" id="edit_lNumber" value="${company.lNumber || ''}" placeholder="법인번호" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">`;
     }
 
     // 주소 필드 추가
     const tdAddress = document.getElementById('td_address');
     if (tdAddress) {
+      tdAddress.style.padding = '0';
       tdAddress.innerHTML = `
-        <div class="row g-2">
-          <div class="col-2">
-            <input type="text" class="form-control form-control-sm" id="edit_postNum" value="${company.postNum || ''}" placeholder="우편번호" autocomplete="off">
+        <div class="row g-2" style="margin: 0;">
+          <div class="col-2" style="padding: 0;">
+            <input type="text" class="form-control form-control-sm" id="edit_postNum" value="${company.postNum || ''}" placeholder="우편번호" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">
           </div>
-          <div class="col-10">
-            <input type="text" class="form-control form-control-sm mb-1" id="edit_address1" value="${company.address1 || ''}" placeholder="기본주소" autocomplete="off">
-            <input type="text" class="form-control form-control-sm" id="edit_address2" value="${company.address2 || ''}" placeholder="상세주소" autocomplete="off">
+          <div class="col-10" style="padding: 0;">
+            <input type="text" class="form-control form-control-sm mb-1" id="edit_address1" value="${company.address1 || ''}" placeholder="기본주소" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">
+            <input type="text" class="form-control form-control-sm" id="edit_address2" value="${company.address2 || ''}" placeholder="상세주소" autocomplete="off" style="border: none; background-color: white; padding: 0.25rem;">
           </div>
         </div>
       `;
