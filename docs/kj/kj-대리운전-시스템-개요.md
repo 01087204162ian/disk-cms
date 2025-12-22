@@ -1,3 +1,5 @@
+
+
 # KJ 대리운전 보험 시스템 개요
 
 **작성일**: 2025-12-20  
@@ -60,12 +62,14 @@
 
 ## 백엔드 API 구조
 
-### PHP API 파일 (33개)
+### PHP API 파일 (35개)
 
-#### 업체 관리 (3개)
+#### 업체 관리 (5개)
 - `kj-company-list.php` - 업체 목록 조회
 - `kj-company-detail.php` - 업체 상세 정보
 - `kj-company-managers.php` - 담당자 목록
+- `kj-company-check-jumin.php` - 주민번호로 기존 회사 조회
+- `kj-company-store.php` - 대리운전회사 신규 등록/수정
 
 #### 증권 관리 (7개)
 - `kj-policy-search.php` - 증권 검색
@@ -121,11 +125,15 @@
 **기능**:
 - 업체 목록 조회 (날짜/담당자/검색어 필터)
 - 업체 상세 정보 조회 (모달)
+- **신규 업체 등록** (주민번호 검증, 기본 정보 입력)
+- **업체 정보 수정** (주민번호, 회사명, 대표자, 연락처, 주소 등)
 - 페이징 지원
 
 **주요 API**:
 - `GET /api/insurance/kj-company/list` - 목록 조회
 - `GET /api/insurance/kj-company/:companyNum` - 상세 조회
+- `GET /api/insurance/kj-company/check-jumin` - 주민번호로 기존 회사 조회
+- `POST /api/insurance/kj-company/store` - 신규 등록/수정
 
 ### 2. 배서 처리
 
@@ -193,6 +201,14 @@
 - `num`: 업체 번호 (PK)
 - `company`: 업체명
 - `Pname`: 대표자명
+- `jumin`: 주민번호 (하이픈 포함 형식)
+- `hphone`: 핸드폰번호
+- `cphone`: 전화번호
+- `cNumber`: 사업자번호
+- `lNumber`: 법인번호
+- `postNum`: 우편번호
+- `address1`: 기본주소
+- `address2`: 상세주소
 - `MemberNum`: 담당자 번호 (FK → 2012Member.num)
 - `FirstStart`: 첫 계약일
 - `divi`: 결제방식 (1=정상분납, 기타=일시납)
@@ -266,6 +282,8 @@
 | GET | `/api/insurance/kj-company/list` | 업체 목록 조회 |
 | GET | `/api/insurance/kj-company/:companyNum` | 업체 상세 정보 |
 | GET | `/api/insurance/kj-company/managers` | 담당자 목록 |
+| GET | `/api/insurance/kj-company/check-jumin` | 주민번호로 기존 회사 조회 |
+| POST | `/api/insurance/kj-company/store` | 대리운전회사 신규 등록/수정 |
 
 ### 증권 관련
 
@@ -658,6 +676,113 @@ cms/
 
 ---
 
-**문서 버전**: 1.2  
+### 2025-12-20 (신규 등록 및 수정 기능 추가)
+
+#### ✅ 완료된 작업
+
+1. **대리운전회사 신규 등록 기능 구현**
+   - 대리운전회사 목록 페이지에 "신규 등록" 버튼 추가
+   - 신규 등록 모달 구현 (기본 정보만 입력)
+   - 주민번호 입력 후 엔터키로 기존 회사 조회 기능
+   - 주민번호 검증: 13자리 숫자만 확인 (체크섬 검증 제거)
+   - 기존 회사 존재 시 해당 회사 정보 자동 로드
+   - 신규 등록 가능 시 회사 정보 저장
+   - 저장 후 해당 회사 정보 모달 자동 열림 (증권 정보 입력 가능)
+   - 신규 등록 모달에서 닫기 버튼 제거 (저장만 가능)
+
+2. **대리운전회사 정보 수정 기능 구현**
+   - 대리운전회사 정보 모달에 "수정" 버튼 추가
+   - 수정 모드 전환 기능 (읽기 전용 → 입력 필드)
+   - 수정 가능한 필드:
+     - 주민번호
+     - 대리운전회사명
+     - 성명(대표자)
+     - 핸드폰번호
+     - 전화번호
+     - 사업자번호
+     - 법인번호
+     - 주소 (우편번호, 기본주소, 상세주소)
+     - 보험료 받는날
+   - 저장/취소 버튼 기능
+   - 저장 후 모달 자동 새로고침
+
+3. **입력 필드 포맷팅 기능**
+   - 주민번호: 하이픈 자동 추가 (660327-1069017)
+   - 핸드폰번호: 하이픈 자동 추가 (010-1234-5678)
+   - 일반전화: 하이픈 자동 추가 (02-1234-5678)
+   - 사업자번호: 하이픈 자동 추가 (123-45-67890)
+   - 법인번호: 하이픈 자동 추가 (123456-1234567)
+   - 주민번호는 하이픈 포함하여 저장
+
+4. **UI 개선**
+   - 수정 모드 입력 필드 스타일:
+     - 테두리 없음 (`border: none`)
+     - 흰색 배경 (`background-color: white`)
+     - td 요소 padding 0
+     - 입력 필드 내부 padding 0.25rem (가독성 유지)
+   - 보험료 받는날 필드도 동일한 스타일 적용
+
+#### 📁 생성/수정된 파일
+
+**새로 생성된 파일**:
+- `pci0327/api/insurance/kj-company-check-jumin.php` - 주민번호로 기존 회사 조회 API
+- `pci0327/api/insurance/kj-company-store.php` - 대리운전회사 신규 등록/수정 API
+
+**수정된 파일**:
+- `disk-cms/public/pages/insurance/kj-driver-company.html` - 신규 등록 버튼 추가
+- `disk-cms/public/js/insurance/kj-driver-company.js` - 신규 등록 버튼 이벤트 추가
+- `disk-cms/public/js/insurance/kj-company-modal.js` - 신규 등록 모달, 수정 기능, 입력 필드 포맷팅 구현
+- `disk-cms/routes/insurance/kj-driver-company.js` - 신규 등록/수정 API 프록시 추가
+
+#### 🔧 기술 세부사항
+
+**신규 등록 플로우**:
+```
+1. "신규 등록" 버튼 클릭
+2. 신규 등록 모달 열림 (기본 정보 입력 폼)
+3. 주민번호 입력 후 엔터키
+4. 서버에서 주민번호로 기존 회사 조회
+   - 기존 회사 존재: 해당 회사 정보 모달 자동 열림
+   - 신규 등록 가능: 회사 정보 입력 후 저장
+5. 저장 성공 시 해당 회사 정보 모달 자동 열림 (증권 정보 입력 가능)
+```
+
+**수정 모드 플로우**:
+```
+1. 대리운전회사 클릭 → 회사 정보 모달 열림
+2. "수정" 버튼 클릭 → 수정 모드로 전환
+3. 입력 필드에서 정보 수정
+4. "저장" 버튼 클릭 → 서버에 수정된 정보 전송
+5. 저장 성공 시 모달 자동 새로고침 (변경사항 반영)
+```
+
+**주민번호 검증 규칙**:
+- 형식: 13자리 숫자 (하이픈 포함: 660327-1069017)
+- 체크섬 검증 제거 (엄격한 검증 불필요)
+- 하이픈 포함하여 저장
+
+**API 엔드포인트 추가**:
+- `GET /api/insurance/kj-company/check-jumin?jumin=주민번호` - 주민번호로 기존 회사 조회
+- `POST /api/insurance/kj-company/store` - 대리운전회사 신규 등록/수정
+  - 신규 등록: `dNum` 없이 전송
+  - 수정: `dNum` 포함하여 전송
+
+**데이터베이스 필드**:
+- `2012DaeriCompany` 테이블에 주소 필드 추가 지원:
+  - `postNum`: 우편번호
+  - `address1`: 기본주소
+  - `address2`: 상세주소
+
+**주요 함수**:
+- `renderNewCompanyModal()`: 신규 등록 모달 렌더링
+- `setupNewCompanyModalEvents()`: 신규 등록 모달 이벤트 설정
+- `saveNewCompany()`: 신규 회사 저장 함수
+- `enterEditMode()`: 수정 모드로 전환
+- `saveCompanyInfo()`: 회사 정보 저장 함수
+- `setupEditModeFormatting()`: 수정 모드 입력 필드 포맷팅 설정
+
+---
+
+**문서 버전**: 1.3  
 **최종 업데이트**: 2025-12-20
 
