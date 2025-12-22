@@ -899,16 +899,64 @@
       });
     }
 
-    // 전화번호 하이픈 자동 추가
+    // 핸드폰번호 하이픈 자동 추가
     if (hphoneInput) {
       hphoneInput.addEventListener('input', (e) => {
         let value = e.target.value.replace(/[^0-9]/g, '');
         if (value.length > 10) {
-          value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+          value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7, 11);
         } else if (value.length > 7) {
           value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
         } else if (value.length > 3) {
           value = value.substring(0, 3) + '-' + value.substring(3);
+        }
+        e.target.value = value;
+      });
+    }
+
+    // 일반전화 하이픈 자동 추가 (02-1234-5678 형식)
+    if (cphoneInput) {
+      cphoneInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 9) {
+          // 02-1234-5678 형식 (2자리-4자리-4자리)
+          value = value.substring(0, 2) + '-' + value.substring(2, 6) + '-' + value.substring(6, 10);
+        } else if (value.length > 6) {
+          value = value.substring(0, 2) + '-' + value.substring(2, 6) + '-' + value.substring(6);
+        } else if (value.length > 2) {
+          value = value.substring(0, 2) + '-' + value.substring(2);
+        }
+        e.target.value = value;
+      });
+    }
+
+    // 사업자번호 하이픈 자동 추가 (123-45-67890 형식)
+    if (cNumberInput) {
+      cNumberInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 10) {
+          value = value.substring(0, 10); // 10자리까지만
+        }
+        if (value.length > 5) {
+          // 123-45-67890 형식 (3자리-2자리-5자리)
+          value = value.substring(0, 3) + '-' + value.substring(3, 5) + '-' + value.substring(5);
+        } else if (value.length > 3) {
+          value = value.substring(0, 3) + '-' + value.substring(3);
+        }
+        e.target.value = value;
+      });
+    }
+
+    // 법인번호 하이픈 자동 추가 (123456-1234567 형식)
+    if (lNumberInput) {
+      lNumberInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value.length > 13) {
+          value = value.substring(0, 13); // 13자리까지만
+        }
+        if (value.length > 6) {
+          // 123456-1234567 형식 (6자리-7자리)
+          value = value.substring(0, 6) + '-' + value.substring(6);
         }
         e.target.value = value;
       });
