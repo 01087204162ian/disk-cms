@@ -768,34 +768,8 @@
       <div class="alert alert-info" id="juminCheckResult" style="display: none;">
         <i class="fas fa-info-circle"></i> <span id="juminCheckMessage"></span>
       </div>
-      <hr>
-      <div class="mb-3">
-        <h6>증권 정보</h6>
-        <div class="table-responsive">
-          <table class="table table-sm table-bordered" style="font-size: 0.85rem;">
-            <thead class="thead-light">
-              <tr>
-                <th style="width: 4%;">순번</th>
-                <th style="width: 8%;">보험사</th>
-                <th style="width: 6%;">시작일</th>
-                <th style="width: 10%;">증권번호</th>
-                <th style="width: 5%;">분납</th>
-                <th style="width: 7%;">저장</th>
-                <th style="width: 9%;">회차</th>
-                <th style="width: 6%;">상태</th>
-                <th style="width: 6%;">인원</th>
-                <th style="width: 6%;">신규<br>입력</th>
-                <th style="width: 6%;">운전자<Br>추가</th>
-                <th style="width: 7%;">결제<Br>방식</th>
-                <th style="width: 7%;">월보험료</th>
-                <th style="width: 11%;">성격</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${renderCertiRow({}, 0, true)}
-            </tbody>
-          </table>
-        </div>
+      <div class="alert alert-secondary mt-3">
+        <i class="fas fa-info-circle"></i> 저장 후 증권 정보를 입력할 수 있습니다.
       </div>
     `;
     
@@ -854,25 +828,13 @@
           
           const juminValue = juminInput.value.trim();
           
-          // 형식 검증
-          const juminRegex = /^\d{6}-\d{7}$/;
-          if (!juminRegex.test(juminValue)) {
-            alert('주민번호 형식이 올바르지 않습니다. 예: 660327-1069017');
+          // 숫자만 추출하여 13자리인지 확인
+          const juminDigits = juminValue.replace(/[^0-9]/g, '');
+          
+          if (juminDigits.length !== 13) {
+            alert('주민번호는 13자리 숫자여야 합니다. 예: 660327-1069017');
             juminInput.focus();
             return;
-          }
-
-          // 주민번호 유효성 검사 (체크섬)
-          const validateFunc = typeof validateJumin === 'function' ? validateJumin : 
-                              (typeof window !== 'undefined' && typeof window.validateJumin === 'function' ? window.validateJumin : null);
-          
-          if (validateFunc) {
-            const validation = validateFunc(juminValue);
-            if (!validation.valid) {
-              alert('주민번호가 유효하지 않습니다.\n' + validation.message);
-              juminInput.focus();
-              return;
-            }
           }
 
           // 서버에서 주민번호로 기존 회사 조회
@@ -1006,6 +968,14 @@
 
       if (!jumin) {
         alert('주민번호는 필수 입력 항목입니다.');
+        document.getElementById('d_Jumin')?.focus();
+        return;
+      }
+
+      // 주민번호 13자리 확인
+      const juminDigits = jumin.replace(/[^0-9]/g, '');
+      if (juminDigits.length !== 13) {
+        alert('주민번호는 13자리 숫자여야 합니다.');
         document.getElementById('d_Jumin')?.focus();
         return;
       }
