@@ -106,11 +106,12 @@
                       <th class="col-kj-company-phone">연락처</th>
                       <th class="col-kj-company-date">날짜</th>
                       <th class="col-kj-company-count">인원</th>
+                      <th class="col-kj-company-settle">정산</th>
                     </tr>
                   </thead>
                   <tbody id="driver_company_table_body">
                     <tr>
-                      <td colspan="6" class="text-center py-4">날짜를 선택해 주세요.</td>
+                      <td colspan="7" class="text-center py-4">날짜를 선택해 주세요.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -249,6 +250,63 @@
       await window.sjTemplateLoader.initializePage('kj-driver-company');
     });
   </script>
+
+  <!-- 정산 모달 -->
+  <div class="modal fade" id="settlementModal" tabindex="-1" aria-labelledby="settlementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="settlementModalLabel">정산</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+          <div class="mb-3 d-flex flex-wrap gap-2 align-items-end">
+            <div>
+              <label class="form-label small mb-1">시작일</label>
+              <input type="date" class="form-control form-control-sm" id="settleStartDate">
+            </div>
+            <div>
+              <label class="form-label small mb-1">종료일</label>
+              <input type="date" class="form-control form-control-sm" id="settleEndDate">
+            </div>
+            <div>
+              <button class="btn btn-sm btn-primary" id="settleSearchBtn">배서리스트 조회</button>
+            </div>
+            <div class="ms-auto">
+              <button class="btn btn-sm btn-outline-success" id="settleExcelBtn">엑셀 다운로드</button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 5%;">번호</th>
+                  <th style="width: 12%;">성명</th>
+                  <th style="width: 15%;">주민번호</th>
+                  <th style="width: 13%;">증권번호</th>
+                  <th style="width: 12%;">배서일</th>
+                  <th style="width: 10%;">월보험료</th>
+                  <th style="width: 10%;">c보험료</th>
+                  <th style="width: 10%;">배서종류</th>
+                  <th style="width: 8%;">정산상태</th>
+                  <th style="width: 10%;">처리자</th>
+                </tr>
+              </thead>
+              <tbody id="settlementTableBody">
+                <tr>
+                  <td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 text-end small text-muted" id="settlementSummary"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
 

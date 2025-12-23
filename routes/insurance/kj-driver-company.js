@@ -1027,6 +1027,93 @@ router.post('/kj-company/store', async (req, res) => {
   }
 });
 
+// ==================== 정산/보험료 관련 ====================
+
+// 월별 배서/정산 데이터 조회
+router.get('/kj-company/settlement/monthly', async (req, res) => {
+  try {
+    const { dNum, lastMonthDueDate, thisMonthDueDate } = req.query;
+    if (!dNum || !lastMonthDueDate || !thisMonthDueDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'dNum, lastMonthDueDate, thisMonthDueDate가 필요합니다.',
+      });
+    }
+
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-monthly-endorse-search.php`;
+    const response = await axios.get(apiUrl, {
+      params: { dNum, lastMonthDueDate, thisMonthDueDate },
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement monthly proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '정산 데이터 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 정산 상태 업데이트
+router.post('/kj-company/settlement/update', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-update.php`;
+    const formData = new URLSearchParams();
+    if (req.body.seqNo) formData.append('seqNo', req.body.seqNo);
+    if (req.body.status) formData.append('status', req.body.status);
+    if (req.body.userName) formData.append('userName', req.body.userName);
+
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement update proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '정산 상태 업데이트 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 정산 엑셀 다운로드
+router.post('/kj-company/settlement/excel', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-excel.php`;
+    const formData = new URLSearchParams();
+    if (req.body.dNum) formData.append('dNum', req.body.dNum);
+    if (req.body.lastMonthDueDate) formData.append('lastMonthDueDate', req.body.lastMonthDueDate);
+    if (req.body.thisMonthDueDate) formData.append('thisMonthDueDate', req.body.thisMonthDueDate);
+
+    const response = await axios.post(apiUrl, formData.toString(), {
+      responseType: 'arraybuffer',
+      timeout: DEFAULT_TIMEOUT,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+
+    // PHP에서 내려준 파일 이름/컨텐츠 타입 전달
+    const contentType = response.headers['content-type'] || 'application/octet-stream';
+    const disposition = response.headers['content-disposition'] || 'attachment; filename="settlement.xlsx"';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', disposition);
+    res.send(response.data);
+  } catch (error) {
+    console.error('KJ settlement excel proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '정산 엑셀 생성 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 // 신규 아이디 저장
 router.post('/kj-company/id-save', async (req, res) => {
   try {
