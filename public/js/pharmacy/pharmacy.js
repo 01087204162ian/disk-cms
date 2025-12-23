@@ -414,6 +414,13 @@ function displayPharmacyData(data) {
     return;
   }
 
+  // 디버깅: 첫 번째 항목의 데이터 확인
+  if (data.length > 0) {
+    console.log('첫 번째 항목 데이터:', data[0]);
+    console.log('request_date:', data[0].request_date);
+    console.log('approval_date:', data[0].approval_date);
+  }
+
   // 데스크톱 테이블 생성
   if (tableBody) {
     data.forEach((item, index) => {
@@ -472,8 +479,8 @@ function createTableRow(item, index) {
         '&nbsp;'
       }
     </td>
-    <td class="col-date d-none d-xl-table-cell">${formatDate(item.request_date) || '-'}</td>
-    <td class="col-date">${formatDate(item.approval_date) || '-'}</td>
+    <td class="col-date d-none d-xl-table-cell">${item.request_date ? formatDate(item.request_date) : '-'}</td>
+    <td class="col-date">${item.approval_date ? formatDate(item.approval_date) : '-'}</td>
     <td class="col-status">
       <select id="status_${item.num}" class="form-control form-control-sm select-status" 
         data-id="${item.num}" data-original-status="${getStatusCode(item.status)}">
@@ -524,11 +531,11 @@ function createMobileCard(item, index) {
       </div>
       <div class="mobile-card-row">
         <span class="mobile-card-label">가입요청일:</span>
-        <span class="mobile-card-value">${formatDate(item.request_date) || '-'}</span>
+        <span class="mobile-card-value">${item.request_date ? formatDate(item.request_date) : '-'}</span>
       </div>
       <div class="mobile-card-row">
         <span class="mobile-card-label">승인일:</span>
-        <span class="mobile-card-value">${formatDate(item.approval_date) || '-'}</span>
+        <span class="mobile-card-value">${item.approval_date ? formatDate(item.approval_date) : '-'}</span>
       </div>
       <div class="mobile-card-row">
         <span class="mobile-card-label">보험료:</span>
@@ -684,21 +691,43 @@ function createMobileCard(item, index) {
       return statusMap[status] || status || '기타';
     }
 
-    // 날짜 포맷팅
+    // 날짜 및 시간 포맷팅 (YYYY-MM-DD HH:mm:ss 형식)
     function formatDate(dateString) {
-      if (!dateString) return '';
+      if (!dateString || dateString === '-' || dateString === '') {
+        return '-';
+      }
       
       try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return dateString;
+        // 이미 "YYYY-MM-DD HH:mm:ss" 형식인 경우 그대로 반환
+        if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(dateString.trim())) {
+          return dateString.trim();
+        }
         
-        return date.toLocaleDateString('ko-KR', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
+        // "YYYY-MM-DD HH:mm:ss" 형식이지만 공백이 있는 경우 정리
+        const trimmed = String(dateString).trim();
+        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(trimmed)) {
+          return trimmed;
+        }
+        
+        // Date 객체로 파싱 시도
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+          console.warn('날짜 파싱 실패:', dateString);
+          return dateString; // 파싱 실패 시 원본 반환
+        }
+        
+        // YYYY-MM-DD HH:mm:ss 형식으로 포맷팅
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       } catch (error) {
-        return dateString;
+        console.error('formatDate 오류:', error, '입력값:', dateString);
+        return dateString || '-';
       }
     }
 
