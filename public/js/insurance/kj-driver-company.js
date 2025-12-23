@@ -253,6 +253,7 @@
   let currentSettlement = { dNum: null, companyName: '' };
 
   const setDefaultSettlementDates = () => {
+    if (!settleStartInput || !settleEndInput) return;
     const today = new Date();
     const lastMonth = new Date(today);
     lastMonth.setMonth(today.getMonth() - 1);
@@ -267,6 +268,7 @@
   };
 
   const renderSettlementRows = (rows) => {
+    if (!settlementTableBody) return;
     if (!rows || rows.length === 0) {
       settlementTableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">데이터가 없습니다.</td></tr>`;
       if (settlementSummary) settlementSummary.textContent = '';
@@ -353,6 +355,7 @@
   };
 
   const loadSettlementData = async () => {
+    if (!settlementTableBody) return;
     if (!currentSettlement.dNum) return;
     const start = settleStartInput?.value || '';
     const end = settleEndInput?.value || '';

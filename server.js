@@ -160,7 +160,8 @@ app.use((err, req, res, next) => {
 });
 
 // ========== 서버 시작 ==========
-app.listen(PORT, () => {
+let server;
+server = app.listen(PORT, () => {
     console.log(`🚀 보험 CMS 서버가 포트 ${PORT}에서 실행 중입니다.`);
     console.log(`🔗 접속 URL: http://localhost:${PORT}`);
     console.log(`📋 약국보험: http://localhost:${PORT}/pharmacy-applications.html`);
@@ -176,19 +177,24 @@ const gracefulShutdown = (signal) => {
     console.log(`\n${signal} 신호를 받았습니다. 서버를 종료합니다...`);
     
     // 새로운 연결 거부
-    app.close(() => {
-        console.log('HTTP 서버가 종료되었습니다.');
-        
-        // 데이터베이스 연결 종료
-        if (pool) {
-            pool.end(() => {
-                console.log('데이터베이스 연결이 종료되었습니다.');
+    if (server && server.close) {
+        server.close(() => {
+            console.log('HTTP 서버가 종료되었습니다.');
+            
+            // 데이터베이스 연결 종료
+            if (pool) {
+                pool.end(() => {
+                    console.log('데이터베이스 연결이 종료되었습니다.');
+                    process.exit(0);
+                });
+            } else {
                 process.exit(0);
-            });
-        } else {
-            process.exit(0);
-        }
-    });
+            }
+        });
+    } else {
+        console.error('서버 close 핸들러가 없습니다. 강제 종료합니다.');
+        process.exit(1);
+    }
     
     // 강제 종료 (30초 후)
     setTimeout(() => {
