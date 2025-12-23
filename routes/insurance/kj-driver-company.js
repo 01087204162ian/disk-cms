@@ -1274,5 +1274,78 @@ router.post('/kj-company/id-update-permit', async (req, res) => {
   }
 });
 
+// ==================== 정산 관련 API (추가) ====================
+
+// 증권번호별 정산 데이터 조회 (집계)
+router.get('/kj-company/settlement/adjustment', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-adjustment.php`;
+    const response = await axios.get(apiUrl, {
+      params: req.query,
+      timeout: DEFAULT_TIMEOUT,
+      headers: getDefaultHeaders(),
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement adjustment proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권번호별 정산 데이터 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 정산 메모 조회
+router.post('/kj-company/settlement/memo-search', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-memo-search.php`;
+    const formData = new URLSearchParams();
+    if (req.body.jumin) formData.append('jumin', req.body.jumin);
+
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement memo search proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '메모 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 정산 메모 저장
+router.post('/kj-company/settlement/memo-save', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-memo-save.php`;
+    const formData = new URLSearchParams();
+    if (req.body.jumin) formData.append('jumin', req.body.jumin);
+    if (req.body.memo) formData.append('memo', req.body.memo);
+    if (req.body.memokind) formData.append('memokind', req.body.memokind);
+    if (req.body.userid) formData.append('userid', req.body.userid);
+
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement memo save proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '메모 저장 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

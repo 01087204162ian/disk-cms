@@ -246,122 +246,117 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==================== 정산 모달 ====================
   const settlementModalEl = document.getElementById('settlementModal');
   const settlementModal = settlementModalEl ? new bootstrap.Modal(settlementModalEl) : null;
-  const settlementTableBody = document.getElementById('settlementTableBody');
-  const settlementSummary = document.getElementById('settlementSummary');
+  const settlementAdjustmentTableBody = document.getElementById('settlementAdjustmentTableBody');
+  const settlementTotalPremium = document.getElementById('settlementTotalPremium');
+  const settlementMemoInput = document.getElementById('settlementMemoInput');
+  const settlementMemoTableBody = document.getElementById('settlementMemoTableBody');
   const settleStartInput = document.getElementById('settleStartDate');
   const settleEndInput = document.getElementById('settleEndDate');
-  let currentSettlement = { dNum: null, companyName: '' };
+  let currentSettlement = { dNum: null, companyName: '', jumin: '' };
 
-  const setDefaultSettlementDates = () => {
-    if (!settleStartInput || !settleEndInput) return;
-    const today = new Date();
-    const lastMonth = new Date(today);
-    lastMonth.setMonth(today.getMonth() - 1);
-    const fmt = (d) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    };
-    if (settleStartInput) settleStartInput.value = fmt(lastMonth);
-    if (settleEndInput) settleEndInput.value = fmt(today);
+  const setDefaultSettlementDates = async () => {
+    if (!settleStartInput || !settleEndInput || !currentSettlement.dNum) return;
+    try {
+      const res = await fetch(`/api/insurance/kj-company/settlement/endorse-day?dNum=${currentSettlement.dNum}`);
+      const json = await res.json();
+      if (json.success) {
+        if (settleStartInput) settleStartInput.value = json.paymentStartDate;
+        if (settleEndInput) settleEndInput.value = json.thisMonthDueDate;
+      } else {
+        console.error('정산 기간 조회 실패:', json.error);
+        // Fallback to default if API fails
+        const today = new Date();
+        const lastMonth = new Date(today);
+        lastMonth.setMonth(today.getMonth() - 1);
+        const fmt = (d) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        };
+        if (settleStartInput) settleStartInput.value = fmt(lastMonth);
+        if (settleEndInput) settleEndInput.value = fmt(today);
+      }
+    } catch (err) {
+      console.error('정산 기간 조회 중 오류 발생:', err);
+      // Fallback to default if API fails
+      const today = new Date();
+      const lastMonth = new Date(today);
+      lastMonth.setMonth(today.getMonth() - 1);
+      const fmt = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      };
+      if (settleStartInput) settleStartInput.value = fmt(lastMonth);
+      if (settleEndInput) settleEndInput.value = fmt(today);
+    }
   };
 
-  const renderSettlementRows = (rows) => {
-    if (!settlementTableBody) return;
-    if (!rows || rows.length === 0) {
-      settlementTableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">데이터가 없습니다.</td></tr>`;
-      if (settlementSummary) settlementSummary.textContent = '';
+  // 증권번호별 집계 테이블 렌더링
+  const renderSettlementAdjustmentTable = (data) => {
+    if (!settlementAdjustmentTableBody) return;
+    if (!data || data.length === 0) {
+      settlementAdjustmentTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">데이터가 없습니다.</td></tr>`;
+      if (settlementTotalPremium) settlementTotalPremium.textContent = '0원';
       return;
     }
 
-    let totalMonthlyPremium = 0;
-    let totalCPremium = 0;
-
-    const body = rows
-      .map((item, idx) => {
-        const endorseType =
-          item.push === '2'
-            ? '해지'
-            : item.push === '3'
-              ? '청약 거절'
-              : item.push === '4'
-                ? '청약'
-                : item.push === '5'
-                  ? '해지 취소'
-                  : '기타';
-
-        const maskedJumin = item.Jumin ? `${item.Jumin.substring(0, 8)}******` : '-';
-
-        let premiumValue = Number(item.preminum || 0) || 0;
-        let cPremiumValue = Number(item.c_preminum || 0) || 0;
-
-        let monthlyPremium = '-';
-        let cPremium = '-';
-
-        if (item.divi === '2') {
-          if (item.push === '2') premiumValue = -premiumValue;
-          monthlyPremium = premiumValue === 0 ? '-' : premiumValue.toLocaleString();
-          if (item.get !== '1') totalMonthlyPremium += premiumValue;
-        } else if (item.divi === '1') {
-          if (item.push === '2') cPremiumValue = -cPremiumValue;
-          cPremium = cPremiumValue === 0 ? '-' : cPremiumValue.toLocaleString();
-          if (item.get !== '1') totalCPremium += cPremiumValue;
-        }
-
-        const selectId = `settlement-select-${item.SeqNo || idx}`;
-        const currentStatus = item.get === '1' ? '1' : '2';
+    let totalPremium = 0;
+    let body = data
+      .map((item) => {
+        const diviText = item.divi === '1' ? '10회분납' : item.divi === '2' ? '월납' : '-';
+        const monthlyPremium = item.total_AdjustedInsuranceMothlyPremium || 0;
+        const companyPremium = item.total_AdjustedInsuranceCompanyPremium || 0;
+        const endorseMonthlyPremium = item.eTotalMonthPremium || 0;
+        const endorseCompanyPremium = item.eTotalCompanyPremium || 0;
+        const conversionPremium = item.Conversion_AdjustedInsuranceCompanyPremium || 0;
+        
+        const total = monthlyPremium + companyPremium + endorseMonthlyPremium + endorseCompanyPremium;
+        totalPremium += total;
 
         return `
           <tr>
-            <td>${idx + 1}</td>
-            <td>${item.Name || '-'}</td>
-            <td>${maskedJumin}</td>
-            <td>${item.dongbuCerti || '-'}</td>
-            <td>${item.endorse_day || '-'}</td>
-            <td class="text-end">${monthlyPremium}</td>
-            <td class="text-end">${cPremium}</td>
-            <td>${endorseType}</td>
-            <td>
-              <select id="${selectId}" class="form-select form-select-sm"
-                data-role="settlement-status"
-                data-seq-no="${item.SeqNo || ''}"
-                data-customer-name="${item.Name || '-'}">
-                <option value="1" ${currentStatus === '1' ? 'selected' : ''}>정산</option>
-                <option value="2" ${currentStatus === '2' ? 'selected' : ''}>미정산</option>
-              </select>
-            </td>
-            <td id="settlement-manager-${item.SeqNo}">${item.manager || ''}</td>
+            <td>${item.policyNum || '-'}</td>
+            <td>${diviText}</td>
+            <td class="text-end">${item.drivers_count || 0}</td>
+            <td class="text-end">${monthlyPremium.toLocaleString()}</td>
+            <td class="text-end">${companyPremium.toLocaleString()}</td>
+            <td class="text-end">${(endorseMonthlyPremium + endorseCompanyPremium).toLocaleString()}</td>
+            <td class="text-end">${total.toLocaleString()}</td>
+            <td class="text-end">${conversionPremium.toLocaleString()}</td>
           </tr>
         `;
       })
       .join('');
 
-    const totalSum = totalMonthlyPremium + totalCPremium;
     const summaryRow = `
       <tr class="table-light fw-bold">
-        <td colspan="5" class="text-center">합계</td>
-        <td class="text-end">${totalMonthlyPremium.toLocaleString()}</td>
-        <td class="text-end">${totalCPremium.toLocaleString()}</td>
-        <td>계</td>
-        <td colspan="2" class="text-end">${totalSum.toLocaleString()}</td>
+        <td colspan="3" class="text-center">합계</td>
+        <td class="text-end">${data.reduce((sum, item) => sum + (item.total_AdjustedInsuranceMothlyPremium || 0), 0).toLocaleString()}</td>
+        <td class="text-end">${data.reduce((sum, item) => sum + (item.total_AdjustedInsuranceCompanyPremium || 0), 0).toLocaleString()}</td>
+        <td class="text-end">${data.reduce((sum, item) => sum + (item.eTotalMonthPremium || 0) + (item.eTotalCompanyPremium || 0), 0).toLocaleString()}</td>
+        <td class="text-end">${totalPremium.toLocaleString()}</td>
+        <td class="text-end">${data.reduce((sum, item) => sum + (item.Conversion_AdjustedInsuranceCompanyPremium || 0), 0).toLocaleString()}</td>
       </tr>
     `;
 
-    settlementTableBody.innerHTML = body + summaryRow;
-    if (settlementSummary) {
-      settlementSummary.textContent = `정산 대상: ${rows.length}건 / 합계: ${totalSum.toLocaleString()}`;
+    settlementAdjustmentTableBody.innerHTML = body + summaryRow;
+    if (settlementTotalPremium) {
+      settlementTotalPremium.textContent = `${totalPremium.toLocaleString()}원`;
     }
   };
 
+  // 정산 데이터 로드 (증권번호별 집계)
   const loadSettlementData = async () => {
-    if (!settlementTableBody) return;
+    if (!settlementAdjustmentTableBody) return;
     if (!currentSettlement.dNum) return;
     const start = settleStartInput?.value || '';
     const end = settleEndInput?.value || '';
 
-    settlementTableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td></tr>`;
-    if (settlementSummary) settlementSummary.textContent = '';
+    settlementAdjustmentTableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">데이터를 불러오는 중...</td></tr>`;
+    if (settlementTotalPremium) settlementTotalPremium.textContent = '0원';
 
     try {
       const params = new URLSearchParams({
@@ -369,23 +364,110 @@ document.addEventListener('DOMContentLoaded', () => {
         lastMonthDueDate: start,
         thisMonthDueDate: end,
       });
-      const res = await fetch(`/api/insurance/kj-company/settlement/monthly?${params.toString()}`);
+      const res = await fetch(`/api/insurance/kj-company/settlement/adjustment?${params.toString()}`);
       const json = await res.json();
-      if (!json.success) throw new Error(json.message || 'API 오류');
-      renderSettlementRows(json.smsData || []);
+      if (!json.success) throw new Error(json.message || json.error || 'API 오류');
+      renderSettlementAdjustmentTable(json.data || []);
     } catch (err) {
       console.error('정산 데이터 조회 실패:', err);
-      settlementTableBody.innerHTML = `<tr><td colspan="10" class="text-center text-danger py-4">오류가 발생했습니다.</td></tr>`;
+      settlementAdjustmentTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">오류가 발생했습니다: ${err.message}</td></tr>`;
     }
   };
 
-  const openSettlementModal = (dNum, companyName) => {
-    currentSettlement = { dNum, companyName };
-    setDefaultSettlementDates();
+  // 메모 조회
+  const loadSettlementMemo = async (jumin) => {
+    if (!settlementMemoTableBody || !jumin) return;
+    
+    try {
+      const res = await fetch('/api/insurance/kj-company/settlement/memo-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jumin }),
+      });
+      const json = await res.json();
+      if (json.status === 'error') throw new Error(json.message || 'API 오류');
+      
+      const memos = json.data || [];
+      if (memos.length === 0) {
+        settlementMemoTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4">메모가 없습니다.</td></tr>`;
+        return;
+      }
+      
+      const body = memos
+        .map((memo, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>${memo.wdate || '-'}</td>
+            <td>${memo.memokind || '일반'}</td>
+            <td>${memo.memo || '-'}</td>
+            <td>${memo.userid || '-'}</td>
+          </tr>
+        `)
+        .join('');
+      
+      settlementMemoTableBody.innerHTML = body;
+    } catch (err) {
+      console.error('메모 조회 실패:', err);
+      settlementMemoTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">오류가 발생했습니다.</td></tr>`;
+    }
+  };
+
+  // 메모 저장
+  const saveSettlementMemo = async () => {
+    if (!settlementMemoInput || !currentSettlement.jumin) {
+      alert('주민번호 정보가 없습니다.');
+      return;
+    }
+    
+    const memo = settlementMemoInput.value.trim();
+    if (!memo) {
+      alert('메모 내용을 입력해주세요.');
+      return;
+    }
+    
+    try {
+      const res = await fetch('/api/insurance/kj-company/settlement/memo-save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jumin: currentSettlement.jumin,
+          memo,
+          memokind: '일반',
+          userid: (window.SessionManager?.getUserInfo?.().name) || '',
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || 'API 오류');
+      
+      settlementMemoInput.value = '';
+      await loadSettlementMemo(currentSettlement.jumin);
+      alert('메모가 저장되었습니다.');
+    } catch (err) {
+      console.error('메모 저장 실패:', err);
+      alert(`메모 저장 중 오류가 발생했습니다: ${err.message}`);
+    }
+  };
+
+  const openSettlementModal = async (dNum, companyName) => {
+    currentSettlement = { dNum, companyName, jumin: '' };
+    await setDefaultSettlementDates();
     if (settlementModalEl) {
       settlementModalEl.querySelector('#settlementModalLabel').textContent = `정산 - ${companyName || ''}`;
     }
-    loadSettlementData();
+    
+    // 정산 기간 조회 시 주민번호도 가져오기
+    try {
+      const res = await fetch(`/api/insurance/kj-company/settlement/endorse-day?dNum=${dNum}`);
+      const json = await res.json();
+      if (json.success && json.jumin) {
+        currentSettlement.jumin = json.jumin;
+        await loadSettlementMemo(json.jumin);
+      }
+    } catch (err) {
+      console.error('정산 기간 조회 실패:', err);
+    }
+    
+    await loadSettlementData();
     settlementModal?.show();
   };
 
@@ -531,17 +613,36 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('settleExcelBtn')?.addEventListener('click', () => {
     downloadSettlementExcel();
   });
-
-  settlementTableBody?.addEventListener('change', async (e) => {
-    const select = e.target.closest('select[data-role="settlement-status"]');
-    if (!select) return;
-    const seqNo = select.getAttribute('data-seq-no');
-    const customerName = select.getAttribute('data-customer-name');
-    const status = select.value;
-    const ok = await updateSettlementStatus(seqNo, status, customerName);
-    if (!ok) {
-      // revert selection
-      select.value = status === '1' ? '2' : '1';
+  document.getElementById('settlementMemoSaveBtn')?.addEventListener('click', () => {
+    saveSettlementMemo();
+  });
+  document.getElementById('settleConfirmPremiumBtn')?.addEventListener('click', () => {
+    alert('확정보험료 입력 기능은 준비 중입니다.');
+  });
+  document.getElementById('settleListBtn')?.addEventListener('click', () => {
+    alert('정산리스트 기능은 준비 중입니다.');
+  });
+  
+  // 메모 입력 엔터키
+  settlementMemoInput?.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') {
+      saveSettlementMemo();
+    }
+  });
+  document.getElementById('settlementMemoSaveBtn')?.addEventListener('click', () => {
+    saveSettlementMemo();
+  });
+  document.getElementById('settleConfirmPremiumBtn')?.addEventListener('click', () => {
+    alert('확정보험료 입력 기능은 준비 중입니다.');
+  });
+  document.getElementById('settleListBtn')?.addEventListener('click', () => {
+    alert('정산리스트 기능은 준비 중입니다.');
+  });
+  
+  // 메모 입력 엔터키
+  settlementMemoInput?.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') {
+      saveSettlementMemo();
     }
   });
 
