@@ -3,9 +3,6 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-// 약국배상책임보험 목록 조회 (프록시)
-// 기존 '/list' 라우트를 다음과 같이 수정하세요
-
 // 약국배상책임보험 목록 조회 (프록시) - 거래처 필터 지원
 router.get('/list', async (req, res) => {
     try {
@@ -86,6 +83,7 @@ router.get('/list', async (req, res) => {
         }
     }
 });
+
 // 거래처 목록 조회 (필터용)
 router.get('/accounts', async (req, res) => {
     try {
@@ -158,6 +156,7 @@ router.get('/accounts', async (req, res) => {
         }
     }
 });
+
 // 약국 상태 업데이트 (향후 구현)
 router.put('/update-status', async (req, res) => {
     try {
@@ -852,6 +851,116 @@ router.delete('/files/:filename', async (req, res) => {
       error: '파일 삭제 중 오류가 발생했습니다',
       details: error.message
     });
+  }
+});
+
+// 증권 파일 조회 및 다운로드 프록시
+router.get('/certificate/:pharmacyId/:certificateType', async (req, res) => {
+  try {
+    const { pharmacyId, certificateType } = req.params;
+    
+    // certificateType 검증
+    if (!['expert', 'fire'].includes(certificateType)) {
+      return res.status(400).json({
+        success: false,
+        error: '올바른 증권 유형을 선택해주세요. (expert 또는 fire)'
+      });
+    }
+    
+    console.log(`[GET /certificate/${pharmacyId}/${certificateType}] 증권 파일 조회 요청`);
+    
+    // PHP API를 통해 증권 파일 정보 조회
+    const detailResponse = await axios.get('https://imet.kr/api/pharmacy/pharmacyApply-num-detail.php', {
+      params: { num: pharmacyId },
+      timeout: 15000,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!detailResponse.data || !detailResponse.data.success) {
+      return res.status(404).json({
+        success: false,
+        error: '약국 정보를 찾을 수 없습니다.'
+      });
+    }
+    
+    const pharmacyData = detailResponse.data.data || detailResponse.data;
+    const images = pharmacyData.images || [];
+    
+    // 증권 유형에 따라 kind 값 결정 (1=전문인, 2=화재)
+    const kind = certificateType === 'expert' ? '1' : '2';
+    const certificateFile = images.find(img => img.kind === kind);
+    
+    if (!certificateFile || !certificateFile.description2) {
+      return res.status(404).json({
+        success: false,
+        error: '증권 파일을 찾을 수 없습니다.'
+      });
+    }
+    
+    const filePath = certificateFile.description2;
+    
+    // 파일 경로가 상대 경로인 경우 절대 경로로 변환
+    let fullPath;
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      // 이미 전체 URL인 경우
+      fullPath = filePath;
+    } else if (filePath.startsWith('/')) {
+      // 절대 경로인 경우
+      fullPath = `https://imet.kr${filePath}`;
+    } else {
+      // 상대 경로인 경우
+      fullPath = `https://imet.kr/${filePath}`;
+    }
+    
+    console.log(`[GET /certificate/${pharmacyId}/${certificateType}] 증권 파일 경로: ${fullPath}`);
+    
+    // PHP 서버에서 파일 다운로드
+    try {
+      const fileResponse = await axios.get(fullPath, {
+        responseType: 'stream',
+        timeout: 30000,
+        headers: {
+          'Accept': '*/*'
+        }
+      });
+      
+      // Content-Type 설정
+      const contentType = fileResponse.headers['content-type'] || 'application/pdf';
+      res.setHeader('Content-Type', contentType);
+      
+      // 파일명 설정
+      const fileName = certificateType === 'expert' ? '전문인증권.pdf' : '화재증권.pdf';
+      res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+      
+      // 파일 스트림 전송
+      fileResponse.data.pipe(res);
+      
+    } catch (fileError) {
+      console.error(`[GET /certificate/${pharmacyId}/${certificateType}] 파일 다운로드 오류:`, fileError.message);
+      
+      // 파일을 직접 다운로드할 수 없는 경우, URL을 리다이렉트
+      res.redirect(fullPath);
+    }
+    
+  } catch (error) {
+    console.error(`[GET /certificate/${pharmacyId}/${certificateType}] 오류:`, error.message);
+    
+    if (error.response) {
+      res.status(error.response.status).json({
+        success: false,
+        error: '증권 파일 조회 중 오류가 발생했습니다.',
+        details: error.response.data
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: '증권 파일 조회 중 오류가 발생했습니다.',
+        details: error.message
+      });
+    }
   }
 });
 

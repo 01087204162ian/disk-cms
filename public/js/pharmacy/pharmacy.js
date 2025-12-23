@@ -1239,27 +1239,34 @@ function checkCertificateFiles(images) {
   return { hasExpertCert, hasFireCert };
 }
 
-// 단순화된 viewCertificateByNum 함수
-function viewCertificateByNum(viewCertificateByNum) {
-  if (!viewCertificateByNum) {
-    alert('증권 번호가 없습니다.');
+// 증권 조회 및 열람 함수
+async function viewCertificateByNum(pharmacyId, certificateType, filePath) {
+  if (!pharmacyId) {
+    alert('약국 정보가 없습니다.');
     return;
   }
   
-  // 기존 시스템의 증권보기 함수 호출
-  // 예시들:
+  if (!certificateType) {
+    // 기존 호출 방식 호환성 유지 (filePath만 있는 경우)
+    if (filePath) {
+      // 기존 방식: filePath가 description2 값인 경우
+      const fullUrl = filePath.startsWith('http') ? filePath : `https://imet.kr${filePath}`;
+      window.open(fullUrl, '_blank');
+      return;
+    } else {
+      alert('증권 정보가 없습니다.');
+      return;
+    }
+  }
   
-  // 방법 1: 직접 URL로 이동
-  window.open(`https://imet.kr${viewCertificateByNum}`, '_blank');
-  
-  // 방법 2: 기존 함수가 있다면 호출
-  // showCertificate(num);
-  
-  // 방법 3: API 통해 PDF URL 가져와서 열기
-  // fetch(`/api/certificate/url/${num}`)
-  //   .then(response => response.json())
-  //   .then(data => window.open(data.url, '_blank'))
-  //   .catch(err => alert('증권을 불러오는데 실패했습니다.'));
+  try {
+    // 프록시를 통해 증권 파일 열기
+    const certificateUrl = `/api/pharmacy/certificate/${pharmacyId}/${certificateType}`;
+    window.open(certificateUrl, '_blank');
+  } catch (error) {
+    console.error('증권 열람 오류:', error);
+    alert('증권을 불러오는데 실패했습니다.');
+  }
 }
 
 
@@ -1519,7 +1526,7 @@ function displayPharmcay(pharmacyId, payload) {
             입력
           </button>
           <button class="btn btn-cert-view btn-compact" type="button" 
-                  onclick="viewCertificateByNum('${fireCertFile?.description2 || ''}')" 
+                  onclick="viewCertificateByNum(${pharmacyId}, 'fire', '${fireCertFile?.description2 || ''}')" 
                   ${!hasFireCert ? 'disabled' : ''}>
             보기
           </button>
@@ -1707,7 +1714,7 @@ function displayPharmcay(pharmacyId, payload) {
               입력
             </button>
             <button class="btn btn-cert-view btn-sm" type="button" 
-                    onclick="viewCertificateByNum('${expertCertFile?.description2 || ''}')" 
+                    onclick="viewCertificateByNum(${pharmacyId}, 'expert', '${expertCertFile?.description2 || ''}')" 
                     ${!hasExpertCert ? 'disabled' : ''}>
               보기
             </button>
@@ -1740,8 +1747,8 @@ function displayPharmcay(pharmacyId, payload) {
               입력
             </button>
             <button class="btn btn-cert-view btn-sm" type="button" 
-                    onclick="viewCertificateByNum('${fireCertFile?.description2 || ''}')" 
-                    ${!hasFireCert ? 'disabled' : ''}>
+                    onclick="viewCertificateByNum(${pharmacyId}, 'fire', '${fireCertFile?.description2 || ''}')" 
+                  ${!hasFireCert ? 'disabled' : ''}>
               보기
             </button>
           </div>
