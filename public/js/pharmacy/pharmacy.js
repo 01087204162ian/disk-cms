@@ -1709,20 +1709,30 @@ function setupEnterToSubmit(pharmacyId) {
           headers: {
             'Content-Type': 'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify({ memo: memoValue })
         })
-        .then(res => res.json())
+        .then(res => {
+          // ✅ HTTP 상태 코드 확인
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
         .then(resp => {
           if (resp.success) {
             // ✅ 기존에 있던 토스트 메시지 함수 호출
             window.sjTemplateLoader.showToast("메모가 저장되었습니다.", "success");
+            console.log("메모 저장 성공:", resp);
           } else {
-            window.sjTemplateLoader.showToast(resp.error || "메모 저장 실패", "error");
+            const errorMsg = resp.error || "메모 저장 실패";
+            console.error("메모 저장 실패:", resp);
+            window.sjTemplateLoader.showToast(errorMsg, "error");
           }
         })
         .catch(err => {
           console.error("메모 저장 오류:", err);
-          window.sjTemplateLoader.showToast("서버 통신 오류", "error");
+          window.sjTemplateLoader.showToast("서버 통신 오류: " + err.message, "error");
         });
       }
     });
