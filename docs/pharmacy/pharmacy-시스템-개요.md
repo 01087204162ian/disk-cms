@@ -49,8 +49,13 @@ MySQL 데이터베이스
 ### 서버 정보
 - **프론트엔드**: `https://disk-cms.simg.kr/pages/pharmacy/`
 - **Node.js 프록시**: `/api/pharmacy/*` (routes/pharmacy.js)
-- **PHP 백엔드**: `https://imet.kr/api/pharmacy/*` 또는 `https://silbo.kr/api/pharmacy/*`
+- **PHP 백엔드 (프로덕션)**: `https://imet.kr/api/pharmacy/*` 또는 `https://silbo.kr/api/pharmacy/*`
+- **PHP 백엔드 (로컬 개발)**: `imet/api/pharmacy/*` (로컬 파일 시스템)
 - **데이터베이스**: MySQL
+
+**중요**: 
+- 로컬 개발 시 PHP 파일은 `imet/api/pharmacy/` 폴더에 위치합니다
+- Node.js 프록시는 항상 프로덕션 URL을 호출하므로, 로컬에서 PHP를 테스트하려면 별도의 PHP 서버가 필요합니다
 
 ---
 
