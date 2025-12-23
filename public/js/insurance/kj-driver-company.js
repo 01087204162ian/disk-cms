@@ -313,7 +313,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const endorseCompanyPremium = item.eTotalCompanyPremium || 0;
         const conversionPremium = item.Conversion_AdjustedInsuranceCompanyPremium || 0;
         
-        const total = monthlyPremium + companyPremium + endorseMonthlyPremium + endorseCompanyPremium;
+        // 배서보험료 = 배서 월보험료 + 배서 회사보험료
+        const endorsePremium = endorseMonthlyPremium + endorseCompanyPremium;
+        // 계 = 월보험료 + 배서보험료
+        const total = monthlyPremium + endorsePremium;
         totalPremium += total;
 
         return `
@@ -323,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="text-end">${item.drivers_count || 0}</td>
             <td class="text-end">${monthlyPremium.toLocaleString()}</td>
             <td class="text-end">${companyPremium.toLocaleString()}</td>
-            <td class="text-end">${(endorseMonthlyPremium + endorseCompanyPremium).toLocaleString()}</td>
+            <td class="text-end">${endorsePremium.toLocaleString()}</td>
             <td class="text-end">${total.toLocaleString()}</td>
             <td class="text-end">${conversionPremium.toLocaleString()}</td>
           </tr>
