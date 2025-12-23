@@ -1,7 +1,7 @@
 // KJ 대리운전 업체 목록 - 프론트 스크립트
 // API: GET /api/insurance/kj-company/list?page=&limit=&getDay=&damdanja=&s_contents=
 
-(function () {
+document.addEventListener('DOMContentLoaded', () => {
   const tableBody = document.getElementById('driver_company_table_body');
   const mobileCards = document.getElementById('driver_company_mobile_cards');
   const paginationInfo = document.getElementById('pagination_info');
@@ -580,5 +580,5 @@
       mobileCards.innerHTML = `<div class="text-center py-4">날짜를 선택해 주세요.</div>`;
     }
   })();
-})();
+});
 
