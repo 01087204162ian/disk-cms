@@ -4,9 +4,52 @@
     let currentSearchTerm = '';
     let currentStatusFilter = '13';
     let currentAccountFilter = ''; // 거래처 필터 추가
+    
+    // localStorage 키
+    const STORAGE_KEY_PAGE = 'pharmacy_current_page';
+    const STORAGE_KEY_PAGE_SIZE = 'pharmacy_page_size';
+    const STORAGE_KEY_STATUS_FILTER = 'pharmacy_status_filter';
+    const STORAGE_KEY_ACCOUNT_FILTER = 'pharmacy_account_filter';
+    const STORAGE_KEY_SEARCH_TERM = 'pharmacy_search_term';
+    
+    // 페이지 상태 저장 함수
+    function savePageState() {
+      try {
+        localStorage.setItem(STORAGE_KEY_PAGE, currentPage.toString());
+        localStorage.setItem(STORAGE_KEY_PAGE_SIZE, currentPageSize.toString());
+        localStorage.setItem(STORAGE_KEY_STATUS_FILTER, currentStatusFilter);
+        localStorage.setItem(STORAGE_KEY_ACCOUNT_FILTER, currentAccountFilter);
+        localStorage.setItem(STORAGE_KEY_SEARCH_TERM, currentSearchTerm);
+      } catch (e) {
+        console.warn('페이지 상태 저장 실패:', e);
+      }
+    }
+    
+    // 페이지 상태 복원 함수
+    function restorePageState() {
+      try {
+        const savedPage = localStorage.getItem(STORAGE_KEY_PAGE);
+        const savedPageSize = localStorage.getItem(STORAGE_KEY_PAGE_SIZE);
+        const savedStatusFilter = localStorage.getItem(STORAGE_KEY_STATUS_FILTER);
+        const savedAccountFilter = localStorage.getItem(STORAGE_KEY_ACCOUNT_FILTER);
+        const savedSearchTerm = localStorage.getItem(STORAGE_KEY_SEARCH_TERM);
+        
+        if (savedPage) currentPage = parseInt(savedPage, 10);
+        if (savedPageSize) currentPageSize = parseInt(savedPageSize, 10);
+        if (savedStatusFilter) currentStatusFilter = savedStatusFilter;
+        if (savedAccountFilter) currentAccountFilter = savedAccountFilter;
+        if (savedSearchTerm) currentSearchTerm = savedSearchTerm;
+      } catch (e) {
+        console.warn('페이지 상태 복원 실패:', e);
+      }
+    }
+    
     // 페이지 초기화
     document.addEventListener('DOMContentLoaded', function() {
       console.log('약국배상책임보험 관리 페이지가 로드되었습니다.');
+      
+      // 페이지 상태 복원
+      restorePageState();
       
       // 현재 시간 업데이트
      // updateCurrentTime();
@@ -22,6 +65,11 @@
 		initializeAccountFilter();
       // 초기 데이터 로드
       loadPharmacyData();
+    });
+    
+    // 페이지 언로드 시 상태 저장
+    window.addEventListener('beforeunload', function() {
+      savePageState();
     });
 	
 	// ========== 거래처 필터 관련 함수들 (추가) ==========
@@ -113,6 +161,7 @@ function setupAccountFilterEvents() {
     accountFilter.addEventListener('change', function() {
       currentAccountFilter = this.value;
       currentPage = 1; // 페이지 초기화
+      savePageState();
       console.log('거래처 필터 변경:', currentAccountFilter);
       loadPharmacyData();
     });
@@ -224,6 +273,7 @@ async function refreshAccountFilter() {
 			pageSize.addEventListener('change', function() {
 			  currentPageSize = parseInt(this.value);
 			  currentPage = 1;
+			  savePageState();
 			  loadPharmacyData();
 			});
 		  }
@@ -439,6 +489,42 @@ function displayPharmacyData(data) {
 
   // 상태 변경 이벤트 리스너 등록 (추가)
   attachStatusChangeEvents();
+}
+
+// 약국을 목록에서 제거하는 함수
+function removePharmacyFromList(pharmacyId) {
+  // 테이블 행 제거
+  const row = document.querySelector(`tr[data-id="${pharmacyId}"]`);
+  if (row) {
+    row.remove();
+  }
+  
+  // 모바일 카드 제거
+  const card = document.querySelector(`.mobile-card[data-id="${pharmacyId}"]`);
+  if (card) {
+    card.remove();
+  }
+  
+  // 목록이 비어있으면 데이터 다시 로드
+  const tableBody = document.getElementById('pharmacy_table_body');
+  const mobileContainer = document.getElementById('pharmacy_mobile_cards');
+  
+  const remainingRows = tableBody ? tableBody.querySelectorAll('tr').length : 0;
+  const remainingCards = mobileContainer ? mobileContainer.querySelectorAll('.mobile-card').length : 0;
+  
+  if (remainingRows === 0 && remainingCards === 0) {
+    // 현재 페이지가 1보다 크면 이전 페이지로 이동
+    if (currentPage > 1) {
+      currentPage--;
+      savePageState();
+    }
+    // 데이터 다시 로드
+    loadPharmacyData();
+  } else {
+    // 페이지네이션 업데이트
+    // (실제로는 서버에서 다시 조회해야 정확한 페이지네이션을 얻을 수 있음)
+    // 여기서는 간단히 현재 페이지 유지
+  }
 }
 
 // createTableRow 함수에서 original-status 속성 추가
@@ -886,6 +972,7 @@ function createMobileCard(item, index) {
     // 페이지 이동
     function goToPage(page) {
       currentPage = page;
+      savePageState(); // 페이지 변경 시 저장
       loadPharmacyData();
       
       // 스크롤 최상단으로 이동
@@ -2149,6 +2236,22 @@ async function saveCertificateNumber(pharmacyId, isMobile = false, certificateTy
 				if (startDateMobile) startDateMobile.value = result.data.insurance_start_date;
 				if (endDateMobile) endDateMobile.value = result.data.insurance_end_date;
 			  }
+      
+      // 증권번호 저장 시 상태가 변경될 수 있으므로 목록 갱신
+      // 현재 필터 상태에 따라 목록에서 제거 또는 갱신
+      if (result.data && result.data.new_status) {
+        const newStatus = result.data.new_status.toString();
+        // 현재 필터와 다른 상태로 변경되면 목록에서 제거
+        if (currentStatusFilter && newStatus !== currentStatusFilter) {
+          removePharmacyFromList(pharmacyId);
+        } else {
+          // 현재 페이지 유지하며 데이터만 갱신
+          loadPharmacyData();
+        }
+      } else {
+        // 상태 정보가 없으면 그냥 갱신
+        loadPharmacyData();
+      }
     } else {
       throw new Error(result.message || '저장에 실패했습니다.');
     }
@@ -2236,6 +2339,22 @@ async function saveDesignNumber(pharmacyId, isMobile = false, designType = 'expe
       const otherInput = document.getElementById(otherFieldId);
       if (otherInput) {
         otherInput.value = designNumber;
+      }
+      
+      // 리스트 화면의 설계번호 입력 필드도 업데이트
+      const listFieldId = designType === 'expert' ? `chemist_${pharmacyId}` : `area_${pharmacyId}`;
+      const listField = document.getElementById(listFieldId);
+      if (listField) {
+        listField.value = designNumber;
+      }
+      
+      // 설계번호 저장 시 상태가 17(설계중)로 변경되므로 목록에서 제거
+      // 현재 필터가 '13'(승인)이고 상태가 변경되면 목록에서 제거
+      if (currentStatusFilter === '13') {
+        removePharmacyFromList(pharmacyId);
+      } else {
+        // 현재 페이지 유지하며 데이터만 갱신
+        loadPharmacyData();
       }
     } else {
       throw new Error(result.message || '저장에 실패했습니다.');
