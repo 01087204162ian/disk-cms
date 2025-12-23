@@ -472,6 +472,7 @@ function createTableRow(item, index) {
         '&nbsp;'
       }
     </td>
+    <td class="col-date d-none d-xl-table-cell">${formatDate(item.request_date) || '-'}</td>
     <td class="col-date">${formatDate(item.approval_date) || '-'}</td>
     <td class="col-status">
       <select id="status_${item.num}" class="form-control form-control-sm select-status" 
@@ -520,6 +521,10 @@ function createMobileCard(item, index) {
       <div class="mobile-card-row">
         <span class="mobile-card-label">휴대전화:</span>
         <span class="mobile-card-value">${item.hphone || '-'}</span>
+      </div>
+      <div class="mobile-card-row">
+        <span class="mobile-card-label">가입요청일:</span>
+        <span class="mobile-card-value">${formatDate(item.request_date) || '-'}</span>
       </div>
       <div class="mobile-card-row">
         <span class="mobile-card-label">승인일:</span>
