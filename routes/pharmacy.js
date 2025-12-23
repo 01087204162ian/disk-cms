@@ -855,6 +855,49 @@ router.delete('/files/:filename', async (req, res) => {
   }
 });
 
+// 보험료 검증 API 프록시
+router.get('/premium-verify', async (req, res) => {
+  try {
+    const { pharmacy_id, all } = req.query;
+    
+    const params = new URLSearchParams();
+    if (pharmacy_id) {
+      params.append('pharmacy_id', pharmacy_id);
+    }
+    if (all === '1') {
+      params.append('all', '1');
+    }
+    
+    const apiUrl = `https://imet.kr/api/pharmacy/pharmacy-premium-verify.php?${params}`;
+    
+    console.log(`[GET /premium-verify] 보험료 검증 요청 - 약국ID: ${pharmacy_id || '전체'}`);
+    
+    const response = await axios.get(apiUrl, {
+      timeout: 30000,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log(`[GET /premium-verify] 성공 - 보험료 검증 완료`);
+    res.json(response.data);
+    
+  } catch (error) {
+    console.error('보험료 검증 프록시 오류:', error.message);
+    
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({
+        success: false,
+        error: '보험료 검증 중 오류가 발생했습니다.',
+        details: error.message
+      });
+    }
+  }
+});
+
 // package.json dependencies에 추가 필요:
 // npm install multer
 module.exports = router;

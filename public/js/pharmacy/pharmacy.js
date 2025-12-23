@@ -491,7 +491,15 @@ function createTableRow(item, index) {
       <input type='text' id="memo_${item.num}" class="form-control form-control-sm input-memo" 
              value='${item.memo || ''}' placeholder="메모" data-id="${item.num}">
     </td>
-    <td class="col-premium">${item.premium || (item.premium_raw ? formatCurrency(item.premium_raw) : '-')}</td>
+    <td class="col-premium">
+      ${item.premium || (item.premium_raw ? formatCurrency(item.premium_raw) : '-')}
+      <button type="button" class="btn btn-sm btn-link p-0 ms-1" 
+              onclick="verifyPremium(${item.num})" 
+              title="보험료 검증" 
+              style="font-size: 0.75rem;">
+        <i class="fas fa-check-circle text-info"></i>
+      </button>
+    </td>
     <td class="col-account">${item.account_directory}</td>
   `;
   
@@ -1353,10 +1361,19 @@ function displayPharmcay(pharmacyId, payload) {
 		<!-- 보험료 / 사업장면적 -->
 			
 		<div class="full-width">
-			<label class="col-form-label">보험료(기본)</label>
+			<label class="col-form-label">
+			  보험료(기본)
+			  <button type="button" class="btn btn-sm btn-link p-0 ms-1" 
+			          onclick="verifyPremium(${pharmacyId})" 
+			          title="보험료 검증" 
+			          style="font-size: 0.75rem;">
+			    <i class="fas fa-check-circle text-info"></i>
+			  </button>
+			</label>
 			<p class="form-control-plaintext fw-bold text-primary mb-0" id="premium">
 			  ${val(d.premium_formatted || d.preminum)} 원
 			</p>
+			<small class="text-muted" id="premium_verification_result"></small>
 		</div>
 
         <!-- 전문인설계번호 -->
@@ -1879,6 +1896,65 @@ function updatePremiumDisplay(premiumFormatted) {
     if (mobilePremium) {
         mobilePremium.textContent = premiumFormatted + ' 원';
     }
+}
+
+/************************************/
+/* 보험료 검증 함수
+/************************************/
+async function verifyPremium(pharmacyId) {
+  try {
+    const response = await fetch(`/api/pharmacy/premium-verify?pharmacy_id=${pharmacyId}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      if (data.is_match) {
+        window.sjTemplateLoader.showToast('보험료가 일치합니다.', 'success');
+        console.log('보험료 검증 성공:', data);
+        
+        // 상세 화면에 결과 표시
+        const resultElement = document.getElementById('premium_verification_result');
+        if (resultElement) {
+          resultElement.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> 일치</span>';
+        }
+      } else {
+        const message = `보험료 불일치 발견!\n\nDB 저장값: ${number_format(data.db_premium)}원\n계산값: ${number_format(data.calculated_premium)}원\n차이: ${number_format(data.difference)}원\n\n전문인 보험료: ${number_format(data.calculated_expert_premium)}원\n화재 보험료: ${number_format(data.calculated_fire_premium)}원`;
+        alert(message);
+        console.warn('보험료 불일치:', data);
+        
+        // 상세 화면에 결과 표시
+        const resultElement = document.getElementById('premium_verification_result');
+        if (resultElement) {
+          resultElement.innerHTML = `
+            <span class="text-danger">
+              <i class="fas fa-exclamation-triangle"></i> 
+              불일치: DB ${number_format(data.db_premium)}원 vs 계산 ${number_format(data.calculated_premium)}원 
+              (차이: ${number_format(data.difference)}원)
+            </span>
+          `;
+        }
+      }
+    } else {
+      throw new Error(data.error || '검증 실패');
+    }
+  } catch (error) {
+    console.error('보험료 검증 오류:', error);
+    window.sjTemplateLoader.showToast('보험료 검증 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 숫자 포맷팅 헬퍼 함수
+function number_format(num) {
+  if (!num && num !== 0) return '0';
+  return parseFloat(num).toLocaleString('ko-KR');
 }
 
 /************************************/
