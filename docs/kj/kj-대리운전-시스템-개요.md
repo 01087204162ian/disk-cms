@@ -783,6 +783,59 @@ cms/
 
 ---
 
-**문서 버전**: 1.3  
-**최종 업데이트**: 2025-12-20
+### 2025-12-24
+
+#### ✅ 완료된 작업
+
+1. **정산 보험료 계산 로직 수정**
+   - `payment10_premium_total`이 이미 연간 보험료임을 확인
+   - 환산보험료 계산 로직 수정: `연간 보험료 × 10 / 12` → `연간 보험료 / 12`
+   - `kj-settlement-adjustment.php`의 `Conversion_AdjustedInsuranceCompanyPremium` 계산식 수정
+   - 주석 수정: "1/10 기본+특약 합계" → "연간 보험료 (10회 분납 합계)"
+
+2. **정산 모달 UI 개선**
+   - 테이블 헤더 변경: "보험회사보험료" → "1/10 보험료"
+   - 계산 로직 수정: "계" = 월보험료 + 배서보험료
+   - 배서보험료 = 배서 월보험료 + 배서 회사보험료
+
+#### 📁 수정된 파일
+
+**수정된 파일**:
+- `pci0327/api/insurance/kj-settlement-adjustment.php` - 환산보험료 계산 로직 및 주석 수정
+- `disk-cms/public/pages/insurance/kj-driver-company.html` - 정산 모달 테이블 헤더 변경
+- `disk-cms/public/js/insurance/kj-driver-company.js` - 정산 모달 계산 로직 수정
+
+#### 🔧 기술 세부사항
+
+**보험료 산정 방식**:
+- `payment10_premium_total`: 연간 보험료 (10회 분납 합계)
+- `AdjustedInsuranceCompanyPremium`: 연간 보험료 × 할인할증률
+- `total_AdjustedInsuranceCompanyPremium`: 증권번호별 연간 보험료 합계
+- `Conversion_AdjustedInsuranceCompanyPremium`: 연간 보험료 ÷ 12 (월 보험료로 환산)
+
+**정산 모달 테이블 구조**:
+| 컬럼명 | 설명 | 계산식 |
+|--------|------|--------|
+| 월보험료 | 월 단위 보험료 | `total_AdjustedInsuranceMothlyPremium` |
+| 1/10 보험료 | 연간 보험료 | `total_AdjustedInsuranceCompanyPremium` |
+| 배서보험료 | 배서 처리 보험료 | `eTotalMonthPremium + eTotalCompanyPremium` |
+| 계 | 총 보험료 | `월보험료 + 배서보험료` |
+| 환산보험료 | 월 단위 환산 보험료 | `연간 보험료 / 12` |
+
+**수정 전후 비교**:
+```php
+// 수정 전 (잘못된 계산)
+$policyData[$key]['Conversion_AdjustedInsuranceCompanyPremium'] = 
+    floor(($value['total_AdjustedInsuranceCompanyPremium'] * 10 / 12)/10)*10;
+
+// 수정 후 (올바른 계산)
+// total_AdjustedInsuranceCompanyPremium는 이미 연간 보험료이므로 12로 나누어 월 보험료로 환산
+$policyData[$key]['Conversion_AdjustedInsuranceCompanyPremium'] = 
+    floor(($value['total_AdjustedInsuranceCompanyPremium'] / 12)/10)*10;
+```
+
+---
+
+**문서 버전**: 1.4  
+**최종 업데이트**: 2025-12-24
 
