@@ -278,8 +278,33 @@
             </div>
           </div>
           
+          <!-- 배서리스트 테이블 -->
+          <div class="table-responsive mb-3" id="settlementListSection" style="display: none;">
+            <table class="table table-bordered table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>번호</th>
+                  <th>성명</th>
+                  <th>주민번호</th>
+                  <th>증권번호</th>
+                  <th>배서일</th>
+                  <th>월보험료</th>
+                  <th>1/10 보험료</th>
+                  <th>배서종류</th>
+                  <th>처리</th>
+                  <th>처리자</th>
+                </tr>
+              </thead>
+              <tbody id="settlementListTableBody">
+                <tr>
+                  <td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
           <!-- 증권번호별 집계 테이블 -->
-          <div class="table-responsive mb-3">
+          <div class="table-responsive mb-3" id="settlementAdjustmentSection">
             <table class="table table-bordered table-sm align-middle">
               <thead class="table-light">
                 <tr>

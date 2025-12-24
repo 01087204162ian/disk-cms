@@ -507,6 +507,12 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('정산 기간 조회 실패:', err);
     }
     
+    // 초기에는 증권번호별 집계 테이블만 표시
+    const settlementListSection = document.getElementById('settlementListSection');
+    const settlementAdjustmentSection = document.getElementById('settlementAdjustmentSection');
+    if (settlementListSection) settlementListSection.style.display = 'none';
+    if (settlementAdjustmentSection) settlementAdjustmentSection.style.display = 'block';
+    
     await loadSettlementData();
     settlementModal?.show();
   };
@@ -646,9 +652,139 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // 배서리스트 조회 함수
+  const loadSettlementList = async () => {
+    if (!currentSettlement.dNum) return;
+    const start = settleStartInput?.value || '';
+    const end = settleEndInput?.value || '';
+    
+    const settlementListTableBody = document.getElementById('settlementListTableBody');
+    const settlementListSection = document.getElementById('settlementListSection');
+    const settlementAdjustmentSection = document.getElementById('settlementAdjustmentSection');
+    
+    if (!settlementListTableBody || !settlementListSection) return;
+    
+    settlementListTableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td></tr>`;
+    settlementListSection.style.display = 'block';
+    settlementAdjustmentSection.style.display = 'none';
+    
+    try {
+      const params = new URLSearchParams({
+        dNum: currentSettlement.dNum,
+        lastMonthDueDate: start,
+        thisMonthDueDate: end,
+      });
+      const res = await fetch(`/api/insurance/kj-company/settlement/monthly?${params.toString()}`);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || json.error || 'API 오류');
+      
+      const smsData = json.smsData || [];
+      if (smsData.length === 0) {
+        settlementListTableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">데이터가 없습니다.</td></tr>`;
+        return;
+      }
+      
+      let totalMonthlyPremium = 0;
+      let totalCPremium = 0;
+      
+      const body = smsData
+        .map((item, idx) => {
+          const monthlyPremium = parseFloat(item.preminum || 0);
+          const cPremium = parseFloat(item.c_preminum || 0);
+          
+          // 월보험료와 c보험료 중 하나만 값이 있음
+          if (monthlyPremium > 0) {
+            totalMonthlyPremium += monthlyPremium;
+          }
+          if (cPremium > 0) {
+            totalCPremium += cPremium;
+          }
+          
+          // 주민번호 마스킹
+          const jumin = item.Jumin || '';
+          const maskedJumin = jumin.length >= 7 ? jumin.substring(0, 7) + '-******' : jumin;
+          
+          // 처리 상태
+          const getStatus = item.get || '';
+          const statusText = getStatus === '2' ? '미정산' : '정산완료';
+          
+          return `
+            <tr>
+              <td class="text-center">${idx + 1}</td>
+              <td>${item.Name || '-'}</td>
+              <td>${maskedJumin}</td>
+              <td>${item.dongbuCerti || '-'}</td>
+              <td>${item.endorse_day || '-'}</td>
+              <td class="text-end">${monthlyPremium > 0 ? monthlyPremium.toLocaleString() : '-'}</td>
+              <td class="text-end">${cPremium > 0 ? cPremium.toLocaleString() : '-'}</td>
+              <td>${item.push === '2' ? '해지' : item.push === '4' ? '청약' : '-'}</td>
+              <td>
+                <select class="form-select form-select-sm" data-seq-no="${item.SeqNo}" onchange="updateSettlementStatusFromList(this)">
+                  <option value="2" ${getStatus === '2' ? 'selected' : ''}>미정산</option>
+                  <option value="1" ${getStatus === '1' ? 'selected' : ''}>정산완료</option>
+                </select>
+              </td>
+              <td>${item.manager || '-'}</td>
+            </tr>
+          `;
+        })
+        .join('');
+      
+      // 합계 행
+      const totalRow = `
+        <tr class="table-light fw-bold">
+          <td colspan="5" class="text-center">합계</td>
+          <td class="text-end">${totalMonthlyPremium > 0 ? totalMonthlyPremium.toLocaleString() : '-'}</td>
+          <td class="text-end">${totalCPremium > 0 ? totalCPremium.toLocaleString() : '-'}</td>
+          <td colspan="2" class="text-center">계</td>
+          <td class="text-end">${(totalMonthlyPremium + totalCPremium).toLocaleString()}</td>
+        </tr>
+      `;
+      
+      settlementListTableBody.innerHTML = body + totalRow;
+    } catch (err) {
+      console.error('배서리스트 조회 실패:', err);
+      settlementListTableBody.innerHTML = `<tr><td colspan="10" class="text-center text-danger py-4">오류가 발생했습니다: ${err.message}</td></tr>`;
+    }
+  };
+  
+  // 배서리스트에서 정산 상태 업데이트
+  window.updateSettlementStatusFromList = async function(selectElement) {
+    const seqNo = selectElement.getAttribute('data-seq-no');
+    const status = selectElement.value;
+    const row = selectElement.closest('tr');
+    const name = row.querySelector('td:nth-child(2)')?.textContent || '';
+    
+    if (!seqNo) return;
+    
+    try {
+      const body = {
+        seqNo,
+        status,
+        userName: (window.SessionManager?.getUserInfo?.().name) || '',
+      };
+      const res = await fetch('/api/insurance/kj-company/settlement/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || 'API 오류');
+      
+      // 처리자 업데이트
+      const managerCell = row.querySelector('td:last-child');
+      if (managerCell) managerCell.textContent = body.userName || '-';
+    } catch (err) {
+      console.error('정산 상태 업데이트 실패:', err);
+      alert(`${name || ''} 정산 상태 업데이트 중 오류가 발생했습니다.`);
+      // 원래 값으로 복원
+      selectElement.value = status === '1' ? '2' : '1';
+    }
+  };
+
   // 정산 모달 이벤트
   document.getElementById('settleSearchBtn')?.addEventListener('click', () => {
-    loadSettlementData();
+    loadSettlementList();
   });
   document.getElementById('settleExcelBtn')?.addEventListener('click', () => {
     downloadSettlementExcel();
