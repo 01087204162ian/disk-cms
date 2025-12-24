@@ -738,36 +738,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const body = smsData
         .map((item, idx) => {
           const push = item.push || '';
+          const divi = item.divi || '';
           const monthlyPremium = parseFloat(item.preminum || 0);
           const cPremium = parseFloat(item.c_preminum || 0);
-          
-          // push 값에 따라 부호 결정: push=2(해지)는 음수, push=4(청약)는 양수
-          let monthlyPremiumValue = 0;
-          let cPremiumValue = 0;
-          
-          if (push === '2') {
-            // 해지: 음수로 표시
-            monthlyPremiumValue = monthlyPremium > 0 ? -monthlyPremium : 0;
-            cPremiumValue = cPremium > 0 ? -cPremium : 0;
-            totalMonthlyPremium += monthlyPremiumValue;
-            totalCPremium += cPremiumValue;
-          } else if (push === '4') {
-            // 청약: 양수로 표시
-            monthlyPremiumValue = monthlyPremium > 0 ? monthlyPremium : 0;
-            cPremiumValue = cPremium > 0 ? cPremium : 0;
-            totalMonthlyPremium += monthlyPremiumValue;
-            totalCPremium += cPremiumValue;
-          } else {
-            // push가 2나 4가 아닌 경우에도 보험료가 있으면 표시 (양수로 처리)
-            if (monthlyPremium > 0) {
-              monthlyPremiumValue = monthlyPremium;
-              totalMonthlyPremium += monthlyPremiumValue;
-            }
-            if (cPremium > 0) {
-              cPremiumValue = cPremium;
-              totalCPremium += cPremiumValue;
-            }
-          }
           
           // 주민번호 마스킹
           const jumin = item.Jumin || '';
@@ -780,19 +753,33 @@ document.addEventListener('DOMContentLoaded', () => {
           let endorseTypeText = '-';
           if (push === '2') {
             endorseTypeText = '해지';
-          } else if (push === '4') {
-            endorseTypeText = '청약';
-          } else if (push === '1') {
+          } else if (push === '4' || push === '1') {
             endorseTypeText = '청약';
           }
           
-          // 보험료 표시 (부호 포함, 값이 있으면 표시)
-          const monthlyPremiumDisplay = monthlyPremium > 0
-            ? (push === '2' ? '-' : '+') + monthlyPremium.toLocaleString()
-            : '-';
-          const cPremiumDisplay = cPremium > 0
-            ? (push === '2' ? '-' : '+') + cPremium.toLocaleString()
-            : '-';
+          // 보험료 표시: 납부방식에 따라 다르게 표시
+          // 월납(divi=2): 월보험료만 표시
+          // 10회분납(divi=1): 1/10 보험료만 표시
+          // 부호: push=2(해지)는 음수(-), push=4(청약)는 양수(+)
+          let monthlyPremiumDisplay = '-';
+          let cPremiumDisplay = '-';
+          let premiumValue = 0;
+          
+          if (divi === '2') {
+            // 월납인 경우: 월보험료만 표시
+            if (monthlyPremium > 0) {
+              premiumValue = push === '2' ? -monthlyPremium : monthlyPremium;
+              monthlyPremiumDisplay = (push === '2' ? '-' : '+') + monthlyPremium.toLocaleString();
+              totalMonthlyPremium += premiumValue;
+            }
+          } else {
+            // 10회분납인 경우: 1/10 보험료만 표시
+            if (cPremium > 0) {
+              premiumValue = push === '2' ? -cPremium : cPremium;
+              cPremiumDisplay = (push === '2' ? '-' : '+') + cPremium.toLocaleString();
+              totalCPremium += premiumValue;
+            }
+          }
           
           return `
             <tr>
@@ -816,14 +803,15 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .join('');
       
-      // 합계 행 (해지는 빼고, 청약은 더해서 계산)
+      // 합계 행 계산
+      const totalPremium = totalMonthlyPremium + totalCPremium;
       const totalRow = `
         <tr class="table-light fw-bold">
           <td colspan="5" class="text-center">합계</td>
           <td class="text-end">${totalMonthlyPremium !== 0 ? (totalMonthlyPremium > 0 ? '+' : '') + totalMonthlyPremium.toLocaleString() : '-'}</td>
           <td class="text-end">${totalCPremium !== 0 ? (totalCPremium > 0 ? '+' : '') + totalCPremium.toLocaleString() : '-'}</td>
           <td colspan="2" class="text-center">계</td>
-          <td class="text-end">${(totalMonthlyPremium + totalCPremium) !== 0 ? ((totalMonthlyPremium + totalCPremium) > 0 ? '+' : '') + (totalMonthlyPremium + totalCPremium).toLocaleString() : '-'}</td>
+          <td class="text-end">${totalPremium !== 0 ? (totalPremium > 0 ? '+' : '') + totalPremium.toLocaleString() : '-'}</td>
         </tr>
       `;
       
