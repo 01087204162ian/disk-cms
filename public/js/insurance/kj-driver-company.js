@@ -738,6 +738,16 @@ document.addEventListener('DOMContentLoaded', () => {
             cPremiumValue = cPremium > 0 ? cPremium : 0;
             totalMonthlyPremium += monthlyPremiumValue;
             totalCPremium += cPremiumValue;
+          } else {
+            // push가 2나 4가 아닌 경우에도 보험료가 있으면 표시 (양수로 처리)
+            if (monthlyPremium > 0) {
+              monthlyPremiumValue = monthlyPremium;
+              totalMonthlyPremium += monthlyPremiumValue;
+            }
+            if (cPremium > 0) {
+              cPremiumValue = cPremium;
+              totalCPremium += cPremiumValue;
+            }
           }
           
           // 주민번호 마스킹
@@ -747,12 +757,22 @@ document.addEventListener('DOMContentLoaded', () => {
           // 처리 상태
           const getStatus = item.get || '';
           
-          // 보험료 표시 (부호 포함)
-          const monthlyPremiumDisplay = monthlyPremiumValue !== 0 
-            ? (monthlyPremiumValue > 0 ? '+' : '') + monthlyPremiumValue.toLocaleString()
+          // 배서종류 표시
+          let endorseTypeText = '-';
+          if (push === '2') {
+            endorseTypeText = '해지';
+          } else if (push === '4') {
+            endorseTypeText = '청약';
+          } else if (push === '1') {
+            endorseTypeText = '청약';
+          }
+          
+          // 보험료 표시 (부호 포함, 값이 있으면 표시)
+          const monthlyPremiumDisplay = monthlyPremium > 0
+            ? (push === '2' ? '-' : '+') + monthlyPremium.toLocaleString()
             : '-';
-          const cPremiumDisplay = cPremiumValue !== 0
-            ? (cPremiumValue > 0 ? '+' : '') + cPremiumValue.toLocaleString()
+          const cPremiumDisplay = cPremium > 0
+            ? (push === '2' ? '-' : '+') + cPremium.toLocaleString()
             : '-';
           
           return `
@@ -764,7 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <td>${item.endorse_day || '-'}</td>
               <td class="text-end">${monthlyPremiumDisplay}</td>
               <td class="text-end">${cPremiumDisplay}</td>
-              <td>${push === '2' ? '해지' : push === '4' ? '청약' : '-'}</td>
+              <td>${endorseTypeText}</td>
               <td>
                 <select class="form-select form-select-sm" data-seq-no="${item.SeqNo}" onchange="updateSettlementStatusFromList(this)">
                   <option value="2" ${getStatus === '2' ? 'selected' : ''}>미정산</option>
