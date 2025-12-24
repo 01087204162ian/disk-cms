@@ -737,8 +737,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const body = smsData
         .map((item, idx) => {
-          const push = item.push || '';
-          const divi = item.divi || '';
+          // push 값이 숫자 또는 문자열로 올 수 있으므로 숫자로 변환
+          const push = parseInt(item.push) || 0;
+          const divi = String(item.divi || '');
           const monthlyPremium = parseFloat(item.preminum || 0);
           const cPremium = parseFloat(item.c_preminum || 0);
           
@@ -751,9 +752,9 @@ document.addEventListener('DOMContentLoaded', () => {
           
           // 배서종류 표시
           let endorseTypeText = '-';
-          if (push === '2') {
+          if (push === 2) {
             endorseTypeText = '해지';
-          } else if (push === '4' || push === '1') {
+          } else if (push === 4 || push === 1) {
             endorseTypeText = '청약';
           }
           
@@ -768,15 +769,15 @@ document.addEventListener('DOMContentLoaded', () => {
           if (divi === '2') {
             // 월납인 경우: 월보험료만 표시
             if (monthlyPremium > 0) {
-              premiumValue = push === '2' ? -monthlyPremium : monthlyPremium;
-              monthlyPremiumDisplay = (push === '2' ? '-' : '+') + monthlyPremium.toLocaleString();
+              premiumValue = push === 2 ? -monthlyPremium : monthlyPremium;
+              monthlyPremiumDisplay = (push === 2 ? '-' : '+') + monthlyPremium.toLocaleString();
               totalMonthlyPremium += premiumValue;
             }
           } else {
             // 10회분납인 경우: 1/10 보험료만 표시
             if (cPremium > 0) {
-              premiumValue = push === '2' ? -cPremium : cPremium;
-              cPremiumDisplay = (push === '2' ? '-' : '+') + cPremium.toLocaleString();
+              premiumValue = push === 2 ? -cPremium : cPremium;
+              cPremiumDisplay = (push === 2 ? '-' : '+') + cPremium.toLocaleString();
               totalCPremium += premiumValue;
             }
           }
