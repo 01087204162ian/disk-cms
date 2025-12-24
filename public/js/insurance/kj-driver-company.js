@@ -315,8 +315,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const divi = item.divi || '';
         const nab = item.nab || 1;
         
-        // 배서보험료 = 배서 월보험료 + 배서 회사보험료
-        const endorsePremium = endorseMonthlyPremium + endorseCompanyPremium;
+        // 배서보험료 계산: 납부방식에 따라 다르게 계산
+        // 월납(divi=2): 배서 월보험료만 사용
+        // 10회분납(divi=1): 배서 회사보험료만 사용
+        let endorsePremium = 0;
+        if (divi === '2') {
+          // 월납인 경우: preminum만 사용
+          endorsePremium = endorseMonthlyPremium;
+        } else {
+          // 10회분납인 경우: c_preminum만 사용
+          endorsePremium = endorseCompanyPremium;
+        }
         
         // 계 계산: 납부방식에 따라 다르게 계산
         let total = 0;
@@ -363,7 +372,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalDrivers = data.reduce((sum, item) => sum + (item.drivers_count || 0), 0);
     const totalMonthlyPremium = data.reduce((sum, item) => sum + (item.total_AdjustedInsuranceMothlyPremium || 0), 0);
     const totalPayment10Premium = data.reduce((sum, item) => sum + (item.payment10_premium || 0), 0);
-    const totalEndorsePremium = data.reduce((sum, item) => sum + (item.eTotalMonthPremium || 0) + (item.eTotalCompanyPremium || 0), 0);
+    // 배서보험료 합계 계산: 납부방식에 따라 다르게 계산
+    const totalEndorsePremium = data.reduce((sum, item) => {
+      const divi = item.divi || '';
+      if (divi === '2') {
+        // 월납: 배서 월보험료만 합산
+        return sum + (item.eTotalMonthPremium || 0);
+      } else {
+        // 10회분납: 배서 회사보험료만 합산
+        return sum + (item.eTotalCompanyPremium || 0);
+      }
+    }, 0);
     const totalConversionPremium = data.reduce((sum, item) => {
       // 10회 분납인 경우 제외
       if (item.divi === '1') return sum;
