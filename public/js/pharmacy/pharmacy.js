@@ -1279,8 +1279,10 @@ function displayPharmcay(pharmacyId, payload) {
   // 증권 파일 정보
   const expertCertFile = d.images?.find(img => img.kind === "1");
   const fireCertFile = d.images?.find(img => img.kind === "2");
-  const hasExpertCert = !!expertCertFile;
-  const hasFireCert = !!fireCertFile;
+  
+  // 증권번호가 있으면 버튼 활성화 (파일이 없어도 증권번호가 있으면 활성화)
+  const hasExpertCert = !!(expertCertFile || (d.expert_certificate_number || d.chemistCerti));
+  const hasFireCert = !!(fireCertFile || (d.fire_certificate_number || d.areaCerti));
   
   // 상태 정보
   const currentStatus = getStatusCode(d.status);
@@ -1495,7 +1497,7 @@ function displayPharmcay(pharmacyId, payload) {
             입력
           </button>
           <button class="btn btn-cert-view btn-compact" type="button"  
-                  onclick="viewCertificateByNum('${expertCertFile?.description2 || ''}')" 
+                  onclick="viewCertificateByNum(${pharmacyId}, 'expert', '${expertCertFile?.description2 || ''}')" 
                   ${!hasExpertCert ? 'disabled' : ''}>
             보기
           </button>
