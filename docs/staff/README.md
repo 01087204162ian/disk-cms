@@ -130,6 +130,12 @@
 ### 개발 계획
 - [주4일 개발 계획](./주4일-개발-계획.md) - 단계별 개발 계획 및 일정
 
+### 마이그레이션
+- 마이그레이션 스크립트: `database/migration/`
+- 마이그레이션 가이드: `database/migration/README.md`
+- 실행 가이드: `database/migration/EXECUTION-GUIDE.md`
+- 실행 체크리스트: `database/migration/checklist.md`
+
 ---
 
 **문서 버전**: 1.0
