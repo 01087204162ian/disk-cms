@@ -514,7 +514,6 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadSettlementData();
     
     // 정산 모달 위치 조정 (우측에 배치)
-    const settlementModalEl = document.getElementById('settlementModal');
     if (settlementModalEl) {
       const modalDialog = settlementModalEl.querySelector('.modal-dialog');
       if (modalDialog) {
