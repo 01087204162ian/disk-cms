@@ -1277,6 +1277,19 @@ router.post('/kj-company/id-update-permit', async (req, res) => {
 // ==================== 정산 관련 API (추가) ====================
 
 // 증권번호별 정산 데이터 조회 (집계)
+router.get('/kj-company/settlement/endorse-day', async (req, res) => {
+  try {
+    const { dNum } = req.query;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-endorse-day.php?dNum=${dNum}`;
+    
+    const response = await axios.get(apiUrl);
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement endorse-day proxy error:', error.message);
+    res.status(500).json({ success: false, error: '프록시 오류가 발생했습니다.' });
+  }
+});
+
 router.get('/kj-company/settlement/adjustment', async (req, res) => {
   try {
     const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-adjustment.php`;
