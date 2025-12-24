@@ -308,15 +308,37 @@ document.addEventListener('DOMContentLoaded', () => {
       .map((item) => {
         const diviText = item.divi === '1' ? '10회분납' : item.divi === '2' ? '월납' : '-';
         const monthlyPremium = item.total_AdjustedInsuranceMothlyPremium || 0;
-        const companyPremium = item.total_AdjustedInsuranceCompanyPremium || 0;
+        const payment10Premium = item.payment10_premium || 0; // 1/10 보험료 (연간 보험료 / 10)
         const endorseMonthlyPremium = item.eTotalMonthPremium || 0;
         const endorseCompanyPremium = item.eTotalCompanyPremium || 0;
         const conversionPremium = item.Conversion_AdjustedInsuranceCompanyPremium || 0;
+        const divi = item.divi || '';
+        const nab = item.nab || 1;
         
         // 배서보험료 = 배서 월보험료 + 배서 회사보험료
         const endorsePremium = endorseMonthlyPremium + endorseCompanyPremium;
-        // 계 = 월보험료 + 배서보험료
-        const total = monthlyPremium + endorsePremium;
+        
+        // 계 계산: 납부방식에 따라 다르게 계산
+        let total = 0;
+        if (divi === '2') {
+          // 월납인 경우: 계 = 월보험료 + 배서보험료
+          total = monthlyPremium + endorsePremium;
+        } else {
+          // 정상납(divi=1)인 경우: nab 값에 따라 계산
+          if (nab === 1) {
+            // nab=1: 계 = 1/10 보험료*2 + 배서보험료
+            total = payment10Premium * 2 + endorsePremium;
+          } else if (nab >= 2 && nab <= 8) {
+            // nab=2~8: 계 = 1/10 보험료 + 배서보험료
+            total = payment10Premium + endorsePremium;
+          } else if (nab >= 9 && nab <= 10) {
+            // nab=9~10: 계 = 1/10 보험료*0.5 + 배서보험료
+            total = payment10Premium * 0.5 + endorsePremium;
+          } else {
+            // 기본값: 계 = 1/10 보험료 + 배서보험료
+            total = payment10Premium + endorsePremium;
+          }
+        }
         totalPremium += total;
 
         return `
@@ -325,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${diviText}</td>
             <td class="text-end">${item.drivers_count || 0}</td>
             <td class="text-end">${monthlyPremium.toLocaleString()}</td>
-            <td class="text-end">${companyPremium.toLocaleString()}</td>
+            <td class="text-end">${payment10Premium.toLocaleString()}</td>
             <td class="text-end">${endorsePremium.toLocaleString()}</td>
             <td class="text-end">${total.toLocaleString()}</td>
             <td class="text-end">${conversionPremium.toLocaleString()}</td>
@@ -334,11 +356,12 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .join('');
 
+    // 합계 계산 (계는 각 행의 계산된 total 합계 사용)
     const summaryRow = `
       <tr class="table-light fw-bold">
         <td colspan="3" class="text-center">합계</td>
         <td class="text-end">${data.reduce((sum, item) => sum + (item.total_AdjustedInsuranceMothlyPremium || 0), 0).toLocaleString()}</td>
-        <td class="text-end">${data.reduce((sum, item) => sum + (item.total_AdjustedInsuranceCompanyPremium || 0), 0).toLocaleString()}</td>
+        <td class="text-end">${data.reduce((sum, item) => sum + (item.payment10_premium || 0), 0).toLocaleString()}</td>
         <td class="text-end">${data.reduce((sum, item) => sum + (item.eTotalMonthPremium || 0) + (item.eTotalCompanyPremium || 0), 0).toLocaleString()}</td>
         <td class="text-end">${totalPremium.toLocaleString()}</td>
         <td class="text-end">${data.reduce((sum, item) => sum + (item.Conversion_AdjustedInsuranceCompanyPremium || 0), 0).toLocaleString()}</td>
