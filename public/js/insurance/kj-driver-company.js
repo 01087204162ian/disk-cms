@@ -341,30 +341,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         totalPremium += total;
 
+        // 10회 분납(divi=1)인 경우 환산보험료 표시하지 않음
+        const conversionPremiumDisplay = divi === '1' ? '-' : conversionPremium.toLocaleString();
+        
         return `
           <tr>
             <td>${item.policyNum || '-'}</td>
             <td>${diviText}</td>
             <td class="text-end">${item.drivers_count || 0}</td>
-            <td class="text-end">${monthlyPremium.toLocaleString()}</td>
-            <td class="text-end">${payment10Premium.toLocaleString()}</td>
-            <td class="text-end">${endorsePremium.toLocaleString()}</td>
-            <td class="text-end">${total.toLocaleString()}</td>
-            <td class="text-end">${conversionPremium.toLocaleString()}</td>
+            <td class="text-end" style="width: 12%;">${monthlyPremium.toLocaleString()}</td>
+            <td class="text-end" style="width: 12%;">${payment10Premium.toLocaleString()}</td>
+            <td class="text-end" style="width: 12%;">${endorsePremium.toLocaleString()}</td>
+            <td class="text-end" style="width: 12%;">${total.toLocaleString()}</td>
+            <td class="text-end" style="width: 12%;">${conversionPremiumDisplay}</td>
           </tr>
         `;
       })
       .join('');
 
-    // 합계 계산 (계는 각 행의 계산된 total 합계 사용)
+    // 합계 계산
+    const totalDrivers = data.reduce((sum, item) => sum + (item.drivers_count || 0), 0);
+    const totalMonthlyPremium = data.reduce((sum, item) => sum + (item.total_AdjustedInsuranceMothlyPremium || 0), 0);
+    const totalPayment10Premium = data.reduce((sum, item) => sum + (item.payment10_premium || 0), 0);
+    const totalEndorsePremium = data.reduce((sum, item) => sum + (item.eTotalMonthPremium || 0) + (item.eTotalCompanyPremium || 0), 0);
+    const totalConversionPremium = data.reduce((sum, item) => {
+      // 10회 분납인 경우 제외
+      if (item.divi === '1') return sum;
+      return sum + (item.Conversion_AdjustedInsuranceCompanyPremium || 0);
+    }, 0);
+    
     const summaryRow = `
       <tr class="table-light fw-bold">
-        <td colspan="3" class="text-center">합계</td>
-        <td class="text-end">${data.reduce((sum, item) => sum + (item.total_AdjustedInsuranceMothlyPremium || 0), 0).toLocaleString()}</td>
-        <td class="text-end">${data.reduce((sum, item) => sum + (item.payment10_premium || 0), 0).toLocaleString()}</td>
-        <td class="text-end">${data.reduce((sum, item) => sum + (item.eTotalMonthPremium || 0) + (item.eTotalCompanyPremium || 0), 0).toLocaleString()}</td>
-        <td class="text-end">${totalPremium.toLocaleString()}</td>
-        <td class="text-end">${data.reduce((sum, item) => sum + (item.Conversion_AdjustedInsuranceCompanyPremium || 0), 0).toLocaleString()}</td>
+        <td colspan="2" class="text-center">합계</td>
+        <td class="text-end">${totalDrivers.toLocaleString()}</td>
+        <td class="text-end" style="width: 12%;">${totalMonthlyPremium.toLocaleString()}</td>
+        <td class="text-end" style="width: 12%;">${totalPayment10Premium.toLocaleString()}</td>
+        <td class="text-end" style="width: 12%;">${totalEndorsePremium.toLocaleString()}</td>
+        <td class="text-end" style="width: 12%;">${totalPremium.toLocaleString()}</td>
+        <td class="text-end" style="width: 12%;">${totalConversionPremium > 0 ? totalConversionPremium.toLocaleString() : '-'}</td>
       </tr>
     `;
 
