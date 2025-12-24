@@ -252,8 +252,8 @@
   </script>
 
   <!-- 정산 모달 -->
-  <div class="modal fade" id="settlementModal" tabindex="-1" aria-labelledby="settlementModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+  <div class="modal fade" id="settlementModal" tabindex="-1" aria-labelledby="settlementModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="position: fixed; right: 1%; top: 50%; transform: translateY(-50%); margin: 0; max-width: 48%; z-index: 1055;">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="settlementModalLabel">정산</h5>
@@ -362,6 +362,46 @@
               <tbody id="settlementMemoTableBody">
                 <tr>
                   <td colspan="5" class="text-center py-4">메모가 없습니다.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 배서리스트 모달 (정산 모달 좌측에 표시) -->
+  <div class="modal fade" id="settlementListModal" tabindex="-1" aria-labelledby="settlementListModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="position: fixed; left: 0; top: 50%; transform: translateY(-50%); margin: 0; max-width: 48%; z-index: 1056;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="settlementListModalLabel">배서리스트</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+          <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>번호</th>
+                  <th>성명</th>
+                  <th>주민번호</th>
+                  <th>증권번호</th>
+                  <th>배서일</th>
+                  <th>월보험료</th>
+                  <th>1/10 보험료</th>
+                  <th>배서종류</th>
+                  <th>처리</th>
+                  <th>처리자</th>
+                </tr>
+              </thead>
+              <tbody id="settlementListModalTableBody">
+                <tr>
+                  <td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td>
                 </tr>
               </tbody>
             </table>

@@ -508,12 +508,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // 초기에는 증권번호별 집계 테이블만 표시
-    const settlementListSection = document.getElementById('settlementListSection');
     const settlementAdjustmentSection = document.getElementById('settlementAdjustmentSection');
-    if (settlementListSection) settlementListSection.style.display = 'none';
     if (settlementAdjustmentSection) settlementAdjustmentSection.style.display = 'block';
     
     await loadSettlementData();
+    
+    // 정산 모달 위치 조정 (우측에 배치)
+    const settlementModalEl = document.getElementById('settlementModal');
+    if (settlementModalEl) {
+      const modalDialog = settlementModalEl.querySelector('.modal-dialog');
+      if (modalDialog) {
+        modalDialog.style.position = 'fixed';
+        modalDialog.style.right = '1%';
+        modalDialog.style.top = '50%';
+        modalDialog.style.transform = 'translateY(-50%)';
+        modalDialog.style.margin = '0';
+        modalDialog.style.maxWidth = '48%';
+        modalDialog.style.zIndex = '1055';
+      }
+    }
+    
     settlementModal?.show();
   };
 
@@ -652,21 +666,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 배서리스트 조회 함수
+  // 배서리스트 조회 함수 (새 모달에 표시)
   const loadSettlementList = async () => {
     if (!currentSettlement.dNum) return;
     const start = settleStartInput?.value || '';
     const end = settleEndInput?.value || '';
     
-    const settlementListTableBody = document.getElementById('settlementListTableBody');
-    const settlementListSection = document.getElementById('settlementListSection');
-    const settlementAdjustmentSection = document.getElementById('settlementAdjustmentSection');
+    const settlementListModalTableBody = document.getElementById('settlementListModalTableBody');
+    const settlementListModal = document.getElementById('settlementListModal');
     
-    if (!settlementListTableBody || !settlementListSection) return;
+    if (!settlementListModalTableBody || !settlementListModal) return;
     
-    settlementListTableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td></tr>`;
-    settlementListSection.style.display = 'block';
-    settlementAdjustmentSection.style.display = 'none';
+    settlementListModalTableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td></tr>`;
+    
+    // 배서리스트 모달 열기 (기존 정산 모달과 함께 표시)
+    const listModal = new bootstrap.Modal(settlementListModal, {
+      backdrop: false,
+      keyboard: true
+    });
+    listModal.show();
+    
+    // 모달 위치 조정 (좌측에 배치)
+    const modalDialog = settlementListModal.querySelector('.modal-dialog');
+    if (modalDialog) {
+      modalDialog.style.position = 'fixed';
+      modalDialog.style.left = '1%';
+      modalDialog.style.top = '50%';
+      modalDialog.style.transform = 'translateY(-50%)';
+      modalDialog.style.margin = '0';
+      modalDialog.style.maxWidth = '48%';
+      modalDialog.style.zIndex = '1056';
+    }
     
     try {
       const params = new URLSearchParams({
@@ -680,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const smsData = json.smsData || [];
       if (smsData.length === 0) {
-        settlementListTableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">데이터가 없습니다.</td></tr>`;
+        settlementListModalTableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4">데이터가 없습니다.</td></tr>`;
         return;
       }
       
@@ -689,15 +719,26 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const body = smsData
         .map((item, idx) => {
+          const push = item.push || '';
           const monthlyPremium = parseFloat(item.preminum || 0);
           const cPremium = parseFloat(item.c_preminum || 0);
           
-          // 월보험료와 c보험료 중 하나만 값이 있음
-          if (monthlyPremium > 0) {
-            totalMonthlyPremium += monthlyPremium;
-          }
-          if (cPremium > 0) {
-            totalCPremium += cPremium;
+          // push 값에 따라 부호 결정: push=2(해지)는 음수, push=4(청약)는 양수
+          let monthlyPremiumValue = 0;
+          let cPremiumValue = 0;
+          
+          if (push === '2') {
+            // 해지: 음수로 표시
+            monthlyPremiumValue = monthlyPremium > 0 ? -monthlyPremium : 0;
+            cPremiumValue = cPremium > 0 ? -cPremium : 0;
+            totalMonthlyPremium += monthlyPremiumValue;
+            totalCPremium += cPremiumValue;
+          } else if (push === '4') {
+            // 청약: 양수로 표시
+            monthlyPremiumValue = monthlyPremium > 0 ? monthlyPremium : 0;
+            cPremiumValue = cPremium > 0 ? cPremium : 0;
+            totalMonthlyPremium += monthlyPremiumValue;
+            totalCPremium += cPremiumValue;
           }
           
           // 주민번호 마스킹
@@ -706,7 +747,14 @@ document.addEventListener('DOMContentLoaded', () => {
           
           // 처리 상태
           const getStatus = item.get || '';
-          const statusText = getStatus === '2' ? '미정산' : '정산완료';
+          
+          // 보험료 표시 (부호 포함)
+          const monthlyPremiumDisplay = monthlyPremiumValue !== 0 
+            ? (monthlyPremiumValue > 0 ? '+' : '') + monthlyPremiumValue.toLocaleString()
+            : '-';
+          const cPremiumDisplay = cPremiumValue !== 0
+            ? (cPremiumValue > 0 ? '+' : '') + cPremiumValue.toLocaleString()
+            : '-';
           
           return `
             <tr>
@@ -715,9 +763,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <td>${maskedJumin}</td>
               <td>${item.dongbuCerti || '-'}</td>
               <td>${item.endorse_day || '-'}</td>
-              <td class="text-end">${monthlyPremium > 0 ? monthlyPremium.toLocaleString() : '-'}</td>
-              <td class="text-end">${cPremium > 0 ? cPremium.toLocaleString() : '-'}</td>
-              <td>${item.push === '2' ? '해지' : item.push === '4' ? '청약' : '-'}</td>
+              <td class="text-end">${monthlyPremiumDisplay}</td>
+              <td class="text-end">${cPremiumDisplay}</td>
+              <td>${push === '2' ? '해지' : push === '4' ? '청약' : '-'}</td>
               <td>
                 <select class="form-select form-select-sm" data-seq-no="${item.SeqNo}" onchange="updateSettlementStatusFromList(this)">
                   <option value="2" ${getStatus === '2' ? 'selected' : ''}>미정산</option>
@@ -730,21 +778,21 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .join('');
       
-      // 합계 행
+      // 합계 행 (해지는 빼고, 청약은 더해서 계산)
       const totalRow = `
         <tr class="table-light fw-bold">
           <td colspan="5" class="text-center">합계</td>
-          <td class="text-end">${totalMonthlyPremium > 0 ? totalMonthlyPremium.toLocaleString() : '-'}</td>
-          <td class="text-end">${totalCPremium > 0 ? totalCPremium.toLocaleString() : '-'}</td>
+          <td class="text-end">${totalMonthlyPremium !== 0 ? (totalMonthlyPremium > 0 ? '+' : '') + totalMonthlyPremium.toLocaleString() : '-'}</td>
+          <td class="text-end">${totalCPremium !== 0 ? (totalCPremium > 0 ? '+' : '') + totalCPremium.toLocaleString() : '-'}</td>
           <td colspan="2" class="text-center">계</td>
-          <td class="text-end">${(totalMonthlyPremium + totalCPremium).toLocaleString()}</td>
+          <td class="text-end">${(totalMonthlyPremium + totalCPremium) !== 0 ? ((totalMonthlyPremium + totalCPremium) > 0 ? '+' : '') + (totalMonthlyPremium + totalCPremium).toLocaleString() : '-'}</td>
         </tr>
       `;
       
-      settlementListTableBody.innerHTML = body + totalRow;
+      settlementListModalTableBody.innerHTML = body + totalRow;
     } catch (err) {
       console.error('배서리스트 조회 실패:', err);
-      settlementListTableBody.innerHTML = `<tr><td colspan="10" class="text-center text-danger py-4">오류가 발생했습니다: ${err.message}</td></tr>`;
+      settlementListModalTableBody.innerHTML = `<tr><td colspan="10" class="text-center text-danger py-4">오류가 발생했습니다: ${err.message}</td></tr>`;
     }
   };
   
