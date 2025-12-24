@@ -893,10 +893,84 @@ router.get('/certificate/:pharmacyId/:certificateType', async (req, res) => {
     const kind = certificateType === 'expert' ? '1' : '2';
     const certificateFile = images.find(img => img.kind === kind);
     
+    // 파일이 없지만 증권번호가 있는 경우 PDF 자동 생성
     if (!certificateFile || !certificateFile.description2) {
+      const certField = certificateType === 'expert' ? 'expert_certificate_number' : 'fire_certificate_number';
+      const certNumber = pharmacyData[certField] || 
+                         (certificateType === 'expert' ? pharmacyData.chemistCerti : pharmacyData.areaCerti);
+      
+      if (certNumber) {
+        console.log(`[GET /certificate/${pharmacyId}/${certificateType}] PDF 파일이 없어 자동 생성 시도 - 증권번호: ${certNumber}`);
+        
+        try {
+          // PDF 생성 API 호출
+          const generateResponse = await axios.post('https://imet.kr/api/pharmacy/pharmacy-certificate-update.php', {
+            pharmacy_id: pharmacyId,
+            certificate_type: certificateType,
+            action: 'generate_pdf'
+          }, {
+            timeout: 30000,
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (generateResponse.data && generateResponse.data.success) {
+            console.log(`[GET /certificate/${pharmacyId}/${certificateType}] PDF 생성 성공, 파일 재조회 중`);
+            
+            // PDF 생성 후 다시 상세 정보 조회하여 파일 경로 확인
+            const retryDetailResponse = await axios.get('https://imet.kr/api/pharmacy/pharmacyApply-num-detail.php', {
+              params: { num: pharmacyId },
+              timeout: 15000,
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (retryDetailResponse.data && retryDetailResponse.data.success) {
+              const retryPharmacyData = retryDetailResponse.data.data || retryDetailResponse.data;
+              const retryImages = retryPharmacyData.images || [];
+              const retryCertificateFile = retryImages.find(img => img.kind === kind);
+              
+              if (retryCertificateFile && retryCertificateFile.description2) {
+                // 재생성된 파일 경로로 계속 진행
+                const filePath = retryCertificateFile.description2;
+                const fullPath = filePath.startsWith('http') ? filePath : 
+                                (filePath.startsWith('/') ? `https://imet.kr${filePath}` : `https://imet.kr/${filePath}`);
+                
+                console.log(`[GET /certificate/${pharmacyId}/${certificateType}] 재생성된 파일 경로: ${fullPath}`);
+                
+                try {
+                  const fileResponse = await axios.get(fullPath, {
+                    responseType: 'stream',
+                    timeout: 30000,
+                    headers: { 'Accept': '*/*' }
+                  });
+                  
+                  const contentType = fileResponse.headers['content-type'] || 'application/pdf';
+                  res.setHeader('Content-Type', contentType);
+                  const fileName = certificateType === 'expert' ? '전문인증권.pdf' : '화재증권.pdf';
+                  res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+                  fileResponse.data.pipe(res);
+                  return;
+                } catch (fileError) {
+                  res.redirect(fullPath);
+                  return;
+                }
+              }
+            }
+          }
+        } catch (generateError) {
+          console.error(`[GET /certificate/${pharmacyId}/${certificateType}] PDF 자동 생성 실패:`, generateError.message);
+          // PDF 생성 실패 시 기존 에러 메시지 반환
+        }
+      }
+      
       return res.status(404).json({
         success: false,
-        error: '증권 파일을 찾을 수 없습니다.'
+        error: '증권 파일을 찾을 수 없습니다. 증권번호를 다시 입력하여 PDF를 생성해주세요.'
       });
     }
     
