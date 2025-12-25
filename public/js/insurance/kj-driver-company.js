@@ -696,8 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const memberDataEndRow = wsData.length - 1; // 회원 데이터 마지막 행
     
-    // 회원리스트 합계 행
-    wsData.push([]);
+    // 회원리스트 합계 행 (빈 행 제거)
     const memberSummaryRowIndex = wsData.length;
     wsData.push([
       '합계', '', '', '', '', '', '', '',
@@ -754,8 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       endorseDataEndRow = wsData.length - 1;
       
-      // 배서 합계 행
-      wsData.push([]);
+      // 배서 합계 행 (빈 행 제거)
       endorseSummaryRowIndex = wsData.length;
       wsData.push([
         '배서 보험료 소계', '', '', '', '', '', '', '',
@@ -863,24 +861,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     
-    // 회원리스트 합계 행 스타일
-    const summaryCellRef = `A${memberSummaryRowIndex + 1}`;
-    if (ws[summaryCellRef]) {
-      ws[summaryCellRef].s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: 'D9E1F2' } },
-        alignment: { horizontal: 'center', vertical: 'center' }
-      };
-    }
-    
-    // 합계 행의 숫자 셀 스타일 (I, J, L 컬럼)
-    ['I', 'J', 'L'].forEach(col => {
+    // 회원리스트 합계 행 전체 스타일 (모든 셀에 테두리, 가운데 정렬)
+    const memberSummaryCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
+    memberSummaryCols.forEach(col => {
       const cellRef = `${col}${memberSummaryRowIndex + 1}`;
       if (ws[cellRef]) {
+        const isNumberCell = ['I', 'J', 'L'].includes(col);
         ws[cellRef].s = {
           font: { bold: true },
-          alignment: { horizontal: 'right', vertical: 'center' },
-          numFmt: '#,##0'
+          fill: { fgColor: { rgb: 'D9E1F2' } },
+          alignment: { horizontal: isNumberCell ? 'right' : 'center', vertical: 'center' },
+          border: {
+            top: { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left: { style: 'thin', color: { rgb: '000000' } },
+            right: { style: 'thin', color: { rgb: '000000' } }
+          },
+          numFmt: isNumberCell ? '#,##0' : undefined
         };
       }
     });
@@ -906,49 +903,47 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
     
-    // 배서 합계 행 스타일 (있는 경우)
+    // 배서 합계 행 전체 스타일 (있는 경우, 모든 셀에 테두리, 가운데 정렬)
     if (endorseSummaryRowIndex !== null) {
-      const endorseSummaryCellRef = `A${endorseSummaryRowIndex + 1}`;
-      if (ws[endorseSummaryCellRef]) {
-        ws[endorseSummaryCellRef].s = {
-          font: { bold: true },
-          fill: { fgColor: { rgb: 'D9E1F2' } },
-          alignment: { horizontal: 'center', vertical: 'center' }
-        };
-      }
-      
-      // 배서 합계 행의 숫자 셀
-      ['I', 'L'].forEach(col => {
+      const endorseSummaryCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+      endorseSummaryCols.forEach(col => {
         const cellRef = `${col}${endorseSummaryRowIndex + 1}`;
         if (ws[cellRef]) {
+          const isNumberCell = ['I', 'L'].includes(col);
           ws[cellRef].s = {
             font: { bold: true },
-            alignment: { horizontal: 'right', vertical: 'center' },
-            numFmt: '#,##0'
+            fill: { fgColor: { rgb: 'D9E1F2' } },
+            alignment: { horizontal: isNumberCell ? 'right' : 'center', vertical: 'center' },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
+            },
+            numFmt: isNumberCell ? '#,##0' : undefined
           };
         }
       });
     }
     
-    // 최종 합계 행 스타일 (있는 경우)
+    // 최종 합계 행 전체 스타일 (있는 경우, 모든 셀에 테두리, 가운데 정렬)
     if (finalSummaryRowIndex !== null) {
-      const finalSummaryCellRef = `A${finalSummaryRowIndex + 1}`;
-      if (ws[finalSummaryCellRef]) {
-        ws[finalSummaryCellRef].s = {
-          font: { bold: true, sz: 11 },
-          fill: { fgColor: { rgb: 'FFC000' } },
-          alignment: { horizontal: 'center', vertical: 'center' }
-        };
-      }
-      
-      // 최종 합계 행의 숫자 셀
-      ['I', 'L'].forEach(col => {
+      const finalSummaryCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+      finalSummaryCols.forEach(col => {
         const cellRef = `${col}${finalSummaryRowIndex + 1}`;
         if (ws[cellRef]) {
+          const isNumberCell = ['I', 'L'].includes(col);
           ws[cellRef].s = {
             font: { bold: true, sz: 11 },
-            alignment: { horizontal: 'right', vertical: 'center' },
-            numFmt: '#,##0'
+            fill: { fgColor: { rgb: 'FFC000' } },
+            alignment: { horizontal: isNumberCell ? 'right' : 'center', vertical: 'center' },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
+            },
+            numFmt: isNumberCell ? '#,##0' : undefined
           };
         }
       });
