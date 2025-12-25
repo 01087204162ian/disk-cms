@@ -852,16 +852,34 @@ document.addEventListener('DOMContentLoaded', () => {
           fill: { fgColor: { rgb: 'E6E6E6' } },
           alignment: { horizontal: 'center', vertical: 'center' },
           border: {
-            top: { style: 'thin', color: { rgb: '000000' } },
-            bottom: { style: 'thin', color: { rgb: '000000' } },
-            left: { style: 'thin', color: { rgb: '000000' } },
-            right: { style: 'thin', color: { rgb: '000000' } }
+            top: { style: 'medium', color: { rgb: '000000' } },
+            bottom: { style: 'medium', color: { rgb: '000000' } },
+            left: { style: 'medium', color: { rgb: '000000' } },
+            right: { style: 'medium', color: { rgb: '000000' } }
           }
         };
       }
     });
     
-    // 회원리스트 합계 행 전체 스타일 (모든 셀에 테두리, 가운데 정렬)
+    // 회원 데이터 행에 테두리 실선 적용
+    for (let i = headerRowIndex + 1; i <= memberDataEndRow; i++) {
+      memberHeaderCols.forEach(col => {
+        const cellRef = `${col}${i + 1}`;
+        if (ws[cellRef]) {
+          if (!ws[cellRef].s) {
+            ws[cellRef].s = {};
+          }
+          ws[cellRef].s.border = {
+            top: { style: 'medium', color: { rgb: '000000' } },
+            bottom: { style: 'medium', color: { rgb: '000000' } },
+            left: { style: 'medium', color: { rgb: '000000' } },
+            right: { style: 'medium', color: { rgb: '000000' } }
+          };
+        }
+      });
+    }
+    
+    // 회원리스트 합계 행 전체 스타일 (모든 셀에 테두리 실선, 가운데 정렬)
     const memberSummaryCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
     memberSummaryCols.forEach(col => {
       const cellRef = `${col}${memberSummaryRowIndex + 1}`;
@@ -870,12 +888,12 @@ document.addEventListener('DOMContentLoaded', () => {
         ws[cellRef].s = {
           font: { bold: true },
           fill: { fgColor: { rgb: 'D9E1F2' } },
-          alignment: { horizontal: isNumberCell ? 'right' : 'center', vertical: 'center' },
+          alignment: { horizontal: 'center', vertical: 'center' }, // 모든 셀 가운데 정렬
           border: {
-            top: { style: 'thin', color: { rgb: '000000' } },
-            bottom: { style: 'thin', color: { rgb: '000000' } },
-            left: { style: 'thin', color: { rgb: '000000' } },
-            right: { style: 'thin', color: { rgb: '000000' } }
+            top: { style: 'medium', color: { rgb: '000000' } },
+            bottom: { style: 'medium', color: { rgb: '000000' } },
+            left: { style: 'medium', color: { rgb: '000000' } },
+            right: { style: 'medium', color: { rgb: '000000' } }
           },
           numFmt: isNumberCell ? '#,##0' : undefined
         };
@@ -893,17 +911,35 @@ document.addEventListener('DOMContentLoaded', () => {
             fill: { fgColor: { rgb: 'E6E6E6' } },
             alignment: { horizontal: 'center', vertical: 'center' },
             border: {
-              top: { style: 'thin', color: { rgb: '000000' } },
-              bottom: { style: 'thin', color: { rgb: '000000' } },
-              left: { style: 'thin', color: { rgb: '000000' } },
-              right: { style: 'thin', color: { rgb: '000000' } }
+              top: { style: 'medium', color: { rgb: '000000' } },
+              bottom: { style: 'medium', color: { rgb: '000000' } },
+              left: { style: 'medium', color: { rgb: '000000' } },
+              right: { style: 'medium', color: { rgb: '000000' } }
             }
           };
         }
       });
+      
+      // 배서 데이터 행에 테두리 실선 적용
+      for (let i = endorseHeaderRowIndex; i <= endorseDataEndRow; i++) {
+        endorseHeaderCols.forEach(col => {
+          const cellRef = `${col}${i + 1}`;
+          if (ws[cellRef]) {
+            if (!ws[cellRef].s) {
+              ws[cellRef].s = {};
+            }
+            ws[cellRef].s.border = {
+              top: { style: 'medium', color: { rgb: '000000' } },
+              bottom: { style: 'medium', color: { rgb: '000000' } },
+              left: { style: 'medium', color: { rgb: '000000' } },
+              right: { style: 'medium', color: { rgb: '000000' } }
+            };
+          }
+        });
+      }
     }
     
-    // 배서 합계 행 전체 스타일 (있는 경우, 모든 셀에 테두리, 가운데 정렬)
+    // 배서 합계 행 전체 스타일 (있는 경우, 모든 셀에 테두리 실선, 가운데 정렬)
     if (endorseSummaryRowIndex !== null) {
       const endorseSummaryCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
       endorseSummaryCols.forEach(col => {
@@ -913,12 +949,12 @@ document.addEventListener('DOMContentLoaded', () => {
           ws[cellRef].s = {
             font: { bold: true },
             fill: { fgColor: { rgb: 'D9E1F2' } },
-            alignment: { horizontal: isNumberCell ? 'right' : 'center', vertical: 'center' },
+            alignment: { horizontal: 'center', vertical: 'center' }, // 모든 셀 가운데 정렬
             border: {
-              top: { style: 'thin', color: { rgb: '000000' } },
-              bottom: { style: 'thin', color: { rgb: '000000' } },
-              left: { style: 'thin', color: { rgb: '000000' } },
-              right: { style: 'thin', color: { rgb: '000000' } }
+              top: { style: 'medium', color: { rgb: '000000' } },
+              bottom: { style: 'medium', color: { rgb: '000000' } },
+              left: { style: 'medium', color: { rgb: '000000' } },
+              right: { style: 'medium', color: { rgb: '000000' } }
             },
             numFmt: isNumberCell ? '#,##0' : undefined
           };
@@ -926,7 +962,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
     
-    // 최종 합계 행 전체 스타일 (있는 경우, 모든 셀에 테두리, 가운데 정렬)
+    // 최종 합계 행 전체 스타일 (있는 경우, 모든 셀에 테두리 실선, 가운데 정렬)
     if (finalSummaryRowIndex !== null) {
       const finalSummaryCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
       finalSummaryCols.forEach(col => {
@@ -936,12 +972,12 @@ document.addEventListener('DOMContentLoaded', () => {
           ws[cellRef].s = {
             font: { bold: true, sz: 11 },
             fill: { fgColor: { rgb: 'FFC000' } },
-            alignment: { horizontal: isNumberCell ? 'right' : 'center', vertical: 'center' },
+            alignment: { horizontal: 'center', vertical: 'center' }, // 모든 셀 가운데 정렬
             border: {
-              top: { style: 'thin', color: { rgb: '000000' } },
-              bottom: { style: 'thin', color: { rgb: '000000' } },
-              left: { style: 'thin', color: { rgb: '000000' } },
-              right: { style: 'thin', color: { rgb: '000000' } }
+              top: { style: 'medium', color: { rgb: '000000' } },
+              bottom: { style: 'medium', color: { rgb: '000000' } },
+              left: { style: 'medium', color: { rgb: '000000' } },
+              right: { style: 'medium', color: { rgb: '000000' } }
             },
             numFmt: isNumberCell ? '#,##0' : undefined
           };
