@@ -25,12 +25,13 @@ router.get('/kj-company/list', async (req, res) => {
       getDay = '',
       damdanja = '',
       s_contents = '',
+      currentInwon = '1',
     } = req.query;
 
     const apiUrl = `${PHP_API_BASE_URL}/kj-company-list.php`;
 
     const response = await axios.get(apiUrl, {
-      params: { page, limit, getDay, damdanja, s_contents },
+      params: { page, limit, getDay, damdanja, s_contents, currentInwon },
       timeout: DEFAULT_TIMEOUT,
       headers: getDefaultHeaders(),
     });

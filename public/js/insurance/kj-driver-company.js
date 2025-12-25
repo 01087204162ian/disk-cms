@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pageSizeSelect = document.getElementById('pageSize');
   const searchInput = document.getElementById('search_word');
   const searchBtn = document.getElementById('search_btn');
+  const statusFilter = document.getElementById('statusFilter');
 
   let currentPage = 1;
   let currentLimit = 20;
@@ -197,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const getDay = dateFilter.value || '';
     const damdanja = managerFilter.value || '';
     const s_contents = searchInput.value.trim() || '';
+    const currentInwon = statusFilter.value || '1'; // 기본값: 정상
 
     const params = new URLSearchParams({
       page: currentPage,
@@ -206,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (getDay) params.append('getDay', getDay);
     if (damdanja) params.append('damdanja', damdanja);
     if (s_contents) params.append('s_contents', s_contents);
+    if (currentInwon) params.append('currentInwon', currentInwon);
 
     tableBody.innerHTML = `
       <tr>
@@ -607,6 +610,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ==================== 이벤트 바인딩 ====================
+
+  // 상태 필터 변경 시 자동 통신
+  statusFilter?.addEventListener('change', () => {
+    currentPage = 1;
+    fetchList();
+  });
 
   // 날짜 필터 변경 시 자동 통신
   dateFilter?.addEventListener('change', () => {
