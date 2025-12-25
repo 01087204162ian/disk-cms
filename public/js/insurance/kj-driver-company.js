@@ -663,16 +663,13 @@ document.addEventListener('DOMContentLoaded', () => {
       '보험료', '보험회사에 내는 월보험료', '담당자', '정상납 보험료', '단체구분', '사고유무', '사고유무'
     ]);
     
+    const headerRowIndex = wsData.length - 1; // 헤더 행 인덱스 (0-based)
+    
     // 회원 데이터 행
     let j = 1;
     data.members.forEach((row) => {
-      const InsuranceCompany = {
-        1: '흥국', 2: 'DB', 3: 'KB', 4: '현대', 5: '현대', 6: '롯데', 7: 'MG', 8: '삼성'
-      }[row.InsuranceCompany] || '';
-      
-      const etag = {
-        1: '대리', 2: '탁송', 3: '대리렌트', 4: '탁송렌트'
-      }[row.etag] || '';
+      const InsuranceCompany = window.KJConstants?.getInsurerName(row.InsuranceCompany) || '';
+      const etag = window.KJConstants?.getEtagName(row.etag) || '';
       
       const monthlyPremium = (row.divi == 2) ? row.AdjustedInsuranceMothlyPremium : 0;
       const companyPremium = (row.divi == 2) ? row.ConversionPremium : 0;
@@ -697,8 +694,11 @@ document.addEventListener('DOMContentLoaded', () => {
       ]);
     });
     
+    const memberDataEndRow = wsData.length - 1; // 회원 데이터 마지막 행
+    
     // 회원리스트 합계 행
     wsData.push([]);
+    const memberSummaryRowIndex = wsData.length;
     wsData.push([
       '합계', '', '', '', '', '', '', '',
       data.summary.sum_monthlyPremium || 0,
@@ -709,12 +709,18 @@ document.addEventListener('DOMContentLoaded', () => {
     ]);
     
     // ===== 배서리스트 (하단에 추가) =====
+    let endorseHeaderRowIndex = null;
+    let endorseDataEndRow = null;
+    let endorseSummaryRowIndex = null;
+    let finalSummaryRowIndex = null;
+    
     if (data.endorsements && data.endorsements.length > 0) {
       wsData.push([]);
       wsData.push([`배서리스트`]);
       wsData.push([]);
       
       // 배서리스트 헤더
+      endorseHeaderRowIndex = wsData.length;
       wsData.push([
         '구분', '배서일', '성명', '나이', '보험회사', '증권번호', '일/탁', '배서종류',
         '배서보험료', '증권성격', '', '정상납보험료', '입금할 보험료'
@@ -723,13 +729,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // 배서 데이터 행
       let j_ = 1;
       data.endorsements.forEach((erow) => {
-        const inName = {
-          1: '흥국', 2: 'DB', 3: 'KB', 4: '현대', 5: '현대', 6: '더케이', 7: 'MG', 8: '삼성'
-        }[erow.InsuranceCompany] || '';
-        
-        const metat = {
-          1: '대리', 2: '탁송', 3: '대리/렌트', 4: '탁송/렌트', 5: '전탁송'
-        }[erow.etag] || '';
+        const inName = window.KJConstants?.getInsurerName(erow.InsuranceCompany) || '';
+        const metat = window.KJConstants?.getEtagName(erow.etag) || '';
         
         const monthlyPremium = (erow.divi == 2) ? erow.preminum : 0;
         const adjustedPremium = (erow.divi != 2) ? erow.c_preminum : 0;
@@ -751,8 +752,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ]);
       });
       
+      endorseDataEndRow = wsData.length - 1;
+      
       // 배서 합계 행
       wsData.push([]);
+      endorseSummaryRowIndex = wsData.length;
       wsData.push([
         '배서 보험료 소계', '', '', '', '', '', '', '',
         data.summary.sum_En_monthlyPremium || 0,
@@ -762,6 +766,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ]);
       
       // 최종 합계 행
+      finalSummaryRowIndex = wsData.length;
       wsData.push([
         '입금 하실 보험료=월 보험료 소계+배서 보험료 소계', '', '', '', '', '', '', '',
         (data.summary.sum_monthlyPremium || 0) + (data.summary.sum_En_monthlyPremium || 0),
@@ -773,6 +778,205 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 시트 생성
     const ws = XLSX.utils.aoa_to_sheet(wsData);
+    
+    // ===== 컬럼 너비 설정 =====
+    ws['!cols'] = [
+      { wch: 6 },   // 구분
+      { wch: 10 },  // 성명
+      { wch: 15 },  // 주민번호
+      { wch: 6 },   // 나이
+      { wch: 10 },  // 보험회사
+      { wch: 15 },  // 증권번호
+      { wch: 8 },   // 탁/일
+      { wch: 10 },  // 기타
+      { wch: 12 },  // 보험료
+      { wch: 20 },  // 보험회사에 내는 월보험료
+      { wch: 10 },  // 담당자
+      { wch: 15 },  // 정상납 보험료
+      { wch: 15 },  // 단체구분
+      { wch: 10 },  // 사고유무
+      { wch: 20 }   // 사고유무명
+    ];
+    
+    // ===== 셀 병합 =====
+    const merges = [];
+    
+    // 제목 병합 (A1:O1) - 15개 컬럼
+    merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 14 } });
+    
+    // 다운로드 일시 병합 (A2:O2)
+    merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 14 } });
+    
+    // 회원리스트 합계 행 병합 (A행: H행까지 병합)
+    merges.push({ s: { r: memberSummaryRowIndex, c: 0 }, e: { r: memberSummaryRowIndex, c: 7 } });
+    
+    // 배서리스트 제목 병합 (있는 경우)
+    if (endorseHeaderRowIndex !== null) {
+      const endorseTitleRow = endorseHeaderRowIndex - 2; // 배서리스트 제목 행
+      merges.push({ s: { r: endorseTitleRow, c: 0 }, e: { r: endorseTitleRow, c: 14 } });
+    }
+    
+    // 배서 합계 행 병합 (있는 경우)
+    if (endorseSummaryRowIndex !== null) {
+      merges.push({ s: { r: endorseSummaryRowIndex, c: 0 }, e: { r: endorseSummaryRowIndex, c: 7 } });
+    }
+    
+    // 최종 합계 행 병합 (있는 경우)
+    if (finalSummaryRowIndex !== null) {
+      merges.push({ s: { r: finalSummaryRowIndex, c: 0 }, e: { r: finalSummaryRowIndex, c: 7 } });
+    }
+    
+    ws['!merges'] = merges;
+    
+    // ===== 셀 스타일 적용 =====
+    // 제목 셀 (A1)
+    if (ws['A1']) {
+      ws['A1'].s = {
+        font: { bold: true, sz: 14 },
+        alignment: { horizontal: 'center', vertical: 'center' }
+      };
+    }
+    
+    // 다운로드 일시 (A2)
+    if (ws['A2']) {
+      ws['A2'].s = {
+        alignment: { horizontal: 'center' }
+      };
+    }
+    
+    // 회원리스트 헤더 행 스타일 (4번째 행, 0-based index 3)
+    const memberHeaderCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
+    memberHeaderCols.forEach(col => {
+      const cellRef = `${col}${headerRowIndex + 1}`;
+      if (ws[cellRef]) {
+        ws[cellRef].s = {
+          font: { bold: true },
+          fill: { fgColor: { rgb: 'E6E6E6' } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: {
+            top: { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left: { style: 'thin', color: { rgb: '000000' } },
+            right: { style: 'thin', color: { rgb: '000000' } }
+          }
+        };
+      }
+    });
+    
+    // 회원리스트 합계 행 스타일
+    const summaryCellRef = `A${memberSummaryRowIndex + 1}`;
+    if (ws[summaryCellRef]) {
+      ws[summaryCellRef].s = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: 'D9E1F2' } },
+        alignment: { horizontal: 'center', vertical: 'center' }
+      };
+    }
+    
+    // 합계 행의 숫자 셀 스타일 (I, J, L 컬럼)
+    ['I', 'J', 'L'].forEach(col => {
+      const cellRef = `${col}${memberSummaryRowIndex + 1}`;
+      if (ws[cellRef]) {
+        ws[cellRef].s = {
+          font: { bold: true },
+          alignment: { horizontal: 'right', vertical: 'center' },
+          numFmt: '#,##0'
+        };
+      }
+    });
+    
+    // 배서리스트 헤더 행 스타일 (있는 경우)
+    if (endorseHeaderRowIndex !== null) {
+      const endorseHeaderCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+      endorseHeaderCols.forEach(col => {
+        const cellRef = `${col}${endorseHeaderRowIndex + 1}`;
+        if (ws[cellRef]) {
+          ws[cellRef].s = {
+            font: { bold: true },
+            fill: { fgColor: { rgb: 'E6E6E6' } },
+            alignment: { horizontal: 'center', vertical: 'center' },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
+            }
+          };
+        }
+      });
+    }
+    
+    // 배서 합계 행 스타일 (있는 경우)
+    if (endorseSummaryRowIndex !== null) {
+      const endorseSummaryCellRef = `A${endorseSummaryRowIndex + 1}`;
+      if (ws[endorseSummaryCellRef]) {
+        ws[endorseSummaryCellRef].s = {
+          font: { bold: true },
+          fill: { fgColor: { rgb: 'D9E1F2' } },
+          alignment: { horizontal: 'center', vertical: 'center' }
+        };
+      }
+      
+      // 배서 합계 행의 숫자 셀
+      ['I', 'L'].forEach(col => {
+        const cellRef = `${col}${endorseSummaryRowIndex + 1}`;
+        if (ws[cellRef]) {
+          ws[cellRef].s = {
+            font: { bold: true },
+            alignment: { horizontal: 'right', vertical: 'center' },
+            numFmt: '#,##0'
+          };
+        }
+      });
+    }
+    
+    // 최종 합계 행 스타일 (있는 경우)
+    if (finalSummaryRowIndex !== null) {
+      const finalSummaryCellRef = `A${finalSummaryRowIndex + 1}`;
+      if (ws[finalSummaryCellRef]) {
+        ws[finalSummaryCellRef].s = {
+          font: { bold: true, sz: 11 },
+          fill: { fgColor: { rgb: 'FFC000' } },
+          alignment: { horizontal: 'center', vertical: 'center' }
+        };
+      }
+      
+      // 최종 합계 행의 숫자 셀
+      ['I', 'L'].forEach(col => {
+        const cellRef = `${col}${finalSummaryRowIndex + 1}`;
+        if (ws[cellRef]) {
+          ws[cellRef].s = {
+            font: { bold: true, sz: 11 },
+            alignment: { horizontal: 'right', vertical: 'center' },
+            numFmt: '#,##0'
+          };
+        }
+      });
+    }
+    
+    // ===== 숫자 포맷 적용 (콤마) =====
+    // 회원 데이터의 보험료 컬럼 (I, J, L)
+    for (let i = headerRowIndex + 1; i <= memberDataEndRow; i++) {
+      ['I', 'J', 'L'].forEach(col => {
+        const cellRef = `${col}${i + 1}`;
+        if (ws[cellRef] && ws[cellRef].v !== '-' && ws[cellRef].v !== '') {
+          ws[cellRef].z = '#,##0';
+        }
+      });
+    }
+    
+    // 배서 데이터의 보험료 컬럼 (있는 경우)
+    if (endorseHeaderRowIndex !== null && endorseDataEndRow !== null) {
+      for (let i = endorseHeaderRowIndex; i <= endorseDataEndRow; i++) {
+        ['I', 'L'].forEach(col => {
+          const cellRef = `${col}${i + 1}`;
+          if (ws[cellRef] && ws[cellRef].v !== 0 && ws[cellRef].v !== '') {
+            ws[cellRef].z = '#,##0';
+          }
+        });
+      }
+    }
+    
     XLSX.utils.book_append_sheet(wb, ws, '회원리스트');
     
     // 파일명 생성

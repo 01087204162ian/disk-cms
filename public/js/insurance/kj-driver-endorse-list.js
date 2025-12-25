@@ -1872,8 +1872,8 @@ async function dailyEndorseRequest(page = 1, selectedDate = null, dNum = '', pol
         const formattedPreminum = item.preminum ? parseFloat(item.preminum).toLocaleString("en-US") : "0";
         const formattedC_preminum = item.c_preminum ? parseFloat(item.c_preminum).toLocaleString("en-US") : "0";
         
-        const iType = {"1": "대리", "2": "탁송", "3": "대리렌트", "4": "탁송렌트"};
-        const certiType = iType[item.etag] || "알 수 없음";
+        // 공통 모듈 사용하여 일/탁 구분 이름 가져오기
+        const certiType = window.KJConstants?.getEtagName(item.etag) || "알 수 없음";
         
         // 공통 모듈 사용하여 보험회사 이름 가져오기
         const insuranceComCode = parseInt(item.insuranceCom) || 0;

@@ -87,6 +87,15 @@
     5: '확대탁송',  // 전차량 → 확대탁송으로 통일
   };
 
+  // 일/탁 구분 코드 → 이름 매핑 (etag)
+  const ETAG_MAP = {
+    1: '대리',
+    2: '탁송',
+    3: '대리/렌트',
+    4: '탁송/렌트',
+    5: '전탁송',  // 확대탁송
+  };
+
   // 결제방식 코드 → 이름 매핑
   const DIVI_MAP = {
     1: '정상납',
@@ -147,6 +156,15 @@
    */
   const getGitaName = (code) => {
     return GITA_MAP[Number(code)] || '알 수 없음';
+  };
+
+  /**
+   * 일/탁 구분 코드로 이름 가져오기
+   * @param {number|string} code - 일/탁 구분 코드 (etag)
+   * @returns {string} 일/탁 구분 이름
+   */
+  const getEtagName = (code) => {
+    return ETAG_MAP[Number(code)] || '알 수 없음';
   };
 
   /**
@@ -240,6 +258,7 @@
     // 매핑 객체
     INSURER_MAP,
     GITA_MAP,
+    ETAG_MAP,
     DIVI_MAP,
     RATE_MAP,
     RATE_NAME_MAP,
@@ -247,6 +266,7 @@
     // 유틸리티 함수
     getInsurerName,
     getGitaName,
+    getEtagName,
     getDiviName,
     getRateValue,
     getRateName,
