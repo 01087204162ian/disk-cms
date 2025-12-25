@@ -1091,11 +1091,13 @@ router.post('/kj-company/settlement/excel-data', async (req, res) => {
     const { dNum, lastMonthDueDate, thisMonthDueDate } = req.body;
     const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-excel-data.php`;
     
-    const response = await axios.post(apiUrl, {
-      dNum,
-      lastMonthDueDate,
-      thisMonthDueDate
-    }, {
+    // URLSearchParams로 변환
+    const params = new URLSearchParams();
+    if (dNum) params.append('dNum', dNum);
+    if (lastMonthDueDate) params.append('lastMonthDueDate', lastMonthDueDate);
+    if (thisMonthDueDate) params.append('thisMonthDueDate', thisMonthDueDate);
+    
+    const response = await axios.post(apiUrl, params.toString(), {
       timeout: DEFAULT_TIMEOUT,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -1105,10 +1107,28 @@ router.post('/kj-company/settlement/excel-data', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('KJ settlement excel-data proxy error:', error.message);
+    console.error('Error details:', error.response?.data);
+    console.error('Request params:', req.body);
+    
+    // PHP 에러 응답이 JSON인 경우 파싱
+    let errorDetails = error.message;
+    if (error.response?.data) {
+      try {
+        const errorData = typeof error.response.data === 'string' 
+          ? JSON.parse(error.response.data) 
+          : error.response.data;
+        errorDetails = errorData.error || errorData.message || error.message;
+      } catch (e) {
+        errorDetails = error.response.data.toString();
+      }
+    }
+    
     res.status(error.response?.status || 500).json({
       success: false,
       error: '정산 엑셀 데이터 조회 중 오류가 발생했습니다.',
-      details: error.response?.data || error.message,
+      details: errorDetails,
+      file: error.response?.data?.file,
+      line: error.response?.data?.line,
     });
   }
 });
