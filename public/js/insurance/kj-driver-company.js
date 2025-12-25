@@ -861,7 +861,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     
-    // 회원 데이터 행에 테두리 실선 적용
+    // 회원 데이터 행에 테두리 실선 및 정렬 적용
     for (let i = headerRowIndex + 1; i <= memberDataEndRow; i++) {
       memberHeaderCols.forEach(col => {
         const cellRef = `${col}${i + 1}`;
@@ -869,11 +869,17 @@ document.addEventListener('DOMContentLoaded', () => {
           if (!ws[cellRef].s) {
             ws[cellRef].s = {};
           }
+          // 숫자 컬럼은 오른쪽 정렬, 나머지는 가운데 정렬
+          const isNumberCol = ['A', 'D', 'I', 'J', 'L', 'N'].includes(col); // 구분, 나이, 보험료 컬럼들
           ws[cellRef].s.border = {
             top: { style: 'medium', color: { rgb: '000000' } },
             bottom: { style: 'medium', color: { rgb: '000000' } },
             left: { style: 'medium', color: { rgb: '000000' } },
             right: { style: 'medium', color: { rgb: '000000' } }
+          };
+          ws[cellRef].s.alignment = {
+            horizontal: isNumberCol ? 'right' : 'center',
+            vertical: 'center'
           };
         }
       });
@@ -920,7 +926,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       
-      // 배서 데이터 행에 테두리 실선 적용
+      // 배서 데이터 행에 테두리 실선 및 정렬 적용
       for (let i = endorseHeaderRowIndex; i <= endorseDataEndRow; i++) {
         endorseHeaderCols.forEach(col => {
           const cellRef = `${col}${i + 1}`;
@@ -928,11 +934,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!ws[cellRef].s) {
               ws[cellRef].s = {};
             }
+            // 숫자 컬럼은 오른쪽 정렬, 나머지는 가운데 정렬
+            const isNumberCol = ['A', 'D', 'I', 'L'].includes(col); // 구분, 나이, 보험료 컬럼들
             ws[cellRef].s.border = {
               top: { style: 'medium', color: { rgb: '000000' } },
               bottom: { style: 'medium', color: { rgb: '000000' } },
               left: { style: 'medium', color: { rgb: '000000' } },
               right: { style: 'medium', color: { rgb: '000000' } }
+            };
+            ws[cellRef].s.alignment = {
+              horizontal: isNumberCol ? 'right' : 'center',
+              vertical: 'center'
             };
           }
         });
