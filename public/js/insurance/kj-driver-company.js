@@ -649,21 +649,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const generateSettlementExcel = (data) => {
     const wb = XLSX.utils.book_new();
     
-    // ===== 회원 리스트 시트 =====
-    const memberWsData = [];
+    // ===== 단일 시트에 회원리스트와 배서리스트 모두 포함 =====
+    const wsData = [];
     
     // 제목 영역
-    memberWsData.push([`${data.companyName || ''} 회원리스트`]);
-    memberWsData.push([`다운로드 일시: ${new Date().toLocaleString('ko-KR')}`]);
-    memberWsData.push([]);
+    wsData.push([`${data.companyName || ''} 회원리스트`]);
+    wsData.push([`다운로드 일시: ${new Date().toLocaleString('ko-KR')}`]);
+    wsData.push([]);
     
-    // 헤더
-    memberWsData.push([
+    // 회원리스트 헤더
+    wsData.push([
       '구분', '성명', '주민번호', '나이', '보험회사', '증권번호', '탁/일', '기타',
       '보험료', '보험회사에 내는 월보험료', '담당자', '정상납 보험료', '단체구분', '사고유무', '사고유무'
     ]);
     
-    // 데이터 행
+    // 회원 데이터 행
     let j = 1;
     data.members.forEach((row) => {
       const InsuranceCompany = {
@@ -678,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const companyPremium = (row.divi == 2) ? row.ConversionPremium : 0;
       const adjustedPremium = (row.divi != 2) ? row.AdjustedInsuranceCompanyPremium : 0;
       
-      memberWsData.push([
+      wsData.push([
         j++,
         row.Name || '',
         row.Jumin || '',
@@ -697,9 +697,9 @@ document.addEventListener('DOMContentLoaded', () => {
       ]);
     });
     
-    // 합계 행
-    memberWsData.push([]);
-    memberWsData.push([
+    // 회원리스트 합계 행
+    wsData.push([]);
+    wsData.push([
       '합계', '', '', '', '', '', '', '',
       data.summary.sum_monthlyPremium || 0,
       data.summary.sum_companyPremium || 0,
@@ -708,24 +708,19 @@ document.addEventListener('DOMContentLoaded', () => {
       '', '', ''
     ]);
     
-    const memberWs = XLSX.utils.aoa_to_sheet(memberWsData);
-    XLSX.utils.book_append_sheet(wb, memberWs, '회원리스트');
-    
-    // ===== 배서 리스트 시트 =====
+    // ===== 배서리스트 (하단에 추가) =====
     if (data.endorsements && data.endorsements.length > 0) {
-      const endorseWsData = [];
+      wsData.push([]);
+      wsData.push([`배서리스트`]);
+      wsData.push([]);
       
-      // 제목
-      endorseWsData.push([`배서리스트 ${data.dateRange.start}~${data.dateRange.end}`]);
-      endorseWsData.push([]);
-      
-      // 헤더
-      endorseWsData.push([
+      // 배서리스트 헤더
+      wsData.push([
         '구분', '배서일', '성명', '나이', '보험회사', '증권번호', '일/탁', '배서종류',
         '배서보험료', '증권성격', '', '정상납보험료', '입금할 보험료'
       ]);
       
-      // 데이터 행
+      // 배서 데이터 행
       let j_ = 1;
       data.endorsements.forEach((erow) => {
         const inName = {
@@ -739,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const monthlyPremium = (erow.divi == 2) ? erow.preminum : 0;
         const adjustedPremium = (erow.divi != 2) ? erow.c_preminum : 0;
         
-        endorseWsData.push([
+        wsData.push([
           j_++,
           erow.endorse_day || '',
           erow.Name || '',
@@ -756,9 +751,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ]);
       });
       
-      // 합계 행
-      endorseWsData.push([]);
-      endorseWsData.push([
+      // 배서 합계 행
+      wsData.push([]);
+      wsData.push([
         '배서 보험료 소계', '', '', '', '', '', '', '',
         data.summary.sum_En_monthlyPremium || 0,
         '', '',
@@ -766,19 +761,19 @@ document.addEventListener('DOMContentLoaded', () => {
         ''
       ]);
       
-      endorseWsData.push([
+      // 최종 합계 행
+      wsData.push([
         '입금 하실 보험료=월 보험료 소계+배서 보험료 소계', '', '', '', '', '', '', '',
         (data.summary.sum_monthlyPremium || 0) + (data.summary.sum_En_monthlyPremium || 0),
         '', '',
         (data.summary.sum_adjustedPremium || 0) + (data.summary.sum_En_adjustedPremium || 0),
-        (data.summary.sum_monthlyPremium || 0) + (data.summary.sum_companyPremium || 0) + 
-        (data.summary.sum_adjustedPremium || 0) + (data.summary.sum_En_monthlyPremium || 0) + 
-        (data.summary.sum_En_adjustedPremium || 0)
+        ''
       ]);
-      
-      const endorseWs = XLSX.utils.aoa_to_sheet(endorseWsData);
-      XLSX.utils.book_append_sheet(wb, endorseWs, '배서리스트');
     }
+    
+    // 시트 생성
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, '회원리스트');
     
     // 파일명 생성
     const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
