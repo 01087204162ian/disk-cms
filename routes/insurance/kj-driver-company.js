@@ -1085,6 +1085,34 @@ router.post('/kj-company/settlement/update', async (req, res) => {
 });
 
 // 정산 엑셀 다운로드
+// 정산 엑셀 데이터 조회 (JSON 응답 - SheetJS용)
+router.post('/kj-company/settlement/excel-data', async (req, res) => {
+  try {
+    const { dNum, lastMonthDueDate, thisMonthDueDate } = req.body;
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-excel-data.php`;
+    
+    const response = await axios.post(apiUrl, {
+      dNum,
+      lastMonthDueDate,
+      thisMonthDueDate
+    }, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement excel-data proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '정산 엑셀 데이터 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 router.post('/kj-company/settlement/excel', async (req, res) => {
   try {
     const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-excel.php`;

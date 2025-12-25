@@ -579,10 +579,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const downloadSettlementExcel = async () => {
     if (!currentSettlement.dNum) return;
+    
+    // SheetJS 로드 확인
+    if (typeof XLSX === 'undefined') {
+      alert('엑셀 라이브러리가 로드되지 않았습니다.\n페이지를 새로고침 해주세요.');
+      return;
+    }
+    
     const start = settleStartInput?.value || '';
     const end = settleEndInput?.value || '';
+    
+    if (!start || !end) {
+      alert('시작일과 종료일을 선택해주세요.');
+      return;
+    }
+    
     try {
-      const res = await fetch('/api/insurance/kj-company/settlement/excel', {
+      // 로딩 표시
+      const btn = document.getElementById('settleExcelBtn');
+      const originalHTML = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>생성 중...';
+      }
+      
+      // API 호출 (JSON 데이터)
+      const res = await fetch('/api/insurance/kj-company/settlement/excel-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -593,20 +615,178 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `정산_${currentSettlement.companyName || 'company'}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      
+      const result = await res.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || '데이터 조회 실패');
+      }
+      
+      // 엑셀 생성 및 다운로드
+      generateSettlementExcel(result.data);
+      
+      // 성공 메시지
+      setTimeout(() => {
+        alert(`엑셀 파일이 다운로드되었습니다.\n\n회원: ${result.data.members.length}건\n배서: ${result.data.endorsements.length}건`);
+      }, 500);
+      
     } catch (err) {
       console.error('정산 엑셀 다운로드 실패:', err);
-      alert('정산 엑셀 다운로드 중 오류가 발생했습니다.');
+      alert(`정산 엑셀 다운로드 중 오류가 발생했습니다.\n\n${err.message}`);
+    } finally {
+      // 버튼 복원
+      const btn = document.getElementById('settleExcelBtn');
+      if (btn) {
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-file-excel me-1"></i>엑셀 다운로드';
+        }, 1000);
+      }
     }
+  };
+  
+  // 정산 엑셀 파일 생성 (SheetJS)
+  const generateSettlementExcel = (data) => {
+    const wb = XLSX.utils.book_new();
+    
+    // ===== 회원 리스트 시트 =====
+    const memberWsData = [];
+    
+    // 제목 영역
+    memberWsData.push([`${data.companyName || ''} 회원리스트`]);
+    memberWsData.push([`다운로드 일시: ${new Date().toLocaleString('ko-KR')}`]);
+    memberWsData.push([]);
+    
+    // 헤더
+    memberWsData.push([
+      '구분', '성명', '주민번호', '나이', '보험회사', '증권번호', '탁/일', '기타',
+      '보험료', '보험회사에 내는 월보험료', '담당자', '정상납 보험료', '단체구분', '사고유무', '사고유무'
+    ]);
+    
+    // 데이터 행
+    let j = 1;
+    data.members.forEach((row) => {
+      const InsuranceCompany = {
+        1: '흥국', 2: 'DB', 3: 'KB', 4: '현대', 5: '현대', 6: '롯데', 7: 'MG', 8: '삼성'
+      }[row.InsuranceCompany] || '';
+      
+      const etag = {
+        1: '대리', 2: '탁송', 3: '대리렌트', 4: '탁송렌트'
+      }[row.etag] || '';
+      
+      const monthlyPremium = (row.divi == 2) ? row.AdjustedInsuranceMothlyPremium : 0;
+      const companyPremium = (row.divi == 2) ? row.ConversionPremium : 0;
+      const adjustedPremium = (row.divi != 2) ? row.AdjustedInsuranceCompanyPremium : 0;
+      
+      memberWsData.push([
+        j++,
+        row.Name || '',
+        row.Jumin || '',
+        row.nai || '',
+        InsuranceCompany,
+        row.dongbuCerti || '',
+        etag,
+        row.gita || '',
+        monthlyPremium || '-',
+        companyPremium || '-',
+        '', // 담당자
+        adjustedPremium || '-',
+        row.dongbuCerti || '',
+        row.discountRate || '',
+        row.discountRateName || ''
+      ]);
+    });
+    
+    // 합계 행
+    memberWsData.push([]);
+    memberWsData.push([
+      '합계', '', '', '', '', '', '', '',
+      data.summary.sum_monthlyPremium || 0,
+      data.summary.sum_companyPremium || 0,
+      '',
+      data.summary.sum_adjustedPremium || 0,
+      '', '', ''
+    ]);
+    
+    const memberWs = XLSX.utils.aoa_to_sheet(memberWsData);
+    XLSX.utils.book_append_sheet(wb, memberWs, '회원리스트');
+    
+    // ===== 배서 리스트 시트 =====
+    if (data.endorsements && data.endorsements.length > 0) {
+      const endorseWsData = [];
+      
+      // 제목
+      endorseWsData.push([`배서리스트 ${data.dateRange.start}~${data.dateRange.end}`]);
+      endorseWsData.push([]);
+      
+      // 헤더
+      endorseWsData.push([
+        '구분', '배서일', '성명', '나이', '보험회사', '증권번호', '일/탁', '배서종류',
+        '배서보험료', '증권성격', '', '정상납보험료', '입금할 보험료'
+      ]);
+      
+      // 데이터 행
+      let j_ = 1;
+      data.endorsements.forEach((erow) => {
+        const inName = {
+          1: '흥국', 2: 'DB', 3: 'KB', 4: '현대', 5: '현대', 6: '더케이', 7: 'MG', 8: '삼성'
+        }[erow.InsuranceCompany] || '';
+        
+        const metat = {
+          1: '대리', 2: '탁송', 3: '대리/렌트', 4: '탁송/렌트', 5: '전탁송'
+        }[erow.etag] || '';
+        
+        const monthlyPremium = (erow.divi == 2) ? erow.preminum : 0;
+        const adjustedPremium = (erow.divi != 2) ? erow.c_preminum : 0;
+        
+        endorseWsData.push([
+          j_++,
+          erow.endorse_day || '',
+          erow.Name || '',
+          erow.nai || '',
+          inName,
+          erow.dongbuCerti || '',
+          metat,
+          erow.pushName || '',
+          monthlyPremium || 0,
+          erow.gita || '',
+          '',
+          adjustedPremium || 0,
+          ''
+        ]);
+      });
+      
+      // 합계 행
+      endorseWsData.push([]);
+      endorseWsData.push([
+        '배서 보험료 소계', '', '', '', '', '', '', '',
+        data.summary.sum_En_monthlyPremium || 0,
+        '', '',
+        data.summary.sum_En_adjustedPremium || 0,
+        ''
+      ]);
+      
+      endorseWsData.push([
+        '입금 하실 보험료=월 보험료 소계+배서 보험료 소계', '', '', '', '', '', '', '',
+        (data.summary.sum_monthlyPremium || 0) + (data.summary.sum_En_monthlyPremium || 0),
+        '', '',
+        (data.summary.sum_adjustedPremium || 0) + (data.summary.sum_En_adjustedPremium || 0),
+        (data.summary.sum_monthlyPremium || 0) + (data.summary.sum_companyPremium || 0) + 
+        (data.summary.sum_adjustedPremium || 0) + (data.summary.sum_En_monthlyPremium || 0) + 
+        (data.summary.sum_En_adjustedPremium || 0)
+      ]);
+      
+      const endorseWs = XLSX.utils.aoa_to_sheet(endorseWsData);
+      XLSX.utils.book_append_sheet(wb, endorseWs, '배서리스트');
+    }
+    
+    // 파일명 생성
+    const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const safeCompanyName = (data.companyName || 'company').replace(/[\/\\?%*:|"<>]/g, '_');
+    const fileName = `${safeCompanyName}_회원리스트_${today}.xlsx`;
+    
+    // 다운로드
+    XLSX.writeFile(wb, fileName);
   };
 
   // ==================== 이벤트 바인딩 ====================
