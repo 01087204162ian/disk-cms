@@ -42,7 +42,6 @@
               <div class="row align-items-end">
                 <!-- 상태 필터 (정상/전체) -->
                 <div class="col-md-1 col-sm-6 mb-2 mb-md-0">
-                  <label class="form-label small mb-1">상태</label>
                   <select id="statusFilter" class="form-control">
                     <option value="1">정상</option>
                     <option value="2">전체</option>
@@ -51,13 +50,11 @@
                 
                 <!-- 검색 영역 -->
                 <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-                  <label class="form-label small mb-1">대리운전회사명</label>
                   <input type="text" id="search_word" class="form-control" placeholder="대리운전회사명">
                 </div>
                 
                 <!-- 검색 버튼 -->
                 <div class="col-md-1 col-sm-6 mb-2 mb-md-0">
-                  <label class="form-label small mb-1 d-block">&nbsp;</label>
                   <button class="btn btn-primary w-100" type="button" id="search_btn">
                     <i class="fas fa-search"></i> <span class="d-none d-sm-inline">검색</span>
                   </button>
@@ -65,7 +62,6 @@
                 
                 <!-- 담당자 필터 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <label class="form-label small mb-1">담당자</label>
                   <select id="managerFilter" class="form-control">
                     <option value="">-- 담당자 선택 --</option>
                     <!-- JavaScript에서 동적으로 로드 -->
@@ -74,7 +70,6 @@
                 
                 <!-- 페이지 크기 -->
                 <div class="col-md-1 col-sm-6 mb-2 mb-md-0">
-                  <label class="form-label small mb-1">페이지 크기</label>
                   <select id="pageSize" class="form-control">
                     <option value="20">20</option>
                     <option value="25" selected>25</option>
@@ -85,25 +80,20 @@
                 
                 <!-- 날짜 필터 (1-31일) -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                  <label class="form-label small mb-1">청구일</label>
                   <select id="dateFilter" class="form-control">
                     <!-- JavaScript에서 동적으로 생성 -->
                   </select>
                 </div>
-              </div>
-            </div>
-            <!-- 통합 검색/필터 영역 끝 -->
-            
-            <!-- 버튼 영역 -->
-            <div class="row mb-3">
-              <div class="col-12">
-                <div class="btn-row">
-                  <button type="button" class="btn btn-info btn-sm" id="addCompany" style="margin-left: auto;">
-                    <i class="fas fa-plus"></i> <span class="d-none d-md-inline">신규 등록</span>
+                
+                <!-- 신규 등록 버튼 -->
+                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                  <button type="button" class="btn btn-info btn-sm w-100" id="addCompany">
+                    <i class="fas fa-plus"></i> <span class="d-none d-md-inline">대리운전회사 신규</span>
                   </button>
                 </div>
               </div>
             </div>
+            <!-- 통합 검색/필터 영역 끝 -->
 
             <!-- 데스크톱 테이블 -->
             <div class="desktop-table">
