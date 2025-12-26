@@ -1741,7 +1741,23 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const userName = (window.SessionManager?.getUserInfo?.().name) || '';
+    // 로그인 사용자 이름 가져오기 (여러 소스 확인)
+    let userName = '';
+    if (window.sjTemplateLoader && window.sjTemplateLoader.user && window.sjTemplateLoader.user.name) {
+      userName = window.sjTemplateLoader.user.name;
+    } else if (window.SessionManager?.getUserInfo?.().name) {
+      userName = window.SessionManager.getUserInfo().name;
+    } else {
+      const sessionName = sessionStorage.getItem('userName');
+      if (sessionName) {
+        userName = sessionName;
+      } else {
+        const localName = localStorage.getItem('userName');
+        if (localName) {
+          userName = localName;
+        }
+      }
+    }
 
     // 정산 모달의 합계 인원 계산
     let totalDrivers = 0;
