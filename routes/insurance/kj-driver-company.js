@@ -1464,5 +1464,32 @@ router.post('/kj-company/settlement/list-save', async (req, res) => {
   }
 });
 
+// 확정보험료 저장
+router.post('/kj-company/settlement/premium-save', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-premium-save.php`;
+    const formData = new URLSearchParams();
+    if (req.body.dNum) formData.append('dNum', req.body.dNum);
+    if (req.body.thisMonthDueDate) formData.append('thisMonthDueDate', req.body.thisMonthDueDate);
+    if (req.body.adjustmentAmount) formData.append('adjustmentAmount', req.body.adjustmentAmount);
+    if (req.body.userName) formData.append('userName', req.body.userName);
+
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement premium save proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '확정보험료 저장 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

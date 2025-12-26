@@ -1298,12 +1298,18 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('settlementMemoSaveBtn')?.addEventListener('click', () => {
     saveSettlementMemo();
   });
+  // 확정보험료 입력 버튼 클릭 이벤트
   document.getElementById('settleConfirmPremiumBtn')?.addEventListener('click', () => {
-    alert('확정보험료 입력 기능은 준비 중입니다.');
+    openConfirmPremiumModal();
   });
   // 정산리스트 버튼 클릭 이벤트
   document.getElementById('settleListBtn')?.addEventListener('click', () => {
     openSettlementList('1'); // 기본값: 전체
+  });
+
+  // 확정보험료 입력 버튼 클릭 이벤트
+  document.getElementById('settleConfirmPremiumBtn')?.addEventListener('click', () => {
+    openConfirmPremiumModal();
   });
   
   // 메모 입력 엔터키
@@ -1664,6 +1670,151 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('저장 중 오류가 발생했습니다.');
     }
   };
+
+  // ==================== 확정보험료 입력 관련 함수 ====================
+
+  // 확정보험료 입력 모달 열기
+  window.openConfirmPremiumModal = function() {
+    if (!currentSettlement || !currentSettlement.dNum) {
+      alert('정산 정보가 없습니다. 먼저 정산 모달을 열어주세요.');
+      return;
+    }
+
+    const modalElement = document.getElementById('confirmPremiumModal');
+    if (!modalElement) {
+      console.error('확정보험료 입력 모달을 찾을 수 없습니다.');
+      return;
+    }
+
+    const modal = new bootstrap.Modal(modalElement);
+    
+    // 날짜 필드 초기화 (종료일을 기본값으로 사용)
+    const endDateInput = document.getElementById('settleEndDate');
+    const confirmPremiumDateInput = document.getElementById('confirmPremiumDate');
+    if (confirmPremiumDateInput && endDateInput && endDateInput.value) {
+      confirmPremiumDateInput.value = endDateInput.value;
+    } else {
+      // 종료일이 없으면 오늘 날짜 사용
+      const today = new Date().toISOString().split('T')[0];
+      if (confirmPremiumDateInput) {
+        confirmPremiumDateInput.value = today;
+      }
+    }
+
+    // 금액 필드 초기화
+    const confirmPremiumAmountInput = document.getElementById('confirmPremiumAmount');
+    if (confirmPremiumAmountInput) {
+      confirmPremiumAmountInput.value = '';
+    }
+
+    modal.show();
+  };
+
+  // 확정보험료 저장
+  window.saveConfirmPremium = async function() {
+    if (!currentSettlement || !currentSettlement.dNum) {
+      alert('정산 정보가 없습니다.');
+      return;
+    }
+
+    const dateInput = document.getElementById('confirmPremiumDate');
+    const amountInput = document.getElementById('confirmPremiumAmount');
+
+    if (!dateInput || !amountInput) {
+      alert('입력 필드를 찾을 수 없습니다.');
+      return;
+    }
+
+    const thisMonthDueDate = dateInput.value;
+    let adjustmentAmount = amountInput.value.replace(/,/g, '');
+
+    if (!thisMonthDueDate) {
+      alert('정산일을 선택해주세요.');
+      return;
+    }
+
+    if (!adjustmentAmount || isNaN(adjustmentAmount)) {
+      alert('유효한 보험료 금액을 입력해주세요.');
+      return;
+    }
+
+    const userName = (window.SessionManager?.getUserInfo?.().name) || '';
+
+    try {
+      const requestData = {
+        dNum: currentSettlement.dNum,
+        thisMonthDueDate: thisMonthDueDate,
+        adjustmentAmount: adjustmentAmount,
+        userName: userName
+      };
+
+      const response = await fetch('/api/insurance/kj-company/settlement/premium-save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('확정보험료가 성공적으로 저장되었습니다.');
+        
+        // 모달 닫기
+        const modalElement = document.getElementById('confirmPremiumModal');
+        if (modalElement) {
+          const modal = bootstrap.Modal.getInstance(modalElement);
+          if (modal) {
+            modal.hide();
+          }
+        }
+
+        // 입력 필드 초기화
+        if (amountInput) {
+          amountInput.value = '';
+        }
+      } else {
+        alert('저장 실패: ' + (data.message || '알 수 없는 오류'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('확정보험료 저장 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 확정보험료 금액 입력 필드 포맷팅 및 이벤트 설정
+  (function initConfirmPremiumModal() {
+    const confirmPremiumAmountInput = document.getElementById('confirmPremiumAmount');
+    if (confirmPremiumAmountInput) {
+      confirmPremiumAmountInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/,/g, '');
+        if (value && !isNaN(value)) {
+          e.target.value = parseFloat(value).toLocaleString('ko-KR');
+        }
+      });
+
+      // 엔터키로 저장
+      confirmPremiumAmountInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          window.saveConfirmPremium();
+        }
+      });
+    }
+
+    // 저장 버튼 이벤트
+    const confirmPremiumSaveBtn = document.getElementById('confirmPremiumSaveBtn');
+    if (confirmPremiumSaveBtn) {
+      confirmPremiumSaveBtn.addEventListener('click', () => {
+        window.saveConfirmPremium();
+      });
+    }
+  })();
 
   // ==================== 초기화 실행 ====================
 

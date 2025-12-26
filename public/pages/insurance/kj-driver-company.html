@@ -397,6 +397,35 @@
     </div>
   </div>
 
+  <!-- 확정보험료 입력 모달 -->
+  <div class="modal fade" id="confirmPremiumModal" tabindex="-1" aria-labelledby="confirmPremiumModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmPremiumModalLabel">확정보험료 입력</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body">
+          <form id="confirmPremiumForm">
+            <div class="mb-3">
+              <label for="confirmPremiumDate" class="form-label">정산일</label>
+              <input type="date" class="form-control" id="confirmPremiumDate" required>
+            </div>
+            <div class="mb-3">
+              <label for="confirmPremiumAmount" class="form-label">확정보험료 금액</label>
+              <input type="text" class="form-control" id="confirmPremiumAmount" placeholder="금액을 입력하세요" required>
+              <div class="form-text">숫자만 입력하세요 (콤마는 자동으로 추가됩니다)</div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-primary" id="confirmPremiumSaveBtn">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 배서리스트 모달 (정산 모달 좌측에 표시) -->
   <div class="modal fade" id="settlementListModal" tabindex="-1" aria-labelledby="settlementListModalLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl modal-dialog-scrollable" style="position: fixed; left: 0; top: 50%; transform: translateY(-50%); margin: 0; max-width: 48%; z-index: 1056;">
