@@ -1428,6 +1428,7 @@ router.post('/kj-company/settlement/list', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('KJ settlement list proxy error:', error.message);
+    console.error('Request body:', req.body);
     res.status(error.response?.status || 500).json({
       success: false,
       error: '정산리스트 조회 중 오류가 발생했습니다.',

@@ -1480,17 +1480,21 @@ document.addEventListener('DOMContentLoaded', () => {
     settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4">조회 중...</td></tr>';
 
     try {
-      const formData = new FormData();
-      formData.append('lastDate', lastDate);
-      formData.append('thisDate', thisDate);
-      formData.append('attempted', attempted);
+      const requestData = {
+        lastDate: lastDate,
+        thisDate: thisDate,
+        attempted: attempted
+      };
       if (damdanga) {
-        formData.append('damdanga', damdanga);
+        requestData.damdanga = damdanga;
       }
 
       const response = await fetch('/api/insurance/kj-company/settlement/list', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
       });
 
       if (!response.ok) {
@@ -1592,14 +1596,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const receiveUser = (window.SessionManager?.getUserInfo?.().name) || '';
 
     try {
-      const formData = new FormData();
-      formData.append('id', id);
-      formData.append('receivedAmount', receivedAmount);
-      formData.append('receiveUser', receiveUser);
+      const requestData = {
+        id: id,
+        receivedAmount: receivedAmount,
+        receiveUser: receiveUser
+      };
 
       const response = await fetch('/api/insurance/kj-company/settlement/list-save', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
       });
 
       const data = await response.json();
@@ -1629,14 +1637,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const receiveUser = (window.SessionManager?.getUserInfo?.().name) || '';
 
     try {
-      const formData = new FormData();
-      formData.append('id', id);
-      formData.append('memo', memo);
-      formData.append('receiveUser', receiveUser);
+      const requestData = {
+        id: id,
+        memo: memo,
+        receiveUser: receiveUser
+      };
 
       const response = await fetch('/api/insurance/kj-company/settlement/list-save', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
       });
 
       const data = await response.json();
