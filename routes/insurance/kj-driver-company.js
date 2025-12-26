@@ -1409,5 +1409,59 @@ router.post('/kj-company/settlement/memo-save', async (req, res) => {
   }
 });
 
+// 정산리스트 조회
+router.post('/kj-company/settlement/list', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-list.php`;
+    const formData = new URLSearchParams();
+    if (req.body.lastDate) formData.append('lastDate', req.body.lastDate);
+    if (req.body.thisDate) formData.append('thisDate', req.body.thisDate);
+    if (req.body.attempted) formData.append('attempted', req.body.attempted);
+    if (req.body.damdanga) formData.append('damdanga', req.body.damdanga);
+
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '정산리스트 조회 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 정산리스트 저장 (받을 보험료/메모)
+router.post('/kj-company/settlement/list-save', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-list-save.php`;
+    const formData = new URLSearchParams();
+    if (req.body.id) formData.append('id', req.body.id);
+    if (req.body.receivedAmount !== undefined) formData.append('receivedAmount', req.body.receivedAmount);
+    if (req.body.memo !== undefined) formData.append('memo', req.body.memo);
+    if (req.body.receiveUser) formData.append('receiveUser', req.body.receiveUser);
+
+    const response = await axios.post(apiUrl, formData.toString(), {
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ settlement list save proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '정산리스트 저장 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 module.exports = router;
 

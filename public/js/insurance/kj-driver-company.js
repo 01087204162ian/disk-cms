@@ -1301,8 +1301,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('settleConfirmPremiumBtn')?.addEventListener('click', () => {
     alert('확정보험료 입력 기능은 준비 중입니다.');
   });
+  // 정산리스트 버튼 클릭 이벤트
   document.getElementById('settleListBtn')?.addEventListener('click', () => {
-    alert('정산리스트 기능은 준비 중입니다.');
+    openSettlementList('1'); // 기본값: 전체
   });
   
   // 메모 입력 엔터키
@@ -1313,19 +1314,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('settlementMemoSaveBtn')?.addEventListener('click', () => {
     saveSettlementMemo();
-  });
-  document.getElementById('settleConfirmPremiumBtn')?.addEventListener('click', () => {
-    alert('확정보험료 입력 기능은 준비 중입니다.');
-  });
-  document.getElementById('settleListBtn')?.addEventListener('click', () => {
-    alert('정산리스트 기능은 준비 중입니다.');
-  });
-  
-  // 메모 입력 엔터키
-  settlementMemoInput?.addEventListener('keyup', (e) => {
-    if (e.key === 'Enter') {
-      saveSettlementMemo();
-    }
   });
 
   // ==================== 모달 관련 ====================
@@ -1344,6 +1332,326 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // ==================== 정산리스트 관련 함수 ====================
+
+  // 정산리스트 모달 열기
+  window.openSettlementList = function(attempted = '1') {
+    const modalElement = document.getElementById('settlementListModal2');
+    if (!modalElement) {
+      console.error('정산리스트 모달을 찾을 수 없습니다.');
+      return;
+    }
+
+    const contentDiv = document.getElementById('settlementListContent');
+    if (!contentDiv) {
+      console.error('정산리스트 컨텐츠 영역을 찾을 수 없습니다.');
+      return;
+    }
+
+    // 모달 내용 생성
+    const today = new Date();
+    const lastMonth = new Date(today);
+    lastMonth.setMonth(today.getMonth() - 1);
+
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const fieldContents = `
+      <div class="kje-list-container">
+        <!-- 검색 영역 -->
+        <div class="kje-list-header mb-3">
+          <div class="d-flex flex-wrap gap-2 align-items-end">
+            <div>
+              <label class="form-label small mb-1">시작일</label>
+              <input type='date' id='lastDate' class='form-control form-control-sm' value='${formatDate(lastMonth)}'>
+            </div>
+            <div>
+              <label class="form-label small mb-1">종료일</label>
+              <input type='date' id='thisDate' class='form-control form-control-sm' value='${formatDate(today)}'>
+            </div>
+            <div>
+              <label class="form-label small mb-1">담당자</label>
+              <select id="damdanga3" class="form-select form-select-sm"></select>
+            </div>
+            <div>
+              <label class="form-label small mb-1">구분</label>
+              <select id="attempted" class="form-select form-select-sm">
+                <option value='1' ${attempted === '1' ? 'selected' : ''}>전체</option>
+                <option value='2' ${attempted === '2' ? 'selected' : ''}>미수</option>
+              </select>
+            </div>
+            <div>
+              <button class="btn btn-sm btn-primary" id="settlementListSearchBtn">검색</button>
+            </div>
+          </div>
+        </div>
+    
+        <!-- 리스트 영역 -->
+        <div class="kje-list-content">
+          <table class="table table-bordered table-sm align-middle">
+            <thead class="table-light">
+              <tr>
+                <th width='5%'>No</th>
+                <th width='10%'>정산일</th>
+                <th width='16%'>대리운전회사</th>
+                <th width='8%'>보험료</th>
+                <th width='8%'>manager</th>
+                <th width='8%'>담당자</th>
+                <th width='8%'>보험료</th>
+                <th width='8%'>입력자</th>
+                <th width='8%'>차액</th>
+                <th width='21%'>메모</th>
+              </tr>
+            </thead>
+            <tbody id="settleList">
+              <tr>
+                <td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+
+    contentDiv.innerHTML = fieldContents;
+
+    // 모달 표시
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    // 담당자 목록 로드
+    loadManagerListForSettlement();
+
+    // 검색 버튼 이벤트
+    document.getElementById('settlementListSearchBtn')?.addEventListener('click', () => {
+      const attemptedValue = document.getElementById('attempted')?.value || '1';
+      settleSearch(attemptedValue);
+    });
+
+    // 초기 검색 실행
+    setTimeout(() => {
+      settleSearch(attempted);
+    }, 100);
+  };
+
+  // 담당자 목록 로드 (정산리스트용)
+  async function loadManagerListForSettlement() {
+    try {
+      const res = await fetch('/api/insurance/kj-company/managers');
+      const json = await res.json();
+      
+      const select = document.getElementById('damdanga3');
+      if (!select) return;
+
+      select.innerHTML = '<option value="">전체</option>';
+      
+      if (json.success && json.data) {
+        json.data.forEach(manager => {
+          const option = document.createElement('option');
+          option.value = manager.name || '';
+          option.textContent = manager.name || `담당자 ${manager.num}`;
+          select.appendChild(option);
+        });
+      }
+    } catch (err) {
+      console.error('담당자 목록 로드 실패:', err);
+    }
+  }
+
+  // 정산리스트 조회
+  async function settleSearch(attempted = '1') {
+    const lastDate = document.getElementById('lastDate')?.value;
+    const thisDate = document.getElementById('thisDate')?.value;
+    const damdanga = document.getElementById('damdanga3')?.value || '';
+    const userName = (window.SessionManager?.getUserInfo?.().name) || '';
+
+    if (!lastDate || !thisDate) {
+      alert('시작일과 종료일을 선택해주세요.');
+      return;
+    }
+
+    const settleList = document.getElementById('settleList');
+    if (!settleList) return;
+
+    settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4">조회 중...</td></tr>';
+
+    try {
+      const formData = new FormData();
+      formData.append('lastDate', lastDate);
+      formData.append('thisDate', thisDate);
+      formData.append('attempted', attempted);
+      if (damdanga) {
+        formData.append('damdanga', damdanga);
+      }
+
+      const response = await fetch('/api/insurance/kj-company/settlement/list', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        displaySettlementData(data);
+      } else {
+        alert('오류가 발생했습니다: ' + (data.message || '알 수 없는 오류'));
+        settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">조회 실패</td></tr>';
+      }
+    } catch (error) {
+      console.error('Error details:', error);
+      alert('정산리스트 조회중 에러발생.');
+      settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">조회 중 오류가 발생했습니다.</td></tr>';
+    }
+  }
+
+  // 정산 데이터를 테이블에 표시하는 함수
+  function displaySettlementData(data) {
+    const settleList = document.getElementById('settleList');
+    if (!settleList) return;
+
+    settleList.innerHTML = '';
+
+    if (data.count === 0 || !data.data || data.data.length === 0) {
+      const emptyRow = document.createElement('tr');
+      emptyRow.innerHTML = '<td colspan="10" class="text-center py-4">조회된 정산 데이터가 없습니다.</td>';
+      settleList.appendChild(emptyRow);
+      return;
+    }
+
+    let tableContent = '';
+
+    data.data.forEach((item, index) => {
+      // 금액 포맷팅 함수
+      const formatAmount = (amount) => {
+        if (!amount && amount !== 0) return '0';
+        const numAmount = parseFloat(String(amount).replace(/,/g, ''));
+        return isNaN(numAmount) ? '0' : numAmount.toLocaleString('ko-KR');
+      };
+
+      // 차이 금액 계산 (receivedAmount가 있을 경우에만)
+      let differenceAmount = '';
+      const adjustmentAmount = parseFloat(String(item.adjustmentAmount || 0).replace(/,/g, ''));
+      const receivedAmount = parseFloat(String(item.receivedAmount || 0).replace(/,/g, ''));
+      
+      if (item.receivedAmount !== null && item.receivedAmount !== undefined && item.receivedAmount !== '') {
+        const difference = adjustmentAmount - receivedAmount;
+        differenceAmount = formatAmount(difference);
+      }
+
+      // HTML 행 구성
+      tableContent += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${item.thisMonthDueDate || ''}</td>
+          <td>${item.company || ''}</td>
+          <td class="text-end">${formatAmount(item.adjustmentAmount)}</td>
+          <td>${item.createUser || ''}</td>
+          <td></td>
+          <td>
+            <input type='text' 
+              id='getPrinum_${item.id}' 
+              class="form-control form-control-sm text-end"
+              placeholder='받을 보험료' 
+              value='${formatAmount(item.receivedAmount)}'
+              onkeypress="if(event.key === 'Enter') { window.getPremium(this, ${item.id}); return false; }" 
+              autocomplete="off"
+            >
+          </td>
+          <td>${item.receiveUser || ''}</td>
+          <td class="text-end">
+            <span id='chai-${item.id}'>${differenceAmount}</span> 
+          </td>
+          <td>
+            <input type='text' 
+              id='memo_${item.id}' 
+              class="form-control form-control-sm"
+              placeholder='메모 입력' 
+              value='${(item.memo || '').replace(/'/g, "&apos;")}'
+              onkeypress="if(event.key === 'Enter') { window.getPremiumMemo(this, ${item.id}); return false; }" 
+              autocomplete="off"
+            >
+          </td>
+        </tr>
+      `;
+    });
+
+    settleList.innerHTML = tableContent;
+  }
+
+  // 받을 보험료 저장
+  window.getPremium = async function(inputElement, id) {
+    const receivedAmount = inputElement.value.replace(/,/g, '');
+    const receiveUser = (window.SessionManager?.getUserInfo?.().name) || '';
+
+    try {
+      const formData = new FormData();
+      formData.append('id', id);
+      formData.append('receivedAmount', receivedAmount);
+      formData.append('receiveUser', receiveUser);
+
+      const response = await fetch('/api/insurance/kj-company/settlement/list-save', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // 차액 계산 및 업데이트
+        const adjustmentAmount = parseFloat(document.querySelector(`#getPrinum_${id}`).closest('tr').querySelector('td:nth-child(4)').textContent.replace(/,/g, ''));
+        const newReceivedAmount = parseFloat(receivedAmount) || 0;
+        const difference = adjustmentAmount - newReceivedAmount;
+        const chaiElement = document.getElementById(`chai-${id}`);
+        if (chaiElement) {
+          chaiElement.textContent = difference.toLocaleString('ko-KR');
+          chaiElement.className = difference < 0 ? 'text-danger' : '';
+        }
+      } else {
+        alert('저장 실패: ' + (data.message || '알 수 없는 오류'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('저장 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 메모 저장
+  window.getPremiumMemo = async function(inputElement, id) {
+    const memo = inputElement.value;
+    const receiveUser = (window.SessionManager?.getUserInfo?.().name) || '';
+
+    try {
+      const formData = new FormData();
+      formData.append('id', id);
+      formData.append('memo', memo);
+      formData.append('receiveUser', receiveUser);
+
+      const response = await fetch('/api/insurance/kj-company/settlement/list-save', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // 성공 메시지 (선택사항)
+        // console.log('메모가 저장되었습니다.');
+      } else {
+        alert('저장 실패: ' + (data.message || '알 수 없는 오류'));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('저장 중 오류가 발생했습니다.');
+    }
+  };
 
   // ==================== 초기화 실행 ====================
 
