@@ -1740,12 +1740,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const userName = (window.SessionManager?.getUserInfo?.().name) || '';
 
+    // 정산 모달의 합계 인원 계산
+    let totalDrivers = 0;
+    try {
+      const settleStartInput = document.getElementById('settleStartDate');
+      const settleEndInput = document.getElementById('settleEndDate');
+      const start = settleStartInput?.value || '';
+      const end = settleEndInput?.value || '';
+
+      if (start && end) {
+        const params = new URLSearchParams({
+          dNum: currentSettlement.dNum,
+          lastMonthDueDate: start,
+          thisMonthDueDate: end,
+        });
+        const res = await fetch(`/api/insurance/kj-company/settlement/adjustment?${params.toString()}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          totalDrivers = json.data.reduce((sum, item) => sum + (item.drivers_count || 0), 0);
+        }
+      }
+    } catch (err) {
+      console.error('정산 인원 조회 실패:', err);
+      // 오류가 발생해도 계속 진행
+    }
+
     try {
       const requestData = {
         dNum: currentSettlement.dNum,
         thisMonthDueDate: thisMonthDueDate,
         adjustmentAmount: adjustmentAmount,
-        userName: userName
+        userName: userName,
+        totalDrivers: totalDrivers
       };
 
       const response = await fetch('/api/insurance/kj-company/settlement/premium-save', {

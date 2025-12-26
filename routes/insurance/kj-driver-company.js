@@ -1473,6 +1473,7 @@ router.post('/kj-company/settlement/premium-save', async (req, res) => {
     if (req.body.thisMonthDueDate) formData.append('thisMonthDueDate', req.body.thisMonthDueDate);
     if (req.body.adjustmentAmount) formData.append('adjustmentAmount', req.body.adjustmentAmount);
     if (req.body.userName) formData.append('userName', req.body.userName);
+    if (req.body.totalDrivers !== undefined) formData.append('totalDrivers', req.body.totalDrivers);
 
     const response = await axios.post(apiUrl, formData.toString(), {
       timeout: DEFAULT_TIMEOUT,
