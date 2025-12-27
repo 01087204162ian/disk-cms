@@ -30,15 +30,15 @@ async function checkUserScheduleStatus() {
     if (response.ok && data.success) {
       if (data.data && data.data.initial_choice_completed) {
         // 이미 선택 완료 → 개인 스케줄 표시
-        loadPersonalSchedule(data.data);
+        // my-status API는 기본 정보만 제공하므로, my-schedule API를 호출해야 함
+        await loadPersonalSchedule();
       } else {
         // 아직 미선택 → 초기 선택 안내
-        showInitialChoiceNeeded();
+        showInitialChoiceNeeded(data.data?.user);
       }
     } else {
       console.error('API 응답 오류:', data.message);
-      // API 오류 시 기본 동작
-      loadPersonalSchedule();
+      window.sjTemplateLoader?.showToast(`오류: ${data.message}`, 'error');
     }
   } catch (error) {
     console.error('서버 통신 실패:', error);
@@ -49,8 +49,8 @@ async function checkUserScheduleStatus() {
 
 // 초기 선택 필요 안내
 // 초기 선택 필요 안내 (수정)
-function showInitialChoiceNeeded() {
-  const userName = window.sjTemplateLoader.user?.name || '사용자';
+function showInitialChoiceNeeded(userInfo = null) {
+  const userName = userInfo?.name || window.sjTemplateLoader?.user?.name || '사용자';
   
   // 기존 컨텐츠 숨기기
   hideMainContent();
@@ -170,7 +170,6 @@ function confirmInitialChoice() {
 }
 
 // 초기 설정 저장 (API 호출)
-// 초기 설정 저장 (API 호출)
 async function saveInitialChoice(offDay) {
   try {
     // 로딩 상태 표시
@@ -179,25 +178,18 @@ async function saveInitialChoice(offDay) {
     confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 설정 중...';
     confirmBtn.disabled = true;
     
-    // 현재 날짜 기준으로 스케줄 데이터 생성
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    
     // work_days 객체 생성 (선택한 요일만 off, 나머지는 full)
     const workDays = {
-      "1": offDay === "1" ? "off" : "full",
-      "2": offDay === "2" ? "off" : "full", 
-      "3": offDay === "3" ? "off" : "full",
-      "4": offDay === "4" ? "off" : "full",
-      "5": offDay === "5" ? "off" : "full"
+      "1": offDay === 1 ? "off" : "full",
+      "2": offDay === 2 ? "off" : "full", 
+      "3": offDay === 3 ? "off" : "full",
+      "4": offDay === 4 ? "off" : "full",
+      "5": offDay === 5 ? "off" : "full"
     };
     
     const requestData = {
-      year: currentYear,
-      month: currentMonth,
-      work_days: workDays,
-      initial_setup: true
+      off_day: parseInt(offDay),
+      work_days: workDays
     };
     
     // 서버에 초기 설정 저장
@@ -213,35 +205,78 @@ async function saveInitialChoice(offDay) {
     const result = await response.json();
     
     if (response.ok && result.success) {
-      window.sjTemplateLoader.showToast('초기 설정이 완료되었습니다!', 'success');
+      window.sjTemplateLoader?.showToast('초기 설정이 완료되었습니다!', 'success');
       
       // 메인 화면으로 돌아가기
-      location.reload(); // 간단하게 페이지 리로드
+      setTimeout(() => location.reload(), 1500);
       
     } else {
-      throw new Error(result.message || '설정 저장에 실패했습니다.');
+      const errorMessage = result.message || '설정 저장에 실패했습니다.';
+      const errorCode = result.code || 'UNKNOWN_ERROR';
+      
+      // 에러 코드별 처리
+      if (errorCode === 'PROBATION_PERIOD') {
+        window.sjTemplateLoader?.showToast('수습 기간 중에는 4일제를 선택할 수 없습니다.', 'error');
+      } else if (errorCode === 'DUPLICATE_REQUEST') {
+        window.sjTemplateLoader?.showToast('이미 초기 선택이 완료되었습니다.', 'warning');
+        setTimeout(() => location.reload(), 2000);
+      } else {
+        window.sjTemplateLoader?.showToast(`설정 저장 실패: ${errorMessage}`, 'error');
+      }
+      
+      // 버튼 상태 복원
+      confirmBtn.innerHTML = originalText;
+      confirmBtn.disabled = false;
     }
     
   } catch (error) {
     console.error('초기 설정 저장 실패:', error);
-    window.sjTemplateLoader.showToast(`설정 저장 실패: ${error.message}`, 'error');
+    window.sjTemplateLoader?.showToast(`네트워크 오류: ${error.message}`, 'error');
     
     // 버튼 상태 복원
     const confirmBtn = document.getElementById('confirmChoiceBtn');
-    confirmBtn.innerHTML = originalText;
-    confirmBtn.disabled = false;
+    if (confirmBtn) {
+      confirmBtn.innerHTML = originalText;
+      confirmBtn.disabled = false;
+    }
   }
 }
 
 // 개인 스케줄 로드
 // 모킹 데이터 또는 실제 데이터 사용
-function loadPersonalSchedule(scheduleData = null) {
+async function loadPersonalSchedule(scheduleData = null) {
   console.log('개인 스케줄 로드:', scheduleData);
   
   // 모킹 데이터 사용 여부 확인
   if (window.USE_MOCK_DATA && !scheduleData) {
     scheduleData = mockScheduleData.data;
     console.log('모킹 데이터 사용:', scheduleData);
+  } else if (!scheduleData) {
+    // 실제 API 호출
+    try {
+      const response = await fetch(`/api/staff/work-schedules/my-schedule/${currentYear}/${currentMonth}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        scheduleData = result.data;
+        console.log('API에서 스케줄 로드:', scheduleData);
+      } else {
+        console.error('스케줄 조회 실패:', result.message);
+        window.sjTemplateLoader?.showToast(`스케줄 조회 실패: ${result.message}`, 'error');
+        return;
+      }
+    } catch (error) {
+      console.error('스케줄 조회 중 오류:', error);
+      window.sjTemplateLoader?.showToast('네트워크 오류가 발생했습니다.', 'error');
+      return;
+    }
   }
   
   if (scheduleData) {
@@ -266,7 +301,10 @@ function loadPersonalSchedule(scheduleData = null) {
     // UI 업데이트
     updateShiftDescription4Week(scheduleData, cycleInfo);
     updateScheduleHeader4Week(scheduleData, cycleInfo);
-    updateCycleInfo(cycleInfo);
+    
+    // current_cycle 정보가 있으면 사용, 없으면 계산된 cycleInfo 사용
+    const displayCycleInfo = scheduleData.current_cycle || cycleInfo;
+    updateCycleInfo(displayCycleInfo);
     
     // 오늘 날짜 기준으로 수습 기간/공휴일 체크
     checkProbationPeriod(scheduleData.user.hire_date);
@@ -276,7 +314,8 @@ function loadPersonalSchedule(scheduleData = null) {
     updateTemporaryChangeButton(scheduleData);
   }
   
-  updateMonthDisplay();
+  // 스케줄 데이터가 있으면 캘린더 생성
+  generateCalendar();
 }
 
 /**
@@ -329,15 +368,23 @@ function calculateCycleInfo(workDays, targetDate) {
   };
 }
 // 월 표시 업데이트 함수
-function updateMonthDisplay() {
+async function updateMonthDisplay() {
   const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', 
                      '7월', '8월', '9월', '10월', '11월', '12월'];
   
   const displayText = `${currentYear}년 ${monthNames[currentMonth - 1]}`;
-  document.getElementById('currentMonth').textContent = displayText;
+  const monthElement = document.getElementById('currentMonth');
+  if (monthElement) {
+    monthElement.textContent = displayText;
+  }
   
-  // 캘린더도 다시 생성 
-  generateCalendar();
+  // 해당 월의 스케줄 다시 로드
+  if (!window.USE_MOCK_DATA) {
+    await loadPersonalSchedule();
+  } else {
+    // 모킹 데이터 사용 시에는 캘린더만 다시 생성
+    generateCalendar();
+  }
 }
  
  // 캘린더 생성 함수
@@ -432,12 +479,19 @@ function generateCalendar() {
             // currentOffDay: 1=월, 2=화, 3=수, 4=목, 5=금
             // 평일(월~금)인 경우 dayOfWeek는 1~5이므로 currentOffDay와 직접 비교 가능
             if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-              if (dayOfWeek === currentOffDay) {
-                scheduleStatus = 'off';
-                scheduleText = '<div class="day-status off"></div><div class="day-info off-info">휴무일</div>';
-              } else {
+              // 디버깅: 함수가 제대로 호출되는지 확인
+              if (typeof calculateOffDayByWeekCycle === 'undefined') {
+                console.error('calculateOffDayByWeekCycle 함수를 찾을 수 없습니다!');
                 scheduleStatus = 'work';
                 scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+              } else {
+                if (dayOfWeek === currentOffDay) {
+                  scheduleStatus = 'off';
+                  scheduleText = '<div class="day-status off"></div><div class="day-info off-info">휴무일</div>';
+                } else {
+                  scheduleStatus = 'work';
+                  scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+                }
               }
             }
           }
@@ -546,21 +600,40 @@ function generateCalendar() {
 			if (response.ok && result.success) {
 			  // 성공 시
 			  bootstrap.Modal.getInstance(document.getElementById('halfDayModal')).hide();
-			  window.sjTemplateLoader.showToast('반차 신청이 완료되었습니다.', 'success');
+			  window.sjTemplateLoader?.showToast('반차 신청이 완료되었습니다.', 'success');
 			  
 			  // 폼 초기화
 			  form.reset();
 			  const tomorrow = new Date();
 			  tomorrow.setDate(tomorrow.getDate() + 1);
-			  document.getElementById('halfDayDate').value = tomorrow.toISOString().split('T')[0];
+			  const halfDayDateInput = document.getElementById('halfDayDate');
+			  if (halfDayDateInput) {
+				halfDayDateInput.value = tomorrow.toISOString().split('T')[0];
+			  }
 			  
 			  // 페이지 리로드해서 반차 사용 현황 업데이트
 			  setTimeout(() => {
 				location.reload();
 			  }, 2000);
 			} else {
-			  // 실패 시
-			  window.sjTemplateLoader.showToast(`반차 신청 실패: ${result.message}`, 'error');
+			  // 실패 시 - 에러 코드별 처리
+			  const errorCode = result.code || 'UNKNOWN_ERROR';
+			  let errorMessage = result.message || '반차 신청에 실패했습니다.';
+			  
+			  if (errorCode === 'SAME_WEEK_REQUIRED') {
+				const validationDiv = document.getElementById('halfDayValidation');
+				if (validationDiv) {
+				  validationDiv.style.display = 'block';
+				}
+			  } else if (errorCode === 'HOLIDAY_WEEK') {
+				errorMessage = '공휴일 포함 주에는 반차를 분할할 수 없습니다.';
+			  } else if (errorCode === 'PROBATION_PERIOD') {
+				errorMessage = '수습 기간 중에는 반차를 신청할 수 없습니다.';
+			  } else if (errorCode === 'DUPLICATE_REQUEST') {
+				errorMessage = '이미 반차가 신청된 날짜입니다.';
+			  }
+			  
+			  window.sjTemplateLoader?.showToast(`반차 신청 실패: ${errorMessage}`, 'error');
 			}
 			
 		  } catch (error) {
@@ -657,7 +730,6 @@ function generateCalendar() {
       
       const data = {
         week_start_date: weekStartDate,
-        original_off_day: originalOffDay,
         temporary_off_day: temporaryOffDay,
         reason: reason,
         substitute_employee: substituteEmployee || null
@@ -675,7 +747,7 @@ function generateCalendar() {
           console.log('일시적 변경 신청 (모킹):', data);
           setTimeout(() => {
             bootstrap.Modal.getInstance(document.getElementById('temporaryChangeModal')).hide();
-            window.sjTemplateLoader.showToast('일시적 변경 신청이 완료되었습니다. (모킹)', 'success');
+            window.sjTemplateLoader?.showToast('일시적 변경 신청이 완료되었습니다. (모킹)', 'success');
             form.reset();
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
@@ -695,16 +767,30 @@ function generateCalendar() {
           
           if (response.ok && result.success) {
             bootstrap.Modal.getInstance(document.getElementById('temporaryChangeModal')).hide();
-            window.sjTemplateLoader.showToast('일시적 변경 신청이 완료되었습니다.', 'success');
+            window.sjTemplateLoader?.showToast('일시적 변경 신청이 완료되었습니다.', 'success');
             form.reset();
             setTimeout(() => location.reload(), 2000);
           } else {
-            window.sjTemplateLoader.showToast(`신청 실패: ${result.message}`, 'error');
+            // 에러 코드별 처리
+            const errorCode = result.code || 'UNKNOWN_ERROR';
+            let errorMessage = result.message || '신청에 실패했습니다.';
+            
+            if (errorCode === 'PROBATION_PERIOD') {
+              errorMessage = '수습 기간 중에는 일시적 변경이 불가합니다.';
+            } else if (errorCode === 'HOLIDAY_WEEK') {
+              errorMessage = '공휴일 포함 주에는 일시적 변경이 불가합니다.';
+            } else if (errorCode === 'VALIDATION_ERROR') {
+              errorMessage = '원래 휴무일과 동일합니다. 다른 요일을 선택해주세요.';
+            } else if (errorCode === 'DUPLICATE_REQUEST') {
+              errorMessage = '이미 해당 주에 변경 요청이 있습니다.';
+            }
+            
+            window.sjTemplateLoader?.showToast(`신청 실패: ${errorMessage}`, 'error');
           }
         }
       } catch (error) {
         console.error('일시적 변경 신청 중 오류:', error);
-        window.sjTemplateLoader.showToast('네트워크 오류가 발생했습니다.', 'error');
+        window.sjTemplateLoader?.showToast('네트워크 오류가 발생했습니다.', 'error');
       } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
@@ -713,22 +799,22 @@ function generateCalendar() {
     
     // 캘린더 네비게이션 (기본 구현)
    // 이렇게 바꾸기
-	document.getElementById('prevMonth').addEventListener('click', () => {
+	document.getElementById('prevMonth').addEventListener('click', async () => {
 	  currentMonth = currentMonth - 1;
 	  if (currentMonth < 1) {
 		currentMonth = 12;
 		currentYear = currentYear - 1;
 	  }
-	  updateMonthDisplay();
+	  await updateMonthDisplay();
 	});
     
-    document.getElementById('nextMonth').addEventListener('click', () => {
+    document.getElementById('nextMonth').addEventListener('click', async () => {
 		  currentMonth = currentMonth + 1;
 		  if (currentMonth > 12) {
 			currentMonth = 1;
 			currentYear = currentYear + 1;
 		  }
-		  updateMonthDisplay();
+		  await updateMonthDisplay();
 		});
     
     // 페이지 로드 시 초기화

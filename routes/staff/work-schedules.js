@@ -5,23 +5,39 @@
  * 
  * 주요 기능:
  * - 사용자 4일제 설정 상태 확인
- * - 개인 스케줄 조회 및 관리
- * - 반차 신청 처리
+ * - 초기 휴무일 선택 저장
+ * - 개인 스케줄 조회 및 관리 (4주 주기 반대 방향 순환)
+ * - 반차 신청 처리 (같은 주 검증)
+ * - 일시적 휴무일 변경 요청 및 승인
  * - 관리자 승인 워크플로우
  * 
- * 시프트 패턴:
- * - 5개월 순환 (금→월→화→수→목→금...)
+ * 시프트 패턴 (고도화):
+ * - 4주 주기 반대 방향 순환 (금→목→수→화→월→금...)
  * - 주 32시간 근무 원칙
- * - 매월 첫 번째 월요일부터 새 패턴 적용
+ * - 주 시작일(월요일) 기준으로 계산
  * 
  * Created: 2025-09-19
- * Version: 1.0.0
+ * Updated: 2025-01-XX (4주 주기 고도화)
+ * Version: 2.0.0
  * ================================================================
  */
 
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../../config/database');
+const {
+  getWeekStartDate,
+  calculateOffDayByWeekCycle,
+  getDayName,
+  getCycleWeek,
+  isProbationPeriod,
+  isSameWeek,
+  formatDate,
+  hasHolidayInWeek,
+  validateHalfDayInSameWeek,
+  validateTemporaryChange,
+  calculateCycleInfo
+} = require('./work-schedule-helpers');
 
 // ===========================
 // 인증 미들웨어
@@ -173,16 +189,17 @@ router.get('/work-schedules/my-status', requireAuth, async (req, res) => {
         const userEmail = req.session.user.email;
         console.log(`사용자 상태 조회 시작: ${userEmail}`);
         
-        // 1. 4일제 대상자 확인
+        // 1. 사용자 정보 조회 (work_days 포함)
         const [userRows] = await pool.execute(
-            'SELECT work_schedule, name FROM users WHERE email = ?',
+            'SELECT work_schedule, name, hire_date, work_days FROM users WHERE email = ?',
             [userEmail]
         );
         
         if (userRows.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: '사용자를 찾을 수 없습니다.'
+                message: '사용자를 찾을 수 없습니다.',
+                code: 'NOT_FOUND'
             });
         }
         
@@ -193,7 +210,7 @@ router.get('/work-schedules/my-status', requireAuth, async (req, res) => {
                 data: {
                     initial_choice_completed: false,
                     message: '4일제 대상자가 아닙니다.',
-                    user_info: {
+                    user: {
                         email: userEmail,
                         name: user.name,
                         work_schedule: user.work_schedule
@@ -202,70 +219,50 @@ router.get('/work-schedules/my-status', requireAuth, async (req, res) => {
             });
         }
         
-        // 2. 최근 스케줄 정보 조회
-        const [scheduleRows] = await pool.execute(`
-            SELECT * FROM work_schedules 
-            WHERE user_id = ? 
-            ORDER BY year DESC, month DESC 
-            LIMIT 1
-        `, [userEmail]);
+        // 2. work_days 확인 (초기 선택 여부)
+        const workDays = user.work_days ? (typeof user.work_days === 'string' ? JSON.parse(user.work_days) : user.work_days) : null;
         
-        if (scheduleRows.length === 0) {
+        if (!workDays || !workDays.base_off_day || !workDays.cycle_start_date) {
             // 초기 설정 필요
             return res.json({
                 success: true,
                 data: {
                     initial_choice_completed: false,
                     message: '초기 휴무일 선택이 필요합니다.',
-                    user_info: {
+                    user: {
                         email: userEmail,
                         name: user.name,
-                        needs_initial_setup: true
+                        hire_date: user.hire_date,
+                        work_schedule: user.work_schedule
                     }
                 }
             });
         }
         
-        // 3. 스케줄 정보가 있는 경우 - 상세 정보 계산
-        const schedule = scheduleRows[0];
-        console.log(`스케줄 정보 발견: ${schedule.year}-${schedule.month}`);
+        // 3. 현재 날짜 기준으로 주기 정보 계산
+        const today = new Date();
+        const cycleInfo = calculateCycleInfo(workDays.cycle_start_date, today, workDays.base_off_day);
         
-        // 각종 계산 수행
-        const workDaysCount = calculateWorkDaysInMonth(schedule);
-        const halfDaysUsed = await getHalfDaysUsed(userEmail, schedule.year, schedule.month);
-        const totalWorkHours = calculateTotalWorkHours(workDaysCount, halfDaysUsed);
-        const nextMonthOffDay = getNextMonthOffDay(schedule);
-        const currentOffDay = getCurrentOffDayName(schedule.work_days);
-        
-        console.log(`계산 결과 - 근무일: ${workDaysCount}, 반차: ${halfDaysUsed}, 총시간: ${totalWorkHours}`);
-        const [halfDayRows] = await pool.execute(`
-			SELECT DATE_FORMAT(start_date, '%Y-%m-%d') as start_date, leave_type, status 
-			FROM leaves 
-			WHERE user_id = ? AND YEAR(start_date) = ? AND MONTH(start_date) = ? 
-			AND leave_type IN ('HALF_AM', 'HALF_PM') 
-			AND status IN ('PENDING', 'APPROVED')
-		`, [userEmail, schedule.year, schedule.month]);
         // 4. 완전한 응답 반환
         res.json({
             success: true,
             data: {
                 initial_choice_completed: true,
-                user_info: {
+                user: {
                     email: userEmail,
                     name: user.name,
-                    latest_schedule: {
-                        ...schedule,
-                        // 계산된 추가 정보들
-                        calculated_work_days: workDaysCount,
-                        half_days_used: halfDaysUsed,
-                        total_work_hours: totalWorkHours,
-                        current_off_day_name: currentOffDay,
-                        next_month_off_day: nextMonthOffDay,
-                        // 상태 정보
-                        is_current_month: schedule.year === new Date().getFullYear() && 
-                                        schedule.month === (new Date().getMonth() + 1),
-						half_day_list: halfDayRows
-                    }
+                    hire_date: user.hire_date,
+                    work_schedule: user.work_schedule,
+                    work_days: workDays
+                },
+                current_cycle: {
+                    week_range: cycleInfo.weekRange,
+                    off_day: cycleInfo.currentOffDay,
+                    off_day_name: cycleInfo.currentOffDayName,
+                    cycle_start_date: workDays.cycle_start_date,
+                    next_cycle_date: cycleInfo.nextCycleDate,
+                    next_off_day: cycleInfo.nextOffDay,
+                    next_off_day_name: cycleInfo.nextOffDayName
                 }
             }
         });
@@ -295,14 +292,16 @@ router.post('/work-schedules/apply-half-day', requireAuth, async (req, res) => {
         if (!half_day_date || !half_day_type || !reason) {
             return res.status(400).json({
                 success: false,
-                message: '필수 입력값이 누락되었습니다.'
+                message: '필수 입력값이 누락되었습니다.',
+                code: 'VALIDATION_ERROR'
             });
         }
         
         if (!['HALF_AM', 'HALF_PM'].includes(half_day_type)) {
             return res.status(400).json({
                 success: false,
-                message: '올바르지 않은 반차 유형입니다.'
+                message: '올바르지 않은 반차 유형입니다.',
+                code: 'VALIDATION_ERROR'
             });
         }
         
@@ -315,24 +314,84 @@ router.post('/work-schedules/apply-half-day', requireAuth, async (req, res) => {
         if (applyDate < today) {
             return res.status(400).json({
                 success: false,
-                message: '과거 날짜에 대한 반차 신청은 할 수 없습니다.'
+                message: '과거 날짜에 대한 반차 신청은 할 수 없습니다.',
+                code: 'VALIDATION_ERROR'
             });
         }
         
         // 3. 4일제 대상자 확인
         const [userRows] = await pool.execute(
-            'SELECT work_schedule, department_id FROM users WHERE email = ?',
+            'SELECT work_schedule, department_id, hire_date, work_days FROM users WHERE email = ?',
             [userEmail]
         );
         
         if (userRows.length === 0 || userRows[0].work_schedule !== '4_DAY') {
             return res.status(400).json({
                 success: false,
-                message: '4일제 대상자가 아닙니다.'
+                message: '4일제 대상자가 아닙니다.',
+                code: 'VALIDATION_ERROR'
             });
         }
         
-        // 4. 중복 신청 확인
+        const user = userRows[0];
+        
+        // 4. 수습 기간 체크
+        if (isProbationPeriod(user.hire_date, today)) {
+            return res.status(400).json({
+                success: false,
+                message: '수습 기간 중에는 반차를 신청할 수 없습니다.',
+                code: 'PROBATION_PERIOD'
+            });
+        }
+        
+        // 5. work_days 정보 확인
+        const workDays = user.work_days ? (typeof user.work_days === 'string' ? JSON.parse(user.work_days) : user.work_days) : null;
+        
+        if (!workDays || !workDays.base_off_day || !workDays.cycle_start_date) {
+            return res.status(400).json({
+                success: false,
+                message: '초기 휴무일 선택이 필요합니다.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        // 6. 같은 주 검증
+        const validation = validateHalfDayInSameWeek(
+            applyDate,
+            workDays.cycle_start_date,
+            workDays.base_off_day
+        );
+        
+        if (!validation.valid) {
+            return res.status(400).json({
+                success: false,
+                message: validation.message,
+                code: 'SAME_WEEK_REQUIRED'
+            });
+        }
+        
+        // 7. 공휴일 포함 주 체크
+        const year = applyDate.getFullYear();
+        const month = applyDate.getMonth() + 1;
+        const weekStart = getWeekStartDate(applyDate);
+        
+        // 해당 월의 공휴일 조회
+        const [holidayRows] = await pool.execute(`
+            SELECT date, name FROM holidays 
+            WHERE YEAR(date) = ? AND MONTH(date) = ?
+        `, [year, month]);
+        
+        const holidays = holidayRows.map(h => ({ date: h.date, name: h.name }));
+        
+        if (hasHolidayInWeek(weekStart, holidays)) {
+            return res.status(400).json({
+                success: false,
+                message: '공휴일 포함 주에는 반차를 분할할 수 없습니다.',
+                code: 'HOLIDAY_WEEK'
+            });
+        }
+        
+        // 8. 중복 신청 확인
         const [duplicateRows] = await pool.execute(`
             SELECT id FROM leaves 
             WHERE user_id = ? AND start_date = ? 
@@ -342,54 +401,31 @@ router.post('/work-schedules/apply-half-day', requireAuth, async (req, res) => {
         if (duplicateRows.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: '해당 날짜에 이미 휴가/반차 신청이 있습니다.'
+                message: '이미 반차가 신청된 날짜입니다.',
+                code: 'DUPLICATE_REQUEST'
             });
         }
         
-        // 5. 해당 날짜가 원래 근무일인지 확인
-        const dayOfWeek = applyDate.getDay(); // 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
-		
-		// 디버깅용 로그 추가
-		console.log('신청 날짜:', half_day_date);
-		console.log('Date 객체:', applyDate);
-		console.log('요일 (0=일):', dayOfWeek);
+        // 9. 해당 날짜가 주말인지 확인
+        const dayOfWeek = applyDate.getDay();
         
         if (dayOfWeek === 0 || dayOfWeek === 6) {
             return res.status(400).json({
                 success: false,
-                message: '주말에는 반차 신청을 할 수 없습니다.'
+                message: '주말에는 반차 신청을 할 수 없습니다.',
+                code: 'VALIDATION_ERROR'
             });
         }
         
-        // 6. 해당 월의 스케줄 확인 (휴무일인지 체크)
-        const year = applyDate.getFullYear();
-        const month = applyDate.getMonth() + 1;
-        
-        const [scheduleRows] = await pool.execute(`
-            SELECT work_days FROM work_schedules 
-            WHERE user_id = ? AND year = ? AND month = ? 
-            AND status = 'APPROVED'
-        `, [userEmail, year, month]);
-        
-        if (scheduleRows.length > 0) {
-            const workDays = scheduleRows[0].work_days;
-            if (workDays[dayOfWeek.toString()] === 'off') {
-                return res.status(400).json({
-                    success: false,
-                    message: '해당 날짜는 원래 휴무일입니다.'
-                });
-            }
-        }
-        
-        // 7. 승인자 결정 (부서 관리자 또는 상위 관리자)
+        // 10. 승인자 결정 (부서 관리자 또는 상위 관리자)
         let approverEmail = null;
         
         // 부서 관리자 찾기
-        if (userRows[0].department_id) {
+        if (user.department_id) {
             const [managerRows] = await pool.execute(`
                 SELECT manager_id FROM departments 
                 WHERE id = ? AND manager_id IS NOT NULL
-            `, [userRows[0].department_id]);
+            `, [user.department_id]);
             
             if (managerRows.length > 0) {
                 approverEmail = managerRows[0].manager_id;
@@ -411,56 +447,31 @@ router.post('/work-schedules/apply-half-day', requireAuth, async (req, res) => {
             }
         }
         
-        // 8. leaves 테이블에 반차 신청 저장
-        // 수정된 코드
-		const [insertResult] = await pool.execute(`
-			INSERT INTO leaves 
-			(user_id, leave_type, start_date, end_date, days_count, reason, status)
-			VALUES (?, ?, ?, ?, ?, ?, ?)
-		`, [
-			userEmail,
-			half_day_type,
-			half_day_date,
-			half_day_date,
-			0.5,
-			reason,
-			'PENDING'
-		]);
+        // 11. leaves 테이블에 반차 신청 저장
+        const [insertResult] = await pool.execute(`
+            INSERT INTO leaves 
+            (user_id, leave_type, start_date, end_date, days_count, reason, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [
+            userEmail,
+            half_day_type,
+            half_day_date,
+            half_day_date,
+            0.5,
+            reason,
+            'PENDING'
+        ]);
         
         const leaveId = insertResult.insertId;
         
         console.log(`반차 신청 완료: ID ${leaveId}, 승인자: ${approverEmail || 'NONE'}`);
-        // 9. 해당 주의 휴무일 조정 (새로 추가할 부분)
-		//const year = applyDate.getFullYear();
-		//const month = applyDate.getMonth() + 1;
-
-		console.log(`반차 신청 후 휴무일 조정 시작: ${year}-${month}`);
-		
-		// 해당 월의 스케줄 조회
-		const [currentScheduleRows] = await pool.execute(`
-			SELECT id, work_days FROM work_schedules 
-			WHERE user_id = ? AND year = ? AND month = ? 
-			AND status = 'APPROVED'
-		`, [userEmail, year, month]);
-
-		console.log('현재 스케줄 조회 결과:', currentScheduleRows.length);
-
-		if (currentScheduleRows.length > 0) {
-			const currentSchedule = currentScheduleRows[0];
-			console.log('기존 work_days:', currentSchedule.work_days);
-		}
-        // 10. 응답 반환
+        
+        // 12. 응답 반환
         res.json({
             success: true,
-            message: '반차 신청이 완료되었습니다. 승인을 기다려주세요.',
             data: {
-                leave_id: leaveId,
-                half_day_date,
-                half_day_type,
-                is_emergency: !!is_emergency,
-                reason,
-                approver: approverEmail,
-                status: 'PENDING'
+                message: '반차 신청이 완료되었습니다.',
+                leave_id: leaveId
             }
         });
         
@@ -480,60 +491,92 @@ router.post('/work-schedules/apply-half-day', requireAuth, async (req, res) => {
 router.post('/work-schedules/save-initial-choice', requireAuth, async (req, res) => {
     try {
         const userEmail = req.session.user.email;
-        const { year, month, work_days, initial_setup } = req.body;
+        const { off_day, work_days } = req.body;
         
         // 입력값 검증
-        if (!year || !month || !work_days) {
+        if (!off_day || !work_days) {
             return res.status(400).json({
                 success: false,
-                message: '필수 입력값이 누락되었습니다.'
+                message: '필수 입력값이 누락되었습니다.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        if (off_day < 1 || off_day > 5) {
+            return res.status(400).json({
+                success: false,
+                message: '올바르지 않은 휴무일입니다.',
+                code: 'VALIDATION_ERROR'
             });
         }
         
         // 4일제 대상자 확인
         const [userRows] = await pool.execute(
-            'SELECT work_schedule FROM users WHERE email = ?',
+            'SELECT work_schedule, hire_date FROM users WHERE email = ?',
             [userEmail]
         );
         
         if (userRows.length === 0 || userRows[0].work_schedule !== '4_DAY') {
             return res.status(400).json({
                 success: false,
-                message: '4일제 대상자가 아닙니다.'
+                message: '4일제 대상자가 아닙니다.',
+                code: 'VALIDATION_ERROR'
             });
         }
         
-        // 기존 데이터 확인
+        // 수습 기간 체크
+        const user = userRows[0];
+        if (isProbationPeriod(user.hire_date, new Date())) {
+            return res.status(400).json({
+                success: false,
+                message: '수습 기간 중에는 4일제를 선택할 수 없습니다.',
+                code: 'PROBATION_PERIOD'
+            });
+        }
+        
+        // 기존 초기 선택 확인
         const [existingRows] = await pool.execute(
-            'SELECT id FROM work_schedules WHERE user_id = ? AND year = ? AND month = ?',
-            [userEmail, year, month]
+            'SELECT work_days FROM users WHERE email = ? AND work_days IS NOT NULL',
+            [userEmail]
         );
         
         if (existingRows.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: '해당 월의 스케줄이 이미 존재합니다.'
-            });
+            const existingWorkDays = typeof existingRows[0].work_days === 'string' 
+                ? JSON.parse(existingRows[0].work_days) 
+                : existingRows[0].work_days;
+            
+            if (existingWorkDays && existingWorkDays.base_off_day) {
+                return res.status(400).json({
+                    success: false,
+                    message: '이미 초기 선택이 완료되었습니다.',
+                    code: 'DUPLICATE_REQUEST'
+                });
+            }
         }
         
-
-        // 새로운 스케줄 저장 (수정)
-		await pool.execute(`
-			INSERT INTO work_schedules 
-			(user_id, year, month, work_days, status, approved_by, approved_at, is_shift_month, created_at) 
-			VALUES (?, ?, ?, ?, 'APPROVED', NULL, NOW(), 1, NOW())
-		`, [userEmail, year, month, JSON.stringify(work_days)]);
+        // work_days 구조 생성
+        const today = new Date();
+        const cycleStartDate = formatDate(today);
         
-        console.log(`초기 설정 완료: ${userEmail} - ${year}/${month}`);
+        const workDaysData = {
+            base_off_day: off_day,
+            cycle_start_date: cycleStartDate,
+            initial_selection_date: cycleStartDate
+        };
+        
+        // users 테이블의 work_days 필드 업데이트
+        await pool.execute(
+            'UPDATE users SET work_days = ? WHERE email = ?',
+            [JSON.stringify(workDaysData), userEmail]
+        );
+        
+        console.log(`초기 설정 완료: ${userEmail} - 휴무일: ${off_day} (${getDayName(off_day)})`);
         
         res.json({
             success: true,
-            message: '초기 설정이 완료되었습니다.',
             data: {
-                user_email: userEmail,
-                year,
-                month,
-                work_days
+                message: '초기 휴무일이 저장되었습니다.',
+                work_days: workDaysData
             }
         });
         
@@ -541,8 +584,695 @@ router.post('/work-schedules/save-initial-choice', requireAuth, async (req, res)
         console.error('초기 설정 저장 중 오류:', error);
         res.status(500).json({
             success: false,
-            message: '서버 내부 오류가 발생했습니다.'
+            message: '서버 내부 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
+
+/**
+ * 내 스케줄 조회 (4주 주기 반영)
+ * GET /api/staff/work-schedules/my-schedule/:year/:month
+ */
+router.get('/work-schedules/my-schedule/:year/:month', requireAuth, async (req, res) => {
+    try {
+        const userEmail = req.session.user.email;
+        const year = parseInt(req.params.year);
+        const month = parseInt(req.params.month);
+        
+        // 1. 사용자 정보 조회
+        const [userRows] = await pool.execute(
+            'SELECT email, name, hire_date, work_schedule, work_days FROM users WHERE email = ?',
+            [userEmail]
+        );
+        
+        if (userRows.length === 0 || userRows[0].work_schedule !== '4_DAY') {
+            return res.status(404).json({
+                success: false,
+                message: '스케줄을 조회할 수 없습니다.',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        const user = userRows[0];
+        const workDays = user.work_days ? (typeof user.work_days === 'string' ? JSON.parse(user.work_days) : user.work_days) : null;
+        
+        if (!workDays || !workDays.base_off_day || !workDays.cycle_start_date) {
+            return res.status(404).json({
+                success: false,
+                message: '초기 휴무일 선택이 필요합니다.',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        // 2. 해당 월의 첫 날짜 기준으로 주기 정보 계산
+        const monthStartDate = new Date(year, month - 1, 1);
+        const cycleInfo = calculateCycleInfo(workDays.cycle_start_date, monthStartDate, workDays.base_off_day);
+        
+        // 3. 해당 월의 반차 목록 조회
+        const [halfDayRows] = await pool.execute(`
+            SELECT id, start_date, leave_type, reason, status
+            FROM leaves 
+            WHERE user_id = ? 
+            AND YEAR(start_date) = ? 
+            AND MONTH(start_date) = ? 
+            AND leave_type IN ('HALF_AM', 'HALF_PM') 
+            AND status IN ('PENDING', 'APPROVED')
+            ORDER BY start_date ASC
+        `, [userEmail, year, month]);
+        
+        // 4. 해당 월의 공휴일 조회
+        const [holidayRows] = await pool.execute(`
+            SELECT date, name FROM holidays 
+            WHERE YEAR(date) = ? AND MONTH(date) = ?
+            ORDER BY date ASC
+        `, [year, month]);
+        
+        // 5. 현재 주의 공휴일 포함 여부 확인
+        const today = new Date();
+        const currentWeekStart = getWeekStartDate(today);
+        const hasHoliday = hasHolidayInWeek(currentWeekStart, holidayRows);
+        
+        // 6. 수습 기간 여부 확인
+        const isProbation = isProbationPeriod(user.hire_date, today);
+        
+        // 7. 해당 월의 일시적 변경 조회
+        const [changeRows] = await pool.execute(`
+            SELECT * FROM schedule_changes
+            WHERE user_id = ? 
+            AND YEAR(week_start_date) = ? 
+            AND MONTH(week_start_date) = ?
+            AND status = 'APPROVED'
+            ORDER BY week_start_date ASC
+        `, [userEmail, year, month]);
+        
+        // 8. 현재 월의 work_days 패턴 생성
+        const workDaysPattern = {};
+        for (let i = 1; i <= 5; i++) {
+            workDaysPattern[i] = (i === cycleInfo.currentOffDay) ? 'off' : 'full';
+        }
+        
+        // 9. 응답 반환
+        res.json({
+            success: true,
+            data: {
+                year,
+                month,
+                user: {
+                    email: user.email,
+                    name: user.name,
+                    hire_date: user.hire_date,
+                    work_schedule: user.work_schedule,
+                    work_days: workDays
+                },
+                current_cycle: {
+                    week_range: cycleInfo.weekRange,
+                    off_day: cycleInfo.currentOffDay,
+                    off_day_name: cycleInfo.currentOffDayName,
+                    cycle_start_date: workDays.cycle_start_date,
+                    next_cycle_date: cycleInfo.nextCycleDate,
+                    next_off_day: cycleInfo.nextOffDay,
+                    next_off_day_name: cycleInfo.nextOffDayName
+                },
+                schedule: {
+                    work_days: workDaysPattern,
+                    total_hours: 32,
+                    work_days_count: 4
+                },
+                temporary_changes: changeRows.map(row => ({
+                    id: row.id,
+                    week_start_date: row.week_start_date,
+                    original_off_day: row.original_off_day,
+                    temporary_off_day: row.temporary_off_day,
+                    reason: row.reason,
+                    substitute_employee: row.substitute_employee
+                })),
+                half_day_list: halfDayRows.map(row => ({
+                    id: row.id,
+                    start_date: row.start_date,
+                    leave_type: row.leave_type,
+                    reason: row.reason
+                })),
+                holidays: holidayRows.map(row => ({
+                    date: row.date,
+                    name: row.name
+                })),
+                is_probation: isProbation,
+                has_holiday_in_week: hasHoliday
+            }
+        });
+        
+    } catch (error) {
+        console.error('스케줄 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
+ * 일시적 휴무일 변경 요청
+ * POST /api/staff/work-schedules/temporary-change
+ */
+router.post('/work-schedules/temporary-change', requireAuth, async (req, res) => {
+    try {
+        const userEmail = req.session.user.email;
+        const { week_start_date, temporary_off_day, reason, substitute_employee } = req.body;
+        
+        // 1. 입력값 검증
+        if (!week_start_date || !temporary_off_day || !reason) {
+            return res.status(400).json({
+                success: false,
+                message: '필수 입력값이 누락되었습니다.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        if (temporary_off_day < 1 || temporary_off_day > 5) {
+            return res.status(400).json({
+                success: false,
+                message: '올바르지 않은 휴무일입니다.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        // 2. 사용자 정보 조회
+        const [userRows] = await pool.execute(
+            'SELECT hire_date, work_days FROM users WHERE email = ?',
+            [userEmail]
+        );
+        
+        if (userRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: '사용자를 찾을 수 없습니다.',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        const user = userRows[0];
+        const workDays = user.work_days ? (typeof user.work_days === 'string' ? JSON.parse(user.work_days) : user.work_days) : null;
+        
+        if (!workDays || !workDays.base_off_day || !workDays.cycle_start_date) {
+            return res.status(400).json({
+                success: false,
+                message: '초기 휴무일 선택이 필요합니다.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        // 3. 공휴일 조회
+        const weekStart = new Date(week_start_date);
+        const year = weekStart.getFullYear();
+        const month = weekStart.getMonth() + 1;
+        
+        const [holidayRows] = await pool.execute(`
+            SELECT date, name FROM holidays 
+            WHERE YEAR(date) = ? AND MONTH(date) = ?
+        `, [year, month]);
+        
+        const holidays = holidayRows.map(h => ({ date: h.date, name: h.name }));
+        
+        // 4. 검증
+        const validation = validateTemporaryChange(
+            week_start_date,
+            temporary_off_day,
+            workDays.cycle_start_date,
+            workDays.base_off_day,
+            holidays,
+            user.hire_date
+        );
+        
+        if (!validation.valid) {
+            return res.status(400).json({
+                success: false,
+                message: validation.message,
+                code: validation.code || 'VALIDATION_ERROR'
+            });
+        }
+        
+        // 5. 원래 휴무일 계산
+        const originalOffDay = calculateOffDayByWeekCycle(
+            new Date(workDays.cycle_start_date),
+            weekStart,
+            workDays.base_off_day
+        );
+        
+        // 6. 중복 요청 확인
+        const [duplicateRows] = await pool.execute(`
+            SELECT id FROM schedule_changes
+            WHERE user_id = ? 
+            AND week_start_date = ? 
+            AND status = 'PENDING'
+        `, [userEmail, week_start_date]);
+        
+        if (duplicateRows.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: '이미 해당 주에 변경 요청이 있습니다.',
+                code: 'DUPLICATE_REQUEST'
+            });
+        }
+        
+        // 7. schedule_changes 테이블에 저장
+        const [insertResult] = await pool.execute(`
+            INSERT INTO schedule_changes
+            (user_id, week_start_date, original_off_day, temporary_off_day, reason, substitute_employee, status, requested_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'PENDING', NOW())
+        `, [
+            userEmail,
+            week_start_date,
+            originalOffDay,
+            temporary_off_day,
+            reason,
+            substitute_employee || null
+        ]);
+        
+        const changeId = insertResult.insertId;
+        
+        console.log(`일시적 변경 요청 완료: ID ${changeId}, 사용자: ${userEmail}`);
+        
+        res.json({
+            success: true,
+            data: {
+                message: '일시적 변경 요청이 완료되었습니다.',
+                change_id: changeId,
+                status: 'PENDING'
+            }
+        });
+        
+    } catch (error) {
+        console.error('일시적 변경 요청 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
+ * 내 변경 요청 목록 조회
+ * GET /api/staff/work-schedules/my-change-requests
+ */
+router.get('/work-schedules/my-change-requests', requireAuth, async (req, res) => {
+    try {
+        const userEmail = req.session.user.email;
+        const { status, year, month } = req.query;
+        
+        let query = `
+            SELECT 
+                id,
+                week_start_date,
+                original_off_day,
+                temporary_off_day,
+                reason,
+                substitute_employee,
+                status,
+                requested_at,
+                approved_at,
+                approved_by,
+                notes
+            FROM schedule_changes
+            WHERE user_id = ?
+        `;
+        
+        const params = [userEmail];
+        
+        if (status) {
+            query += ' AND status = ?';
+            params.push(status);
+        }
+        
+        if (year) {
+            query += ' AND YEAR(week_start_date) = ?';
+            params.push(year);
+        }
+        
+        if (month) {
+            query += ' AND MONTH(week_start_date) = ?';
+            params.push(month);
+        }
+        
+        query += ' ORDER BY requested_at DESC';
+        
+        const [rows] = await pool.execute(query, params);
+        
+        const dayNames = {1: '월요일', 2: '화요일', 3: '수요일', 4: '목요일', 5: '금요일'};
+        
+        res.json({
+            success: true,
+            data: rows.map(row => ({
+                id: row.id,
+                week_start_date: row.week_start_date,
+                original_off_day: row.original_off_day,
+                original_off_day_name: dayNames[row.original_off_day],
+                temporary_off_day: row.temporary_off_day,
+                temporary_off_day_name: dayNames[row.temporary_off_day],
+                reason: row.reason,
+                substitute_employee: row.substitute_employee,
+                status: row.status,
+                requested_at: row.requested_at,
+                approved_at: row.approved_at,
+                approved_by: row.approved_by,
+                notes: row.notes
+            }))
+        });
+        
+    } catch (error) {
+        console.error('변경 요청 목록 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
+ * 승인 대기 목록 조회 (팀장용)
+ * GET /api/staff/work-schedules/pending-changes
+ */
+router.get('/work-schedules/pending-changes', requireAuth, async (req, res) => {
+    try {
+        const currentUser = req.session.user;
+        
+        // 권한 체크 (팀장 이상)
+        if (!['DEPT_MANAGER', 'SYSTEM_ADMIN', 'SUPER_ADMIN'].includes(currentUser.role)) {
+            return res.status(403).json({
+                success: false,
+                message: '권한이 없습니다.',
+                code: 'FORBIDDEN'
+            });
+        }
+        
+        const { department_id, year, month } = req.query;
+        
+        let query = `
+            SELECT 
+                sc.id,
+                sc.user_id as user_email,
+                u.name as user_name,
+                d.name as department_name,
+                sc.week_start_date,
+                sc.original_off_day,
+                sc.temporary_off_day,
+                sc.reason,
+                sc.substitute_employee,
+                sc.status,
+                sc.requested_at
+            FROM schedule_changes sc
+            INNER JOIN users u ON sc.user_id = u.email
+            LEFT JOIN departments d ON u.department_id = d.id
+            WHERE sc.status = 'PENDING'
+        `;
+        
+        const params = [];
+        
+        // 부서 필터 (부서장인 경우 자신의 부서만)
+        if (currentUser.role === 'DEPT_MANAGER' && currentUser.department_id) {
+            query += ' AND u.department_id = ?';
+            params.push(currentUser.department_id);
+        } else if (department_id) {
+            query += ' AND u.department_id = ?';
+            params.push(department_id);
+        }
+        
+        if (year) {
+            query += ' AND YEAR(sc.week_start_date) = ?';
+            params.push(year);
+        }
+        
+        if (month) {
+            query += ' AND MONTH(sc.week_start_date) = ?';
+            params.push(month);
+        }
+        
+        query += ' ORDER BY sc.requested_at ASC';
+        
+        const [rows] = await pool.execute(query, params);
+        
+        const dayNames = {1: '월요일', 2: '화요일', 3: '수요일', 4: '목요일', 5: '금요일'};
+        
+        // 대체자 이름 조회
+        const result = await Promise.all(rows.map(async (row) => {
+            let substituteEmployeeName = null;
+            if (row.substitute_employee) {
+                const [subRows] = await pool.execute(
+                    'SELECT name FROM users WHERE email = ?',
+                    [row.substitute_employee]
+                );
+                if (subRows.length > 0) {
+                    substituteEmployeeName = subRows[0].name;
+                }
+            }
+            
+            return {
+                id: row.id,
+                user_email: row.user_email,
+                user_name: row.user_name,
+                department_name: row.department_name,
+                week_start_date: row.week_start_date,
+                original_off_day: row.original_off_day,
+                original_off_day_name: dayNames[row.original_off_day],
+                temporary_off_day: row.temporary_off_day,
+                temporary_off_day_name: dayNames[row.temporary_off_day],
+                reason: row.reason,
+                substitute_employee: row.substitute_employee,
+                substitute_employee_name: substituteEmployeeName,
+                status: row.status,
+                requested_at: row.requested_at
+            };
+        }));
+        
+        res.json({
+            success: true,
+            data: result
+        });
+        
+    } catch (error) {
+        console.error('승인 대기 목록 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
+ * 변경 요청 승인/거부
+ * POST /api/staff/work-schedules/approve-change/:changeId
+ */
+router.post('/work-schedules/approve-change/:changeId', requireAuth, async (req, res) => {
+    try {
+        const currentUser = req.session.user;
+        const changeId = parseInt(req.params.changeId);
+        const { action, notes } = req.body;
+        
+        // 1. 권한 체크
+        if (!['DEPT_MANAGER', 'SYSTEM_ADMIN', 'SUPER_ADMIN'].includes(currentUser.role)) {
+            return res.status(403).json({
+                success: false,
+                message: '권한이 없습니다.',
+                code: 'FORBIDDEN'
+            });
+        }
+        
+        // 2. 입력값 검증
+        if (!action || !['approve', 'reject'].includes(action)) {
+            return res.status(400).json({
+                success: false,
+                message: '올바르지 않은 동작입니다.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        // 3. 변경 요청 조회
+        const [changeRows] = await pool.execute(`
+            SELECT * FROM schedule_changes WHERE id = ?
+        `, [changeId]);
+        
+        if (changeRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: '변경 요청을 찾을 수 없습니다.',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        const changeRequest = changeRows[0];
+        
+        // 4. 이미 처리된 요청인지 확인
+        if (changeRequest.status !== 'PENDING') {
+            return res.status(400).json({
+                success: false,
+                message: '이미 처리된 요청입니다.',
+                code: 'DUPLICATE_REQUEST'
+            });
+        }
+        
+        // 5. 부서장인 경우 자신의 부서인지 확인
+        if (currentUser.role === 'DEPT_MANAGER') {
+            const [userRows] = await pool.execute(
+                'SELECT department_id FROM users WHERE email = ?',
+                [changeRequest.user_id]
+            );
+            
+            if (userRows.length === 0 || userRows[0].department_id !== currentUser.department_id) {
+                return res.status(403).json({
+                    success: false,
+                    message: '권한이 없습니다.',
+                    code: 'FORBIDDEN'
+                });
+            }
+        }
+        
+        // 6. 승인/거부 처리
+        const newStatus = action === 'approve' ? 'APPROVED' : 'REJECTED';
+        
+        await pool.execute(`
+            UPDATE schedule_changes
+            SET status = ?,
+                approved_at = NOW(),
+                approved_by = ?,
+                notes = ?
+            WHERE id = ?
+        `, [newStatus, currentUser.email, notes || null, changeId]);
+        
+        // 7. 승인인 경우 work_schedules 테이블 업데이트
+        if (action === 'approve') {
+            const weekStart = new Date(changeRequest.week_start_date);
+            const year = weekStart.getFullYear();
+            const month = weekStart.getMonth() + 1;
+            
+            // 해당 월의 스케줄 조회
+            const [scheduleRows] = await pool.execute(`
+                SELECT id, temporary_change FROM work_schedules
+                WHERE user_id = ? AND year = ? AND month = ?
+            `, [changeRequest.user_id, year, month]);
+            
+            if (scheduleRows.length > 0) {
+                // temporary_change 필드 업데이트
+                const tempChange = {
+                    week_start_date: changeRequest.week_start_date,
+                    original_off_day: changeRequest.original_off_day,
+                    temporary_off_day: changeRequest.temporary_off_day,
+                    changed_by: changeRequest.user_id,
+                    approved_by: currentUser.email,
+                    approval_date: formatDate(new Date()),
+                    reason: changeRequest.reason,
+                    substitute_employee: changeRequest.substitute_employee
+                };
+                
+                await pool.execute(`
+                    UPDATE work_schedules
+                    SET temporary_change = ?
+                    WHERE id = ?
+                `, [JSON.stringify(tempChange), scheduleRows[0].id]);
+            }
+        }
+        
+        console.log(`변경 요청 ${action} 완료: ID ${changeId}, 처리자: ${currentUser.email}`);
+        
+        res.json({
+            success: true,
+            data: {
+                message: `변경 요청이 ${action === 'approve' ? '승인' : '거부'}되었습니다.`,
+                change_id: changeId,
+                status: newStatus
+            }
+        });
+        
+    } catch (error) {
+        console.error('변경 요청 승인/거부 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
+ * 휴무일 계산
+ * GET /api/staff/work-schedules/calculate-off-day
+ */
+router.get('/work-schedules/calculate-off-day', requireAuth, async (req, res) => {
+    try {
+        const userEmail = req.session.user.email;
+        const { date } = req.query;
+        
+        if (!date) {
+            return res.status(400).json({
+                success: false,
+                message: '날짜가 필요합니다.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        // 1. 사용자 정보 조회
+        const [userRows] = await pool.execute(
+            'SELECT work_days FROM users WHERE email = ?',
+            [userEmail]
+        );
+        
+        if (userRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: '사용자를 찾을 수 없습니다.',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        const workDays = userRows[0].work_days ? 
+            (typeof userRows[0].work_days === 'string' ? JSON.parse(userRows[0].work_days) : userRows[0].work_days) : null;
+        
+        if (!workDays || !workDays.base_off_day || !workDays.cycle_start_date) {
+            return res.status(400).json({
+                success: false,
+                message: '초기 휴무일 선택이 필요합니다.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        // 2. 휴무일 계산
+        const targetDate = new Date(date);
+        const offDay = calculateOffDayByWeekCycle(
+            new Date(workDays.cycle_start_date),
+            targetDate,
+            workDays.base_off_day
+        );
+        
+        const cycleWeek = getCycleWeek(new Date(workDays.cycle_start_date), targetDate);
+        
+        // 다음 주기 시작일 계산
+        const cycleStart = new Date(workDays.cycle_start_date);
+        const nextCycleStart = new Date(cycleStart);
+        nextCycleStart.setDate(nextCycleStart.getDate() + 28);
+        
+        res.json({
+            success: true,
+            data: {
+                target_date: formatDate(targetDate),
+                off_day: offDay,
+                off_day_name: getDayName(offDay),
+                cycle_week: cycleWeek,
+                cycle_start_date: workDays.cycle_start_date,
+                next_cycle_date: formatDate(nextCycleStart)
+            }
+        });
+        
+    } catch (error) {
+        console.error('휴무일 계산 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
 module.exports = router;
