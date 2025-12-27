@@ -1369,6 +1369,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fieldContents = `
       <div class="kje-list-container">
+        <!-- 통계 영역 -->
+        <div id="settlementStatistics" class="mb-3 p-3 bg-light rounded" style="display: none;">
+          <div class="row text-center">
+            <div class="col-md-3">
+              <div class="fw-bold text-primary">전체</div>
+              <div id="statTotalCount" class="fs-4">0</div>
+              <div class="small text-muted">건</div>
+            </div>
+            <div class="col-md-3">
+              <div class="fw-bold text-success">받은 건</div>
+              <div id="statReceivedCount" class="fs-4">0</div>
+              <div class="small text-muted">건</div>
+            </div>
+            <div class="col-md-3">
+              <div class="fw-bold text-warning">미수 건</div>
+              <div id="statUnpaidCount" class="fs-4">0</div>
+              <div class="small text-muted">건</div>
+            </div>
+            <div class="col-md-3">
+              <div class="fw-bold text-danger">미수 금액</div>
+              <div id="statUnpaidAmount" class="fs-4">0</div>
+              <div class="small text-muted">원</div>
+            </div>
+          </div>
+        </div>
+        
         <!-- 검색 영역 -->
         <div class="kje-list-header mb-3">
           <div class="d-flex flex-wrap gap-2 align-items-end">
@@ -1549,6 +1575,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.success) {
         displaySettlementData(data);
+        displaySettlementStatistics(data.statistics);
       } else {
         alert('오류가 발생했습니다: ' + (data.message || '알 수 없는 오류'));
         settleList.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-danger">조회 실패</td></tr>';
@@ -1558,6 +1585,28 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('정산리스트 조회중 에러발생.');
       settleList.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-danger">조회 중 오류가 발생했습니다.</td></tr>';
     }
+  }
+
+  // 정산 통계 정보 표시 함수
+  function displaySettlementStatistics(statistics) {
+    if (!statistics) return;
+    
+    const statsDiv = document.getElementById('settlementStatistics');
+    if (!statsDiv) return;
+    
+    const formatAmount = (amount) => {
+      if (!amount && amount !== 0) return '0';
+      const numAmount = parseFloat(String(amount).replace(/,/g, ''));
+      return isNaN(numAmount) ? '0' : numAmount.toLocaleString('ko-KR');
+    };
+    
+    document.getElementById('statTotalCount').textContent = statistics.totalCount || 0;
+    document.getElementById('statReceivedCount').textContent = statistics.receivedCount || 0;
+    document.getElementById('statUnpaidCount').textContent = statistics.unpaidCount || 0;
+    document.getElementById('statUnpaidAmount').textContent = formatAmount(statistics.totalUnpaidAmount || 0);
+    
+    // 통계 영역 표시
+    statsDiv.style.display = 'block';
   }
 
   // 정산 데이터를 테이블에 표시하는 함수
