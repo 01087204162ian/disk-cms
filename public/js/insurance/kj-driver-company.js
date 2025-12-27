@@ -1444,23 +1444,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // 담당자 선택 변경 시 자동 검색 (선택사항)
+      // 담당자 선택 변경 시 자동 검색
       const damdangaSelect = document.getElementById('damdanga3');
       if (damdangaSelect) {
         damdangaSelect.addEventListener('change', () => {
           console.log('담당자 선택 변경:', damdangaSelect.value);
-          // 자동 검색은 주석 처리 (필요시 활성화)
-          // settleSearch();
+          settleSearch();
         });
       }
 
-      // 구분 선택 변경 시 자동 검색 (선택사항)
+      // 구분 선택 변경 시 자동 검색
       const attemptedSelect = document.getElementById('attempted');
       if (attemptedSelect) {
         attemptedSelect.addEventListener('change', () => {
           console.log('구분 선택 변경:', attemptedSelect.value);
-          // 자동 검색은 주석 처리 (필요시 활성화)
-          // settleSearch();
+          settleSearch();
         });
       }
 
