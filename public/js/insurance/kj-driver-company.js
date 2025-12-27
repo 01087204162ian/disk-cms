@@ -1431,15 +1431,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // 담당자 목록 로드
     loadManagerListForSettlement();
 
-    // 검색 버튼 이벤트
-    document.getElementById('settlementListSearchBtn')?.addEventListener('click', () => {
-      settleSearch();
-    });
-
-    // 초기 검색 실행
+    // 이벤트 리스너는 모달이 완전히 렌더링된 후에 연결
     setTimeout(() => {
+      // 검색 버튼 이벤트
+      const searchBtn = document.getElementById('settlementListSearchBtn');
+      if (searchBtn) {
+        // 기존 이벤트 리스너 제거 후 새로 추가
+        searchBtn.replaceWith(searchBtn.cloneNode(true));
+        document.getElementById('settlementListSearchBtn')?.addEventListener('click', () => {
+          console.log('검색 버튼 클릭됨');
+          settleSearch();
+        });
+      }
+
+      // 담당자 선택 변경 시 자동 검색 (선택사항)
+      const damdangaSelect = document.getElementById('damdanga3');
+      if (damdangaSelect) {
+        damdangaSelect.addEventListener('change', () => {
+          console.log('담당자 선택 변경:', damdangaSelect.value);
+          // 자동 검색은 주석 처리 (필요시 활성화)
+          // settleSearch();
+        });
+      }
+
+      // 구분 선택 변경 시 자동 검색 (선택사항)
+      const attemptedSelect = document.getElementById('attempted');
+      if (attemptedSelect) {
+        attemptedSelect.addEventListener('change', () => {
+          console.log('구분 선택 변경:', attemptedSelect.value);
+          // 자동 검색은 주석 처리 (필요시 활성화)
+          // settleSearch();
+        });
+      }
+
+      // 초기 검색 실행
       settleSearch();
-    }, 100);
+    }, 200);
   };
 
   // 담당자 목록 로드 (정산리스트용) - kj-driver-company.html과 동일한 데이터 사용
@@ -1469,10 +1496,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 정산리스트 조회
   async function settleSearch() {
+    console.log('settleSearch() 함수 호출됨');
+    
     const lastDate = document.getElementById('lastDate')?.value;
     const thisDate = document.getElementById('thisDate')?.value;
     const damdanga = document.getElementById('damdanga3')?.value || '';
     const attempted = document.getElementById('attempted')?.value || '1';
+
+    console.log('필터 값:', { lastDate, thisDate, damdanga, attempted });
 
     if (!lastDate || !thisDate) {
       alert('시작일과 종료일을 선택해주세요.');
@@ -1480,7 +1511,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const settleList = document.getElementById('settleList');
-    if (!settleList) return;
+    if (!settleList) {
+      console.error('settleList 요소를 찾을 수 없습니다.');
+      return;
+    }
 
     settleList.innerHTML = '<tr><td colspan="11" class="text-center py-4">조회 중...</td></tr>';
 
@@ -1496,6 +1530,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       console.log('정산리스트 조회 요청:', requestData);
       console.log('담당자 필터 값:', damdanga, '| 선택된 값:', document.getElementById('damdanga3')?.value);
+      console.log('API 요청 시작: /api/insurance/kj-company/settlement/list');
 
       const response = await fetch('/api/insurance/kj-company/settlement/list', {
         method: 'POST',
@@ -1505,11 +1540,14 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(requestData)
       });
 
+      console.log('API 응답 상태:', response.status, response.statusText);
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('API 응답 데이터:', data);
 
       if (data.success) {
         displaySettlementData(data);
