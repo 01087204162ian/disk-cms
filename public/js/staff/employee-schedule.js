@@ -248,15 +248,28 @@ function loadPersonalSchedule(scheduleData = null) {
     // 전역 변수에 스케줄 데이터 저장
     window.currentScheduleData = scheduleData;
     
-    // 4주 주기 정보 계산
-    const today = new Date();
-    const cycleInfo = calculateCycleInfo(scheduleData.user.work_days, today);
+    // 현재 표시 중인 월의 첫 날짜 기준으로 계산
+    const currentMonthDate = new Date(currentYear, currentMonth - 1, 1);
+    const cycleInfo = calculateCycleInfo(scheduleData.user.work_days, currentMonthDate);
+    
+    // 현재 월의 휴무일로 패턴 업데이트
+    if (cycleInfo && scheduleData.user.work_days) {
+      const workDaysPattern = {};
+      for (let i = 1; i <= 5; i++) {
+        workDaysPattern[i] = (i === cycleInfo.currentOffDay) ? 'off' : 'full';
+      }
+      updateShiftPattern(workDaysPattern);
+    } else {
+      updateShiftPattern(scheduleData.schedule.work_days);
+    }
     
     // UI 업데이트
-    updateShiftPattern(scheduleData.schedule.work_days);
     updateShiftDescription4Week(scheduleData, cycleInfo);
     updateScheduleHeader4Week(scheduleData, cycleInfo);
     updateCycleInfo(cycleInfo);
+    
+    // 오늘 날짜 기준으로 수습 기간/공휴일 체크
+    const today = new Date();
     checkProbationPeriod(scheduleData.user.hire_date);
     checkHolidayInWeek(scheduleData.holidays, today);
     
@@ -288,6 +301,18 @@ function calculateCycleInfo(workDays, targetDate) {
   const weekStart = (cycleNumber * 4) + 1;
   const weekEnd = (cycleNumber + 1) * 4;
   const weekRange = `${weekStart}-${weekEnd}주차`;
+  
+  // 디버깅용 로그
+  console.log('calculateCycleInfo:', {
+    cycleStart: formatDate(cycleStart),
+    targetDate: formatDate(targetDate),
+    daysDiff,
+    totalWeeks,
+    cycleNumber,
+    weekRange,
+    currentOffDay,
+    currentOffDayName: getDayName(currentOffDay)
+  });
   
   // 다음 주기 계산 (4주 후)
   const nextCycleStart = new Date(cycleStart);
@@ -370,36 +395,52 @@ function generateCalendar() {
       // 평일 - 4주 주기로 휴무일 계산
       const workDays = window.currentScheduleData.user?.work_days;
       if (workDays) {
-        const cycleStart = new Date(workDays.cycle_start_date);
-        const currentOffDay = calculateOffDayByWeekCycle(cycleStart, date, workDays.base_off_day);
-        
-        // 해당 날짜에 반차가 있는지 확인 (추후 구현)
-        const dateString = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const halfDayData = window.currentScheduleData.half_day_list?.find(item => {
-          const itemDate = item.start_date?.split('T')[0];
-          return itemDate === dateString;
-        });
-        
-        if (halfDayData) {
-          // 반차가 있는 경우
-          if (halfDayData.leave_type === 'HALF_AM') {
-            scheduleStatus = 'half-morning';
-            scheduleText = '<div class="day-status half"></div><div class="day-info half-info">오전반차</div>';
-          } else {
-            scheduleStatus = 'half-afternoon';
-            scheduleText = '<div class="day-status half"></div><div class="day-info half-info">오후반차</div>';
+          const cycleStart = new Date(workDays.cycle_start_date);
+          // 각 날짜마다 해당 날짜의 휴무일 계산
+          const currentOffDay = calculateOffDayByWeekCycle(cycleStart, date, workDays.base_off_day);
+          
+          // 디버깅용 (첫 날짜만)
+          if (day === 1) {
+            console.log('캘린더 생성 - 첫 날짜:', {
+              date: formatDate(date),
+              dayOfWeek,
+              currentOffDay,
+              dayName: getDayName(currentOffDay),
+              cycleStart: formatDate(cycleStart)
+            });
           }
-        } else {
-          // 기본 스케줄 적용
-          const weekdayNumber = dayOfWeek; // 1=월, 2=화, ..., 5=금
-          if (weekdayNumber === currentOffDay) {
-            scheduleStatus = 'off';
-            scheduleText = '<div class="day-status off"></div><div class="day-info off-info">휴무일</div>';
+          
+          // 해당 날짜에 반차가 있는지 확인 (추후 구현)
+          const dateString = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const halfDayData = window.currentScheduleData.half_day_list?.find(item => {
+            const itemDate = item.start_date?.split('T')[0];
+            return itemDate === dateString;
+          });
+          
+          if (halfDayData) {
+            // 반차가 있는 경우
+            if (halfDayData.leave_type === 'HALF_AM') {
+              scheduleStatus = 'half-morning';
+              scheduleText = '<div class="day-status half"></div><div class="day-info half-info">오전반차</div>';
+            } else {
+              scheduleStatus = 'half-afternoon';
+              scheduleText = '<div class="day-status half"></div><div class="day-info half-info">오후반차</div>';
+            }
           } else {
-            scheduleStatus = 'work';
-            scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+            // 기본 스케줄 적용
+            // dayOfWeek: 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
+            // currentOffDay: 1=월, 2=화, 3=수, 4=목, 5=금
+            // 평일(월~금)인 경우 dayOfWeek는 1~5이므로 currentOffDay와 직접 비교 가능
+            if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+              if (dayOfWeek === currentOffDay) {
+                scheduleStatus = 'off';
+                scheduleText = '<div class="day-status off"></div><div class="day-info off-info">휴무일</div>';
+              } else {
+                scheduleStatus = 'work';
+                scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+              }
+            }
           }
-        }
       } else {
         // work_days 정보가 없으면 기본 근무일로 표시
         scheduleStatus = 'work';
