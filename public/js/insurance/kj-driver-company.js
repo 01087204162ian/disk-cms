@@ -1373,19 +1373,17 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="kje-list-header mb-3">
           <div class="d-flex flex-wrap gap-2 align-items-end">
             <div>
-              <label class="form-label small mb-1">시작일</label>
               <input type='date' id='lastDate' class='form-control form-control-sm' value='${formatDate(lastMonth)}'>
             </div>
             <div>
-              <label class="form-label small mb-1">종료일</label>
               <input type='date' id='thisDate' class='form-control form-control-sm' value='${formatDate(today)}'>
             </div>
             <div>
-              <label class="form-label small mb-1">담당자</label>
-              <select id="damdanga3" class="form-select form-select-sm"></select>
+              <select id="damdanga3" class="form-select form-select-sm">
+                <option value="">전체</option>
+              </select>
             </div>
             <div>
-              <label class="form-label small mb-1">구분</label>
               <select id="attempted" class="form-select form-select-sm">
                 <option value='1' ${attempted === '1' ? 'selected' : ''}>전체</option>
                 <option value='2' ${attempted === '2' ? 'selected' : ''}>미수</option>
@@ -1435,13 +1433,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 검색 버튼 이벤트
     document.getElementById('settlementListSearchBtn')?.addEventListener('click', () => {
-      const attemptedValue = document.getElementById('attempted')?.value || '1';
-      settleSearch(attemptedValue);
+      settleSearch();
     });
 
     // 초기 검색 실행
     setTimeout(() => {
-      settleSearch(attempted);
+      settleSearch();
     }, 100);
   };
 
@@ -1471,11 +1468,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 정산리스트 조회
-  async function settleSearch(attempted = '1') {
+  async function settleSearch() {
     const lastDate = document.getElementById('lastDate')?.value;
     const thisDate = document.getElementById('thisDate')?.value;
     const damdanga = document.getElementById('damdanga3')?.value || '';
-    const userName = (window.SessionManager?.getUserInfo?.().name) || '';
+    const attempted = document.getElementById('attempted')?.value || '1';
 
     if (!lastDate || !thisDate) {
       alert('시작일과 종료일을 선택해주세요.');
@@ -1485,7 +1482,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settleList = document.getElementById('settleList');
     if (!settleList) return;
 
-    settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4">조회 중...</td></tr>';
+    settleList.innerHTML = '<tr><td colspan="11" class="text-center py-4">조회 중...</td></tr>';
 
     try {
       const requestData = {
@@ -1515,12 +1512,12 @@ document.addEventListener('DOMContentLoaded', () => {
         displaySettlementData(data);
       } else {
         alert('오류가 발생했습니다: ' + (data.message || '알 수 없는 오류'));
-        settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">조회 실패</td></tr>';
+        settleList.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-danger">조회 실패</td></tr>';
       }
     } catch (error) {
       console.error('Error details:', error);
       alert('정산리스트 조회중 에러발생.');
-      settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">조회 중 오류가 발생했습니다.</td></tr>';
+      settleList.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-danger">조회 중 오류가 발생했습니다.</td></tr>';
     }
   }
 
