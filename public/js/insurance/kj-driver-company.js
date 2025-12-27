@@ -1407,12 +1407,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th width='10%'>대리운전회사</th>
                 <th width='6%'>보험료</th>
                 <th width='4%'>인원</th>
-                <th width='6%'>manager</th>
-                <th width='6%'>담당자</th>
-                <th width='6%'>최초입력일</th>
-                <th width='5%'>입력자</th>
-                <th width='6%'>업데이트일</th>
-                <th width='5%'>업데이트자</th>
                 <th width='6%'>받을보험료</th>
                 <th width='6%'>받은날</th>
                 <th width='5%'>받은입력자</th>
@@ -1422,7 +1416,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </thead>
             <tbody id="settleList">
               <tr>
-                <td colspan="16" class="text-center py-4">데이터를 불러오는 중...</td>
+                <td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td>
               </tr>
             </tbody>
           </table>
@@ -1490,7 +1484,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settleList = document.getElementById('settleList');
     if (!settleList) return;
 
-    settleList.innerHTML = '<tr><td colspan="16" class="text-center py-4">조회 중...</td></tr>';
+    settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4">조회 중...</td></tr>';
 
     try {
       const requestData = {
@@ -1520,12 +1514,12 @@ document.addEventListener('DOMContentLoaded', () => {
         displaySettlementData(data);
       } else {
         alert('오류가 발생했습니다: ' + (data.message || '알 수 없는 오류'));
-        settleList.innerHTML = '<tr><td colspan="16" class="text-center py-4 text-danger">조회 실패</td></tr>';
+        settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">조회 실패</td></tr>';
       }
     } catch (error) {
       console.error('Error details:', error);
       alert('정산리스트 조회중 에러발생.');
-      settleList.innerHTML = '<tr><td colspan="16" class="text-center py-4 text-danger">조회 중 오류가 발생했습니다.</td></tr>';
+      settleList.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">조회 중 오류가 발생했습니다.</td></tr>';
     }
   }
 
@@ -1538,7 +1532,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (data.count === 0 || !data.data || data.data.length === 0) {
       const emptyRow = document.createElement('tr');
-      emptyRow.innerHTML = '<td colspan="16" class="text-center py-4">조회된 정산 데이터가 없습니다.</td>';
+      emptyRow.innerHTML = '<td colspan="10" class="text-center py-4">조회된 정산 데이터가 없습니다.</td>';
       settleList.appendChild(emptyRow);
       return;
     }
@@ -1588,12 +1582,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${item.company || ''}</td>
           <td class="text-end">${formatAmount(item.adjustmentAmount)}</td>
           <td class="text-end">${item.totalDrivers || 0}</td>
-          <td>${item.createUser || ''}</td>
-          <td>${item.managerName || ''}</td>
-          <td>${formatDateTime(item.createDate)}</td>
-          <td>${item.createUser || ''}</td>
-          <td>${formatDateTime(item.updateDate)}</td>
-          <td>${item.updateUser || ''}</td>
           <td>
             <input type='text' 
               id='getPrinum_${item.id}' 
