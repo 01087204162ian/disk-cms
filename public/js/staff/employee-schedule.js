@@ -7,6 +7,14 @@ let currentMonth = now.getMonth() + 1; // getMonth()는 0부터 시작해서 +1 
 
 // 사용자 4일제 설정 상태 확인 (서버 통신)
 async function checkUserScheduleStatus() {
+  // 모킹 데이터 사용 시
+  if (window.USE_MOCK_DATA) {
+    console.log('모킹 데이터로 스케줄 로드');
+    // 모킹 데이터는 이미 초기 선택 완료 상태로 가정
+    loadPersonalSchedule();
+    return;
+  }
+  
   try {
     const response = await fetch('/api/staff/work-schedules/my-status', {
       method: 'GET',
@@ -226,22 +234,67 @@ async function saveInitialChoice(offDay) {
 }
 
 // 개인 스케줄 로드
-// 임시로 데이터 구조 확인
+// 모킹 데이터 또는 실제 데이터 사용
 function loadPersonalSchedule(scheduleData = null) {
   console.log('개인 스케줄 로드:', scheduleData);
   
-  if (scheduleData && scheduleData.user_info && scheduleData.user_info.latest_schedule) {
-    const schedule = scheduleData.user_info.latest_schedule;
-    
+  // 모킹 데이터 사용 여부 확인
+  if (window.USE_MOCK_DATA && !scheduleData) {
+    scheduleData = mockScheduleData.data;
+    console.log('모킹 데이터 사용:', scheduleData);
+  }
+  
+  if (scheduleData) {
     // 전역 변수에 스케줄 데이터 저장
-    window.currentScheduleData = schedule;
+    window.currentScheduleData = scheduleData;
     
-    updateShiftPattern(schedule.work_days);
-    updateShiftDescription(schedule.work_days);
-    updateScheduleHeader(schedule);
+    // 4주 주기 정보 계산
+    const today = new Date();
+    const cycleInfo = calculateCycleInfo(scheduleData.user.work_days, today);
+    
+    // UI 업데이트
+    updateShiftPattern(scheduleData.schedule.work_days);
+    updateShiftDescription4Week(scheduleData, cycleInfo);
+    updateScheduleHeader4Week(scheduleData, cycleInfo);
+    updateCycleInfo(cycleInfo);
+    checkProbationPeriod(scheduleData.user.hire_date);
+    checkHolidayInWeek(scheduleData.holidays, today);
+    
+    // 일시적 변경 버튼 활성화/비활성화
+    updateTemporaryChangeButton(scheduleData);
   }
   
   updateMonthDisplay();
+}
+
+/**
+ * 4주 주기 정보 계산
+ */
+function calculateCycleInfo(workDays, targetDate) {
+  if (!workDays || !workDays.cycle_start_date || !workDays.base_off_day) {
+    return null;
+  }
+  
+  const cycleStart = new Date(workDays.cycle_start_date);
+  const currentOffDay = calculateOffDayByWeekCycle(cycleStart, targetDate, workDays.base_off_day);
+  const cycleWeek = getCycleWeek(cycleStart, targetDate);
+  const weekStart = cycleWeek === 1 ? 1 : ((cycleWeek - 1) * 7) + 1;
+  const weekEnd = cycleWeek * 7;
+  
+  // 다음 주기 계산
+  const nextCycleStart = new Date(cycleStart);
+  nextCycleStart.setDate(nextCycleStart.getDate() + 28);
+  const nextOffDay = calculateOffDayByWeekCycle(cycleStart, nextCycleStart, workDays.base_off_day);
+  
+  return {
+    currentOffDay,
+    currentOffDayName: getDayName(currentOffDay),
+    cycleWeek,
+    weekRange: `${weekStart}-${weekEnd}주차`,
+    nextCycleDate: formatDate(nextCycleStart),
+    nextOffDay,
+    nextOffDayName: getDayName(nextOffDay)
+  };
 }
 // 월 표시 업데이트 함수
 function updateMonthDisplay() {
@@ -360,10 +413,47 @@ function generateCalendar() {
 			return;
 		  }
 		  
+		  const halfDayDate = document.getElementById('halfDayDate').value;
+		  
+		  // 같은 주 검증
+		  if (!window.currentScheduleData || !window.currentScheduleData.user) {
+			window.sjTemplateLoader.showToast('스케줄 정보를 불러올 수 없습니다.', 'error');
+			return;
+		  }
+		  
+		  const workDays = window.currentScheduleData.user.work_days;
+		  const selectedDate = new Date(halfDayDate);
+		  
+		  // 해당 주의 휴무일 계산
+		  const weekStart = getWeekStartDate(selectedDate);
+		  const offDay = calculateOffDayByWeekCycle(
+			new Date(workDays.cycle_start_date),
+			weekStart,
+			workDays.base_off_day
+		  );
+		  
+		  // 휴무일 날짜 계산
+		  const offDayDate = new Date(weekStart);
+		  offDayDate.setDate(offDayDate.getDate() + (offDay - 1));
+		  
+		  // 같은 주인지 확인
+		  if (!isSameWeek(selectedDate, offDayDate)) {
+			const validationDiv = document.getElementById('halfDayValidation');
+			if (validationDiv) {
+			  validationDiv.style.display = 'block';
+			}
+			window.sjTemplateLoader.showToast('반차는 같은 주(월~일) 내에서만 사용 가능합니다.', 'warning');
+			return;
+		  } else {
+			const validationDiv = document.getElementById('halfDayValidation');
+			if (validationDiv) {
+			  validationDiv.style.display = 'none';
+			}
+		  }
+		  
 		  const data = {
-			half_day_date: document.getElementById('halfDayDate').value,
+			half_day_date: halfDayDate,
 			half_day_type: document.getElementById('halfDayType').value,
-			is_emergency: document.getElementById('isEmergency').value === 'true',
 			reason: document.getElementById('halfDayReason').value
 		  };
 			const submitBtn = document.querySelector('#halfDayModal .btn-primary');
@@ -417,20 +507,141 @@ function generateCalendar() {
 		  }
 		}
     
-    // 시프트 안내 표시
+    // 시프트 안내 표시 (4주 주기 버전)
     function showScheduleInfo() {
+      if (!window.currentScheduleData || !window.currentScheduleData.user) {
+        alert('스케줄 정보를 불러올 수 없습니다.');
+        return;
+      }
+      
+      const workDays = window.currentScheduleData.user.work_days;
+      const today = new Date();
+      const cycleInfo = calculateCycleInfo(workDays, today);
+      
+      if (!cycleInfo) {
+        alert('주기 정보를 계산할 수 없습니다.');
+        return;
+      }
+      
       alert(`
-🗓️ 나의 시프트 정보
+🗓️ 나의 시프트 정보 (4주 주기 반대 방향 순환)
 
-📅 현재 (1월): 금요일 휴무
-📅 다음달 (2월): 월요일 휴무  
-📅 3월: 화요일 휴무
-📅 4월: 수요일 휴무
-📅 5월: 목요일 휴무
+📅 현재 주기: ${cycleInfo.weekRange} (${cycleInfo.currentOffDayName} 휴무)
+📅 다음 주기: ${cycleInfo.nextCycleDate}부터 ${cycleInfo.nextOffDayName} 휴무
 
+🔄 순환 방향: 금 → 목 → 수 → 화 → 월 → 금 (반대 방향)
 ⏰ 주 32시간 근무 원칙
-🔄 매월 첫 번째 월요일부터 새 패턴 적용
+📆 4주(28일)마다 한 요일씩 역방향으로 이동
       `);
+    }
+    
+    // 일시적 변경 모달 열기
+    function openTemporaryChangeModal() {
+      const modal = new bootstrap.Modal(document.getElementById('temporaryChangeModal'));
+      
+      // 현재 주의 월요일을 기본값으로 설정
+      const today = new Date();
+      const weekStart = getWeekStartDate(today);
+      document.getElementById('changeWeekStart').value = formatDate(weekStart);
+      
+      // 원래 휴무일 표시
+      if (window.currentScheduleData && window.currentScheduleData.user) {
+        const workDays = window.currentScheduleData.user.work_days;
+        const cycleInfo = calculateCycleInfo(workDays, today);
+        if (cycleInfo) {
+          document.getElementById('originalOffDay').value = cycleInfo.currentOffDayName;
+        }
+      }
+      
+      modal.show();
+    }
+    
+    // 일시적 변경 신청 처리
+    async function submitTemporaryChange() {
+      const form = document.getElementById('temporaryChangeForm');
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      
+      const weekStartDate = document.getElementById('changeWeekStart').value;
+      const temporaryOffDay = parseInt(document.getElementById('temporaryOffDay').value);
+      const substituteEmployee = document.getElementById('substituteEmployee').value;
+      const reason = document.getElementById('changeReason').value;
+      
+      // 원래 휴무일 계산
+      if (!window.currentScheduleData || !window.currentScheduleData.user) {
+        window.sjTemplateLoader.showToast('스케줄 정보를 불러올 수 없습니다.', 'error');
+        return;
+      }
+      
+      const workDays = window.currentScheduleData.user.work_days;
+      const weekStart = new Date(weekStartDate);
+      const originalOffDay = calculateOffDayByWeekCycle(
+        new Date(workDays.cycle_start_date),
+        weekStart,
+        workDays.base_off_day
+      );
+      
+      if (originalOffDay === temporaryOffDay) {
+        window.sjTemplateLoader.showToast('원래 휴무일과 동일합니다. 다른 요일을 선택해주세요.', 'warning');
+        return;
+      }
+      
+      const data = {
+        week_start_date: weekStartDate,
+        original_off_day: originalOffDay,
+        temporary_off_day: temporaryOffDay,
+        reason: reason,
+        substitute_employee: substituteEmployee || null
+      };
+      
+      const submitBtn = document.querySelector('#temporaryChangeModal .btn-primary');
+      const originalText = submitBtn.textContent;
+      
+      try {
+        submitBtn.textContent = '처리 중...';
+        submitBtn.disabled = true;
+        
+        // 모킹 데이터 사용 시
+        if (window.USE_MOCK_DATA) {
+          console.log('일시적 변경 신청 (모킹):', data);
+          setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('temporaryChangeModal')).hide();
+            window.sjTemplateLoader.showToast('일시적 변경 신청이 완료되었습니다. (모킹)', 'success');
+            form.reset();
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+          }, 1000);
+        } else {
+          // 실제 API 호출
+          const response = await fetch('/api/staff/work-schedules/temporary-change', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok && result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('temporaryChangeModal')).hide();
+            window.sjTemplateLoader.showToast('일시적 변경 신청이 완료되었습니다.', 'success');
+            form.reset();
+            setTimeout(() => location.reload(), 2000);
+          } else {
+            window.sjTemplateLoader.showToast(`신청 실패: ${result.message}`, 'error');
+          }
+        }
+      } catch (error) {
+        console.error('일시적 변경 신청 중 오류:', error);
+        window.sjTemplateLoader.showToast('네트워크 오류가 발생했습니다.', 'error');
+      } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
     }
     
     // 캘린더 네비게이션 (기본 구현)
@@ -465,7 +676,23 @@ function generateCalendar() {
       tomorrow.setDate(tomorrow.getDate() + 1);
       
       const tomorrowString = tomorrow.toISOString().split('T')[0];
-      document.getElementById('halfDayDate').value = tomorrowString;
+      const halfDayDateInput = document.getElementById('halfDayDate');
+      if (halfDayDateInput) {
+        halfDayDateInput.value = tomorrowString;
+        
+        // 날짜 변경 시 같은 주 검증
+        halfDayDateInput.addEventListener('change', function() {
+          const validationDiv = document.getElementById('halfDayValidation');
+          if (validationDiv) {
+            validationDiv.style.display = 'none';
+          }
+        });
+      }
+      
+      // 모킹 데이터로 초기 로드 (개발 중)
+      if (window.USE_MOCK_DATA) {
+        loadPersonalSchedule();
+      }
     });
 	
 	// 시프트 패턴 업데이트 함수 
@@ -487,46 +714,127 @@ function generateCalendar() {
 	}
 	
 	
-	// 시프트 설명 텍스트 업데이트 함수 
-	function updateShiftDescription(workDays) {
-	  // 현재 휴무일 찾기
-	  const currentOffDay = Object.keys(workDays).find(day => workDays[day] === 'off');
-	  const dayNames = {1: '월요일', 2: '화요일', 3: '수요일', 4: '목요일', 5: '금요일'};
+	// 시프트 설명 텍스트 업데이트 함수 (4주 주기 버전)
+	function updateShiftDescription4Week(scheduleData, cycleInfo) {
+	  if (!cycleInfo) return;
 	  
-	  if (currentOffDay) {
-		const description = `매주 ${dayNames[currentOffDay]}이 휴무입니다. 다음 달부터는 시프트 순환에 따라 휴무일이 변경됩니다.`;
-		
-		// HTML의 설명 텍스트 업데이트
-		const descElement = document.querySelector('.shift-info p');
-		if (descElement) {
-		  descElement.textContent = description;
+	  const descElement = document.querySelector('.shift-info-content p');
+	  if (descElement) {
+		descElement.innerHTML = `
+		  <strong>4주 주기 반대 방향 순환 시스템</strong><br>
+		  • 현재: <span id="currentCycleInfo">${cycleInfo.weekRange} (${cycleInfo.currentOffDayName} 휴무)</span><br>
+		  • 다음: <span id="nextCycleInfo">${cycleInfo.nextOffDayName} 휴무</span> - <span id="nextCycleDate">${cycleInfo.nextCycleDate}</span>부터<br>
+		  • 순환 방향: 금 → 목 → 수 → 화 → 월 → 금 (반대 방향)
+		`;
+	  }
+	}
+	
+	// 주기 정보 배지 업데이트
+	function updateCycleInfo(cycleInfo) {
+	  if (!cycleInfo) return;
+	  
+	  const badge = document.getElementById('cycleInfoBadge');
+	  const weekRange = document.getElementById('cycleWeekRange');
+	  const currentOffDayName = document.getElementById('currentOffDayName');
+	  
+	  if (badge && weekRange) {
+		badge.style.display = 'inline-block';
+		weekRange.textContent = cycleInfo.weekRange;
+	  }
+	  
+	  if (currentOffDayName) {
+		currentOffDayName.textContent = cycleInfo.currentOffDayName;
+	  }
+	}
+	
+	// 수습 기간 체크 및 안내 표시
+	function checkProbationPeriod(hireDate) {
+	  if (!hireDate) return;
+	  
+	  const today = new Date();
+	  // 모킹 파일의 isProbationPeriod 함수 사용
+	  const isProbation = typeof isProbationPeriod !== 'undefined' 
+		? isProbationPeriod(hireDate, today)
+		: false; // 함수가 없으면 false
+	  
+	  const notice = document.getElementById('probationNotice');
+	  const tempChangeBtn = document.getElementById('temporaryChangeBtn');
+	  
+	  if (isProbation) {
+		if (notice) notice.style.display = 'block';
+		if (tempChangeBtn) tempChangeBtn.disabled = true;
+	  } else {
+		if (notice) notice.style.display = 'none';
+		if (tempChangeBtn && tempChangeBtn.disabled) {
+		  // 다른 조건(공휴일 등)으로 비활성화된 경우가 아니면 활성화
+		  const hasHoliday = window.currentScheduleData?.has_holiday_in_week;
+		  if (!hasHoliday) {
+			tempChangeBtn.disabled = false;
+		  }
 		}
 	  }
 	}
 	
-	// 스케줄 헤더 업데이트 함수 (새로 추가)
-	function updateScheduleHeader(scheduleData) {
+	// 공휴일 포함 주 체크 및 안내 표시
+	function checkHolidayInWeek(holidays, targetDate) {
+	  if (!holidays || holidays.length === 0) {
+		const notice = document.getElementById('holidayNotice');
+		if (notice) notice.style.display = 'none';
+		return;
+	  }
+	  
+	  const weekStart = getWeekStartDate(targetDate);
+	  const weekEnd = new Date(weekStart);
+	  weekEnd.setDate(weekEnd.getDate() + 4); // 금요일까지
+	  
+	  const hasHoliday = holidays.some(h => {
+		const holidayDate = new Date(h.date);
+		return holidayDate >= weekStart && holidayDate <= weekEnd;
+	  });
+	  
+	  const notice = document.getElementById('holidayNotice');
+	  if (hasHoliday) {
+		if (notice) notice.style.display = 'block';
+	  } else {
+		if (notice) notice.style.display = 'none';
+	  }
+	}
+	
+	// 일시적 변경 버튼 업데이트
+	function updateTemporaryChangeButton(scheduleData) {
+	  const btn = document.getElementById('temporaryChangeBtn');
+	  if (!btn) return;
+	  
+	  // 수습 기간이거나 공휴일 포함 주면 비활성화
+	  const isProbation = scheduleData.is_probation;
+	  const hasHoliday = scheduleData.has_holiday_in_week;
+	  
+	  if (isProbation || hasHoliday) {
+		btn.disabled = true;
+		btn.title = isProbation ? '수습 기간 중에는 일시적 변경이 불가합니다' : '공휴일 포함 주에는 일시적 변경이 불가합니다';
+	  } else {
+		btn.disabled = false;
+		btn.title = '';
+	  }
+	}
+	
+	// 스케줄 헤더 업데이트 함수 (4주 주기 버전)
+	function updateScheduleHeader4Week(scheduleData, cycleInfo) {
 		  const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', 
 							 '7월', '8월', '9월', '10월', '11월', '12월'];
 		  
 		  // 1. 년월 표시 업데이트
-		  const headerTitle = document.querySelector('.schedule-header h2');
+		  const headerTitle = document.getElementById('scheduleMonthTitle');
 		  if (headerTitle) {
 			headerTitle.textContent = `${scheduleData.year}년 ${monthNames[scheduleData.month - 1]} 스케줄`;
 		  }
 		  
-		  // 2. 시프트 패턴 설명 업데이트  
-		  const shiftDesc = document.querySelector('.schedule-header p');
-		  if (shiftDesc) {
-			shiftDesc.textContent = `현재 시프트: ${scheduleData.current_off_day_name} 휴무 패턴`;
-		  }
-		  
-		  // 3. 요약 카드들 업데이트
+		  // 2. 요약 카드들 업데이트
 		  const summaryCards = document.querySelectorAll('.summary-card .summary-number');
 		  if (summaryCards.length >= 4) {
-			summaryCards[0].textContent = scheduleData.calculated_work_days;  // 근무일
+			summaryCards[0].textContent = scheduleData.schedule.work_days_count * 4;  // 근무일 (대략)
 			summaryCards[1].textContent = '32';  // 주당 근무시간 (고정)
-			summaryCards[2].textContent = scheduleData.half_days_used;  // 반차 사용
-			summaryCards[3].textContent = scheduleData.current_off_day_name;  // 휴무일
+			summaryCards[2].textContent = '0';  // 반차 사용 (추후 API 연동)
+			summaryCards[3].textContent = cycleInfo ? cycleInfo.currentOffDayName : '금요일';  // 휴무일
 		  }
 		}
