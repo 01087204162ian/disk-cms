@@ -1405,18 +1405,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th width='3%'>No</th>
                 <th width='7%'>정산일</th>
                 <th width='10%'>대리운전회사</th>
+                <th width='7%'>담당자</th>
                 <th width='6%'>보험료</th>
                 <th width='4%'>인원</th>
                 <th width='6%'>받을보험료</th>
                 <th width='10%'>받은날</th>
                 <th width='7%'>받은입력자</th>
                 <th width='5%'>차액</th>
-                <th width='42%'>메모</th>
+                <th width='37%'>메모</th>
               </tr>
             </thead>
             <tbody id="settleList">
               <tr>
-                <td colspan="10" class="text-center py-4">데이터를 불러오는 중...</td>
+                <td colspan="11" class="text-center py-4">데이터를 불러오는 중...</td>
               </tr>
             </tbody>
           </table>
@@ -1532,7 +1533,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (data.count === 0 || !data.data || data.data.length === 0) {
       const emptyRow = document.createElement('tr');
-      emptyRow.innerHTML = '<td colspan="10" class="text-center py-4">조회된 정산 데이터가 없습니다.</td>';
+      emptyRow.innerHTML = '<td colspan="11" class="text-center py-4">조회된 정산 데이터가 없습니다.</td>';
       settleList.appendChild(emptyRow);
       return;
     }
@@ -1580,6 +1581,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${index + 1}</td>
           <td>${item.thisMonthDueDate || ''}</td>
           <td>${item.company || ''}</td>
+          <td>${item.managerName || ''}</td>
           <td class="text-end">${formatAmount(item.adjustmentAmount)}</td>
           <td class="text-end">${item.totalDrivers || 0}</td>
           <td style="padding: 0 !important;">
@@ -1639,8 +1641,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
 
       if (data.success) {
-        // 차액 계산 및 업데이트
-        const adjustmentAmount = parseFloat(document.querySelector(`#getPrinum_${id}`).closest('tr').querySelector('td:nth-child(4)').textContent.replace(/,/g, ''));
+        // 차액 계산 및 업데이트 (보험료는 5번째 열)
+        const adjustmentAmount = parseFloat(document.querySelector(`#getPrinum_${id}`).closest('tr').querySelector('td:nth-child(5)').textContent.replace(/,/g, ''));
         const newReceivedAmount = parseFloat(receivedAmount) || 0;
         const difference = adjustmentAmount - newReceivedAmount;
         const chaiElement = document.getElementById(`chai-${id}`);
