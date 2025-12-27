@@ -15,14 +15,14 @@ const mockScheduleData = {
   success: true,
   data: {
     year: 2025,
-    month: 1,
+    month: 12, // 현재 표시 중인 월 (12월)
     user: {
       email: "user@example.com",
       name: "김철수",
       hire_date: "2024-10-01", // 수습 기간 계산용 (3개월 미만이면 수습 기간)
       work_schedule: "4_DAY",
       work_days: {
-        base_off_day: 5, // 금요일
+        base_off_day: 5, // 금요일 (초기 선택)
         cycle_start_date: "2025-01-06", // 4주 주기 시작일
         initial_selection_date: "2025-01-06"
       }
@@ -106,11 +106,18 @@ function calculateOffDayByWeekCycle(cycleStartDate, targetDate, initialOffDay) {
   const start = typeof cycleStartDate === 'string' ? new Date(cycleStartDate) : cycleStartDate;
   const target = typeof targetDate === 'string' ? new Date(targetDate) : targetDate;
   
-  // 경과 일수 계산
-  const daysDiff = Math.floor((target - start) / (1000 * 60 * 60 * 24));
+  // 주 시작일(월요일) 기준으로 계산
+  const startWeek = getWeekStartDate(start);
+  const targetWeek = getWeekStartDate(target);
+  
+  // 경과 일수 계산 (주 시작일 기준)
+  const daysDiff = Math.floor((targetWeek - startWeek) / (1000 * 60 * 60 * 24));
+  
+  // 주 단위로 계산 (7일 단위)
+  const weeksDiff = Math.floor(daysDiff / 7);
   
   // 4주(28일) 단위로 주기 계산
-  const cycles = Math.floor(daysDiff / 28);
+  const cycles = Math.floor(weeksDiff / 4);
   
   // 반대 방향 순환: 5(금) → 4(목) → 3(수) → 2(화) → 1(월) → 5(금)
   // 주기가 1 증가할 때마다 1 감소, 0 이하가 되면 5로 순환
