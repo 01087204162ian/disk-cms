@@ -1495,6 +1495,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       console.log('정산리스트 조회 요청:', requestData);
+      console.log('담당자 필터 값:', damdanga, '| 선택된 값:', document.getElementById('damdanga3')?.value);
 
       const response = await fetch('/api/insurance/kj-company/settlement/list', {
         method: 'POST',
