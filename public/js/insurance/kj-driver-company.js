@@ -1369,54 +1369,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fieldContents = `
       <div class="kje-list-container">
-        <!-- 통계 영역 -->
-        <div id="settlementStatistics" class="mb-3 p-3 bg-light rounded" style="display: none;">
-          <div class="row text-center">
-            <div class="col-md-3">
-              <div class="fw-bold text-primary">전체</div>
-              <div id="statTotalCount" class="fs-4">0</div>
-              <div class="small text-muted">건</div>
-            </div>
-            <div class="col-md-3">
-              <div class="fw-bold text-success">받은 건</div>
-              <div id="statReceivedCount" class="fs-4">0</div>
-              <div class="small text-muted">건</div>
-            </div>
-            <div class="col-md-3">
-              <div class="fw-bold text-warning">미수 건</div>
-              <div id="statUnpaidCount" class="fs-4">0</div>
-              <div class="small text-muted">건</div>
-            </div>
-            <div class="col-md-3">
-              <div class="fw-bold text-danger">미수 금액</div>
-              <div id="statUnpaidAmount" class="fs-4">0</div>
-              <div class="small text-muted">원</div>
-            </div>
-          </div>
-        </div>
-        
         <!-- 검색 영역 -->
         <div class="kje-list-header mb-3">
-          <div class="d-flex flex-wrap gap-2 align-items-end">
-            <div>
-              <input type='date' id='lastDate' class='form-control form-control-sm' value='${formatDate(lastMonth)}'>
+          <div class="d-flex flex-wrap gap-2 align-items-end justify-content-between">
+            <div class="d-flex flex-wrap gap-2 align-items-end">
+              <div>
+                <input type='date' id='lastDate' class='form-control form-control-sm' value='${formatDate(lastMonth)}'>
+              </div>
+              <div>
+                <input type='date' id='thisDate' class='form-control form-control-sm' value='${formatDate(today)}'>
+              </div>
+              <div>
+                <select id="damdanga3" class="form-select form-select-sm">
+                  <option value="">전체</option>
+                </select>
+              </div>
+              <div>
+                <select id="attempted" class="form-select form-select-sm">
+                  <option value='1' ${attempted === '1' ? 'selected' : ''}>전체</option>
+                  <option value='2' ${attempted === '2' ? 'selected' : ''}>미수</option>
+                </select>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-primary" id="settlementListSearchBtn">검색</button>
+              </div>
             </div>
-            <div>
-              <input type='date' id='thisDate' class='form-control form-control-sm' value='${formatDate(today)}'>
-            </div>
-            <div>
-              <select id="damdanga3" class="form-select form-select-sm">
-                <option value="">전체</option>
-              </select>
-            </div>
-            <div>
-              <select id="attempted" class="form-select form-select-sm">
-                <option value='1' ${attempted === '1' ? 'selected' : ''}>전체</option>
-                <option value='2' ${attempted === '2' ? 'selected' : ''}>미수</option>
-              </select>
-            </div>
-            <div>
-              <button class="btn btn-sm btn-primary" id="settlementListSearchBtn">검색</button>
+            
+            <!-- 통계 영역 (오른쪽) -->
+            <div id="settlementStatistics" class="d-flex gap-4 align-items-end" style="display: none !important;">
+              <div class="text-center">
+                <div class="fw-bold text-primary small">전체</div>
+                <div id="statTotalCount" class="fw-bold">0</div>
+                <div class="small text-muted">건</div>
+                <div id="statTotalAmount" class="fw-bold text-primary">0</div>
+                <div class="small text-muted">원</div>
+              </div>
+              <div class="text-center">
+                <div class="fw-bold text-success small">받은</div>
+                <div id="statReceivedCount" class="fw-bold">0</div>
+                <div class="small text-muted">건</div>
+                <div id="statReceivedAmount" class="fw-bold text-success">0</div>
+                <div class="small text-muted">원</div>
+              </div>
+              <div class="text-center">
+                <div class="fw-bold text-danger small">미수</div>
+                <div id="statUnpaidCount" class="fw-bold">0</div>
+                <div class="small text-muted">건</div>
+                <div id="statUnpaidAmount" class="fw-bold text-danger">0</div>
+                <div class="small text-muted">원</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1600,13 +1601,20 @@ document.addEventListener('DOMContentLoaded', () => {
       return isNaN(numAmount) ? '0' : numAmount.toLocaleString('ko-KR');
     };
     
+    // 전체 건수 및 금액
     document.getElementById('statTotalCount').textContent = statistics.totalCount || 0;
+    document.getElementById('statTotalAmount').textContent = formatAmount(statistics.totalAdjustmentAmount || 0);
+    
+    // 받은 건수 및 금액
     document.getElementById('statReceivedCount').textContent = statistics.receivedCount || 0;
+    document.getElementById('statReceivedAmount').textContent = formatAmount(statistics.totalReceivedAmount || 0);
+    
+    // 미수 건수 및 금액
     document.getElementById('statUnpaidCount').textContent = statistics.unpaidCount || 0;
     document.getElementById('statUnpaidAmount').textContent = formatAmount(statistics.totalUnpaidAmount || 0);
     
-    // 통계 영역 표시
-    statsDiv.style.display = 'block';
+    // 통계 영역 표시 (flex로 변경)
+    statsDiv.style.display = 'flex';
   }
 
   // 정산 데이터를 테이블에 표시하는 함수
