@@ -1404,14 +1404,14 @@ document.addEventListener('DOMContentLoaded', () => {
               <tr>
                 <th width='3%'>No</th>
                 <th width='7%'>정산일</th>
-                <th width='7%'>대리운전회사</th>
+                <th width='10%'>대리운전회사</th>
                 <th width='6%'>보험료</th>
                 <th width='4%'>인원</th>
                 <th width='6%'>받을보험료</th>
                 <th width='10%'>받은날</th>
                 <th width='7%'>받은입력자</th>
                 <th width='5%'>차액</th>
-                <th width='45%'>메모</th>
+                <th width='42%'>메모</th>
               </tr>
             </thead>
             <tbody id="settleList">
