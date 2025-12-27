@@ -1414,10 +1414,25 @@ router.post('/kj-company/settlement/list', async (req, res) => {
   try {
     const apiUrl = `${PHP_API_BASE_URL}/kj-settlement-list.php`;
     const formData = new URLSearchParams();
+    
+    // 필수 파라미터
     if (req.body.lastDate) formData.append('lastDate', req.body.lastDate);
     if (req.body.thisDate) formData.append('thisDate', req.body.thisDate);
-    if (req.body.attempted) formData.append('attempted', req.body.attempted);
-    if (req.body.damdanga) formData.append('damdanga', req.body.damdanga);
+    
+    // attempted는 항상 전송 (기본값 '1')
+    formData.append('attempted', req.body.attempted || '1');
+    
+    // damdanga는 값이 있을 때만 전송
+    if (req.body.damdanga && req.body.damdanga.trim() !== '') {
+      formData.append('damdanga', req.body.damdanga);
+    }
+
+    console.log('Settlement list request:', {
+      lastDate: req.body.lastDate,
+      thisDate: req.body.thisDate,
+      attempted: req.body.attempted || '1',
+      damdanga: req.body.damdanga || '(empty)'
+    });
 
     const response = await axios.post(apiUrl, formData.toString(), {
       timeout: DEFAULT_TIMEOUT,

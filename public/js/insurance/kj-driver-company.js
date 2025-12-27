@@ -1490,9 +1490,11 @@ document.addEventListener('DOMContentLoaded', () => {
         thisDate: thisDate,
         attempted: attempted
       };
-      if (damdanga) {
-        requestData.damdanga = damdanga;
+      if (damdanga && damdanga.trim() !== '') {
+        requestData.damdanga = damdanga.trim();
       }
+
+      console.log('정산리스트 조회 요청:', requestData);
 
       const response = await fetch('/api/insurance/kj-company/settlement/list', {
         method: 'POST',
