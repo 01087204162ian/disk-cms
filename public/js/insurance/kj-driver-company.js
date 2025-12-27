@@ -1295,13 +1295,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('settleExcelBtn')?.addEventListener('click', () => {
     downloadSettlementExcel();
   });
-  document.getElementById('settlementMemoSaveBtn')?.addEventListener('click', () => {
-    saveSettlementMemo();
-  });
-  // 확정보험료 입력 버튼 클릭 이벤트
-  document.getElementById('settleConfirmPremiumBtn')?.addEventListener('click', () => {
-    openConfirmPremiumModal();
-  });
   // 정산리스트 버튼 클릭 이벤트
   document.getElementById('settleListBtn')?.addEventListener('click', () => {
     openSettlementList('1'); // 기본값: 전체
@@ -1312,14 +1305,16 @@ document.addEventListener('DOMContentLoaded', () => {
     openConfirmPremiumModal();
   });
   
+  // 메모 저장 버튼 클릭 이벤트 (한 번만 등록)
+  document.getElementById('settlementMemoSaveBtn')?.addEventListener('click', () => {
+    saveSettlementMemo();
+  });
+  
   // 메모 입력 엔터키
   settlementMemoInput?.addEventListener('keyup', (e) => {
     if (e.key === 'Enter') {
       saveSettlementMemo();
     }
-  });
-  document.getElementById('settlementMemoSaveBtn')?.addEventListener('click', () => {
-    saveSettlementMemo();
   });
 
   // ==================== 모달 관련 ====================
