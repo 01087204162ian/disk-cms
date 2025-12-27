@@ -1404,14 +1404,14 @@ document.addEventListener('DOMContentLoaded', () => {
               <tr>
                 <th width='3%'>No</th>
                 <th width='7%'>정산일</th>
-                <th width='8%'>대리운전회사</th>
+                <th width='7%'>대리운전회사</th>
                 <th width='6%'>보험료</th>
                 <th width='4%'>인원</th>
                 <th width='6%'>받을보험료</th>
-                <th width='6%'>받은날</th>
-                <th width='5%'>받은입력자</th>
+                <th width='10%'>받은날</th>
+                <th width='7%'>받은입력자</th>
                 <th width='5%'>차액</th>
-                <th width='50%'>메모</th>
+                <th width='45%'>메모</th>
               </tr>
             </thead>
             <tbody id="settleList">
@@ -1582,7 +1582,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${item.company || ''}</td>
           <td class="text-end">${formatAmount(item.adjustmentAmount)}</td>
           <td class="text-end">${item.totalDrivers || 0}</td>
-          <td style="padding: 0;">
+          <td style="padding: 0 !important;">
             <input type='text' 
               id='getPrinum_${item.id}' 
               class="form-control form-control-sm text-end"
@@ -1590,7 +1590,7 @@ document.addEventListener('DOMContentLoaded', () => {
               value='${formatAmount(item.receivedAmount)}'
               onkeypress="if(event.key === 'Enter') { window.getPremium(this, ${item.id}); return false; }" 
               autocomplete="off"
-              style="border: none; background-color: white; padding: 0.25rem;"
+              style="border: none; background-color: white; padding: 0.25rem; width: 100%;"
             >
           </td>
           <td>${formatDateTime(item.receiveDate)}</td>
@@ -1598,7 +1598,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="text-end">
             <span id='chai-${item.id}'>${differenceAmount}</span> 
           </td>
-          <td style="padding: 0;">
+          <td style="padding: 0 !important;">
             <input type='text' 
               id='memo_${item.id}' 
               class="form-control form-control-sm"
@@ -1606,7 +1606,7 @@ document.addEventListener('DOMContentLoaded', () => {
               value='${(item.memo || '').replace(/'/g, "&apos;")}'
               onkeypress="if(event.key === 'Enter') { window.getPremiumMemo(this, ${item.id}); return false; }" 
               autocomplete="off"
-              style="border: none; background-color: white; padding: 0.25rem;"
+              style="border: none; background-color: white; padding: 0.25rem; width: 100%;"
             >
           </td>
         </tr>
