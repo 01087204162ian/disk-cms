@@ -248,9 +248,9 @@ function loadPersonalSchedule(scheduleData = null) {
     // 전역 변수에 스케줄 데이터 저장
     window.currentScheduleData = scheduleData;
     
-    // 현재 표시 중인 월의 첫 날짜 기준으로 계산
-    const currentMonthDate = new Date(currentYear, currentMonth - 1, 1);
-    const cycleInfo = calculateCycleInfo(scheduleData.user.work_days, currentMonthDate);
+    // 현재 날짜 기준으로 계산 (헤더 표시용)
+    const today = new Date();
+    const cycleInfo = calculateCycleInfo(scheduleData.user.work_days, today);
     
     // 현재 월의 휴무일로 패턴 업데이트
     if (cycleInfo && scheduleData.user.work_days) {
@@ -269,7 +269,6 @@ function loadPersonalSchedule(scheduleData = null) {
     updateCycleInfo(cycleInfo);
     
     // 오늘 날짜 기준으로 수습 기간/공휴일 체크
-    const today = new Date();
     checkProbationPeriod(scheduleData.user.hire_date);
     checkHolidayInWeek(scheduleData.holidays, today);
     
@@ -399,9 +398,10 @@ function generateCalendar() {
           // 각 날짜마다 해당 날짜의 휴무일 계산
           const currentOffDay = calculateOffDayByWeekCycle(cycleStart, date, workDays.base_off_day);
           
-          // 디버깅용 (첫 날짜만)
-          if (day === 1) {
-            console.log('캘린더 생성 - 첫 날짜:', {
+          // 디버깅용 (특정 날짜만)
+          if (day === 1 || day === 4 || day === 10) {
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            console.log(`캘린더 생성 - ${day}일(${dayNames[dayOfWeek]}):`, {
               date: formatDate(date),
               dayOfWeek,
               currentOffDay,
