@@ -1395,28 +1395,31 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
             
-            <!-- 통계 영역 (오른쪽) -->
-            <div id="settlementStatistics" class="d-flex gap-4 align-items-end" style="display: none !important;">
+            <!-- 통계 영역 (오른쪽) - 1행 9열 -->
+            <div id="settlementStatistics" class="d-flex gap-2 align-items-end" style="display: none !important;">
               <div class="text-center">
-                <div class="fw-bold text-primary small">전체</div>
+                <div class="fw-bold text-primary small">전체건</div>
                 <div id="statTotalCount" class="fw-bold">0</div>
-                <div class="small text-muted">건</div>
+              </div>
+              <div class="text-center">
+                <div class="fw-bold text-primary small">전체금액</div>
                 <div id="statTotalAmount" class="fw-bold text-primary">0</div>
-                <div class="small text-muted">원</div>
               </div>
               <div class="text-center">
-                <div class="fw-bold text-success small">받은</div>
+                <div class="fw-bold text-success small">받은건</div>
                 <div id="statReceivedCount" class="fw-bold">0</div>
-                <div class="small text-muted">건</div>
-                <div id="statReceivedAmount" class="fw-bold text-success">0</div>
-                <div class="small text-muted">원</div>
               </div>
               <div class="text-center">
-                <div class="fw-bold text-danger small">미수</div>
+                <div class="fw-bold text-success small">받은금액</div>
+                <div id="statReceivedAmount" class="fw-bold text-success">0</div>
+              </div>
+              <div class="text-center">
+                <div class="fw-bold text-danger small">미수건</div>
                 <div id="statUnpaidCount" class="fw-bold">0</div>
-                <div class="small text-muted">건</div>
+              </div>
+              <div class="text-center">
+                <div class="fw-bold text-danger small">미수금액</div>
                 <div id="statUnpaidAmount" class="fw-bold text-danger">0</div>
-                <div class="small text-muted">원</div>
               </div>
             </div>
           </div>
