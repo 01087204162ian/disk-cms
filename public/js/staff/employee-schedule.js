@@ -272,16 +272,24 @@ function loadPersonalSchedule(scheduleData = null) {
  */
 function calculateCycleInfo(workDays, targetDate) {
   if (!workDays || !workDays.cycle_start_date || !workDays.base_off_day) {
+    console.warn('calculateCycleInfo: workDays 정보가 없습니다.', workDays);
     return null;
   }
   
   const cycleStart = new Date(workDays.cycle_start_date);
   const currentOffDay = calculateOffDayByWeekCycle(cycleStart, targetDate, workDays.base_off_day);
   const cycleWeek = getCycleWeek(cycleStart, targetDate);
-  const weekStart = cycleWeek === 1 ? 1 : ((cycleWeek - 1) * 7) + 1;
-  const weekEnd = cycleWeek * 7;
   
-  // 다음 주기 계산
+  // 주차 범위 계산 (예: "1-4주차", "5-8주차")
+  // 전체 주기에서 몇 번째 4주 주기인지 계산
+  const daysDiff = Math.floor((targetDate - cycleStart) / (1000 * 60 * 60 * 24));
+  const totalWeeks = Math.floor(daysDiff / 7) + 1;
+  const cycleNumber = Math.floor((totalWeeks - 1) / 4); // 0부터 시작
+  const weekStart = (cycleNumber * 4) + 1;
+  const weekEnd = (cycleNumber + 1) * 4;
+  const weekRange = `${weekStart}-${weekEnd}주차`;
+  
+  // 다음 주기 계산 (4주 후)
   const nextCycleStart = new Date(cycleStart);
   nextCycleStart.setDate(nextCycleStart.getDate() + 28);
   const nextOffDay = calculateOffDayByWeekCycle(cycleStart, nextCycleStart, workDays.base_off_day);
@@ -290,7 +298,7 @@ function calculateCycleInfo(workDays, targetDate) {
     currentOffDay,
     currentOffDayName: getDayName(currentOffDay),
     cycleWeek,
-    weekRange: `${weekStart}-${weekEnd}주차`,
+    weekRange: weekRange,
     nextCycleDate: formatDate(nextCycleStart),
     nextOffDay,
     nextOffDayName: getDayName(nextOffDay)
@@ -350,40 +358,58 @@ function generateCalendar() {
       dayElement.className += ' today';
     }
     
-    // 스케줄 상태 결정 부분에 반차 체크 로직 추가
-	if (dayOfWeek === 0 || dayOfWeek === 6) {
-	  // 주말
-	  scheduleStatus = 'weekend';
-	  scheduleText = '';
-	} else if (window.currentScheduleData) {
-		  // 해당 날짜에 반차가 있는지 먼저 확인
-		  const dateString = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-		  const halfDayData = window.currentScheduleData.half_day_list?.find(item => {
-			const itemDate = item.start_date.split('T')[0];
-			return itemDate === dateString;
-		  });
-		  
-		  if (halfDayData) {
-			// 반차가 있는 경우
-			if (halfDayData.leave_type === 'HALF_AM') {
-			  scheduleStatus = 'half-morning';
-			  scheduleText = '<div class="schedule-indicator half">오전반차</div>';
-			} else {
-			  scheduleStatus = 'half-afternoon';
-			  scheduleText = '<div class="schedule-indicator half">오후반차</div>';
-			}
-		  } else {
-			// 기본 스케줄 적용 (기존 로직)
-			const workType = window.currentScheduleData.work_days[dayOfWeek.toString()];
-			if (workType === 'off') {
-			  scheduleStatus = 'off';
-			  scheduleText = '<div class="schedule-indicator off">휴무</div>';
-			} else {
-			  scheduleStatus = 'work';
-			  scheduleText = '<div class="schedule-indicator work">근무</div>';
-			}
-		  }
-		}
+    // 스케줄 상태 결정
+    let scheduleStatus = '';
+    let scheduleText = '';
+    
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      // 주말
+      scheduleStatus = 'weekend';
+      scheduleText = '';
+    } else if (window.currentScheduleData && window.currentScheduleData.schedule) {
+      // 평일 - 4주 주기로 휴무일 계산
+      const workDays = window.currentScheduleData.user?.work_days;
+      if (workDays) {
+        const cycleStart = new Date(workDays.cycle_start_date);
+        const currentOffDay = calculateOffDayByWeekCycle(cycleStart, date, workDays.base_off_day);
+        
+        // 해당 날짜에 반차가 있는지 확인 (추후 구현)
+        const dateString = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const halfDayData = window.currentScheduleData.half_day_list?.find(item => {
+          const itemDate = item.start_date?.split('T')[0];
+          return itemDate === dateString;
+        });
+        
+        if (halfDayData) {
+          // 반차가 있는 경우
+          if (halfDayData.leave_type === 'HALF_AM') {
+            scheduleStatus = 'half-morning';
+            scheduleText = '<div class="day-status half"></div><div class="day-info half-info">오전반차</div>';
+          } else {
+            scheduleStatus = 'half-afternoon';
+            scheduleText = '<div class="day-status half"></div><div class="day-info half-info">오후반차</div>';
+          }
+        } else {
+          // 기본 스케줄 적용
+          const weekdayNumber = dayOfWeek; // 1=월, 2=화, ..., 5=금
+          if (weekdayNumber === currentOffDay) {
+            scheduleStatus = 'off';
+            scheduleText = '<div class="day-status off"></div><div class="day-info off-info">휴무일</div>';
+          } else {
+            scheduleStatus = 'work';
+            scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+          }
+        }
+      } else {
+        // work_days 정보가 없으면 기본 근무일로 표시
+        scheduleStatus = 'work';
+        scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+      }
+    } else {
+      // 스케줄 데이터가 없으면 기본 근무일로 표시
+      scheduleStatus = 'work';
+      scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+    }
     
     dayElement.className += ` ${scheduleStatus}`;
     dayElement.innerHTML = `
@@ -749,27 +775,38 @@ function generateCalendar() {
 	
 	// 수습 기간 체크 및 안내 표시
 	function checkProbationPeriod(hireDate) {
-	  if (!hireDate) return;
+	  if (!hireDate) {
+		const notice = document.getElementById('probationNotice');
+		if (notice) notice.style.display = 'none';
+		return;
+	  }
 	  
 	  const today = new Date();
-	  // 모킹 파일의 isProbationPeriod 함수 사용
-	  const isProbation = typeof isProbationPeriod !== 'undefined' 
-		? isProbationPeriod(hireDate, today)
-		: false; // 함수가 없으면 false
+	  // 모킹 파일의 isProbationPeriod 함수 사용 (전역 함수)
+	  let isProbation = false;
+	  if (typeof isProbationPeriod === 'function') {
+		isProbation = isProbationPeriod(hireDate, today);
+	  } else {
+		console.warn('isProbationPeriod 함수를 찾을 수 없습니다.');
+	  }
 	  
 	  const notice = document.getElementById('probationNotice');
 	  const tempChangeBtn = document.getElementById('temporaryChangeBtn');
 	  
 	  if (isProbation) {
 		if (notice) notice.style.display = 'block';
-		if (tempChangeBtn) tempChangeBtn.disabled = true;
+		if (tempChangeBtn) {
+		  tempChangeBtn.disabled = true;
+		  tempChangeBtn.title = '수습 기간 중에는 일시적 변경이 불가합니다';
+		}
 	  } else {
 		if (notice) notice.style.display = 'none';
-		if (tempChangeBtn && tempChangeBtn.disabled) {
-		  // 다른 조건(공휴일 등)으로 비활성화된 경우가 아니면 활성화
+		// 다른 조건(공휴일 등)으로 비활성화된 경우가 아니면 활성화
+		if (tempChangeBtn) {
 		  const hasHoliday = window.currentScheduleData?.has_holiday_in_week;
 		  if (!hasHoliday) {
 			tempChangeBtn.disabled = false;
+			tempChangeBtn.title = '';
 		  }
 		}
 	  }
