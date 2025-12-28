@@ -396,6 +396,7 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
         // 해당 월의 모든 주에 대해 공휴일 포함 여부 확인
         // dailySchedule을 생성한 후 각 주별로 공휴일 포함 여부를 확인
         const weekHolidayMap = new Map(); // 주 시작일(문자열) -> 공휴일 포함 여부
+        const weekOffDayMap = new Map(); // 주 시작일(문자열) -> 휴무일 (1-5)
         
         // 사이클 정보 계산 (해당 월의 첫 날 기준, 공휴일 정보 포함)
         const monthFirstDay = new Date(year, month - 1, 1);
@@ -439,13 +440,19 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
                     // 일시적 변경이 있으면 변경된 휴무일 사용
                     offDay = tempChange.temporary_off_day;
                 } else {
-                    // 없으면 정상 순환 계산 (공휴일 주 제외)
-                    offDay = calculateOffDayByWeekCycle(
-                        workDays.cycle_start_date,
-                        weekStart,
-                        workDays.base_off_day,
-                        holidays
-                    );
+                    // 캐시에서 확인
+                    offDay = weekOffDayMap.get(weekStartStr);
+                    if (offDay === undefined) {
+                        // 캐시에 없으면 정상 순환 계산 (공휴일 주 제외)
+                        offDay = calculateOffDayByWeekCycle(
+                            workDays.cycle_start_date,
+                            weekStart,
+                            workDays.base_off_day,
+                            holidays
+                        );
+                        // 캐시에 저장
+                        weekOffDayMap.set(weekStartStr, offDay);
+                    }
                 }
                 
                 const isHolidayDate = holidaysMap.has(dateStr);
