@@ -328,6 +328,27 @@ router.post('/kj-certi/change-policy-execute', async (req, res) => {
   }
 });
 
+// 증권번호 변경 - 엑셀 다운로드 (JSON 응답, 프론트엔드에서 SheetJS로 생성)
+router.post('/kj-certi/change-policy-excel', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-change-policy-excel.php`;
+
+    const response = await axios.post(apiUrl, req.body, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: { ...getDefaultHeaders(), 'Content-Type': 'application/json' },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-certi change-policy-excel proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '엑셀 다운로드 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 // 회차 변경 (납입 회차 업데이트)
 router.get('/kj-certi/update-nabang', async (req, res) => {
   try {
