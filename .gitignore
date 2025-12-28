@@ -87,3 +87,4 @@ database/
 *.zip
 *.tar
 *.tar.gz
+deploy.sh
