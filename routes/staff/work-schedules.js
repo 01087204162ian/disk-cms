@@ -24,6 +24,7 @@ const { pool } = require('../../config/database');
 const {
   formatDate,
   getWeekStartDate,
+  getWeekEndDate,
   calculateOffDayByWeekCycle,
   getDayName,
   getCycleWeek,
@@ -194,13 +195,22 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
             });
         }
         
-        // 해당 월의 공휴일 조회
+        // 해당 월의 공휴일 조회 (이전/다음 월의 공휴일도 포함)
+        // 주의: 12월 28일이 포함된 주는 1월 1일도 포함될 수 있음
+        const monthStart = new Date(year, month - 1, 1);
+        const monthEnd = new Date(year, month, 0); // 해당 월의 마지막 날
+        
+        // 주의 시작일과 종료일 계산 (첫 주와 마지막 주의 경계 확인)
+        const firstDayWeekStart = getWeekStartDate(monthStart);
+        const lastDayWeekEnd = getWeekEndDate(monthEnd);
+        
+        // 해당 월과 겹치는 모든 주의 공휴일 조회
         const [holidayRows] = await pool.execute(`
             SELECT holiday_date, name FROM holidays 
-            WHERE YEAR(holiday_date) = ? AND MONTH(holiday_date) = ?
+            WHERE holiday_date >= ? AND holiday_date <= ?
             AND is_active = 1
             ORDER BY holiday_date ASC
-        `, [year, month]);
+        `, [formatDate(firstDayWeekStart), formatDate(lastDayWeekEnd)]);
         
         const holidays = holidayRows.map(row => ({
             date: formatDate(row.holiday_date),
