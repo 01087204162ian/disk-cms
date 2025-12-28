@@ -120,6 +120,21 @@ function calculateOffDayByWeekCycle(cycleStartDate, targetDate, initialOffDay) {
   // 4주(28일) 단위로 주기 계산
   const cycles = Math.floor(weeksDiff / 4);
   
+  // 타겟 날짜가 주기 시작일보다 이전인 경우 처리
+  if (daysDiff < 0) {
+    // 주기 시작일 이전이면 정방향으로 순환 (반대 방향의 역방향)
+    // 예: 주기 시작일이 금요일이고, 4주 전이면 목요일, 8주 전이면 수요일
+    const absCycles = Math.abs(cycles);
+    let currentOffDay = initialOffDay + absCycles;
+    
+    // 5 초과가 되면 5로 나눈 나머지로 조정
+    while (currentOffDay > 5) {
+      currentOffDay -= 5;
+    }
+    
+    return currentOffDay;
+  }
+  
   // 반대 방향 순환: 5(금) → 4(목) → 3(수) → 2(화) → 1(월) → 5(금)
   // 주기가 1 증가할 때마다 1 감소, 0 이하가 되면 5로 순환
   let currentOffDay = initialOffDay - cycles;

@@ -715,7 +715,7 @@ router.get('/work-schedules/my-schedule/:year/:month', requireAuth, async (req, 
                     reason: row.reason
                 })),
                 holidays: holidayRows.map(row => ({
-                    date: row.holiday_date,
+                    date: formatDate(row.holiday_date),
                     name: row.name
                 })),
                 is_probation: isProbation,

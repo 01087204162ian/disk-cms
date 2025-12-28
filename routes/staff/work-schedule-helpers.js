@@ -43,6 +43,21 @@ function calculateOffDayByWeekCycle(cycleStartDate, targetDate, initialOffDay) {
   // 4주(28일) 단위로 주기 계산
   const cycles = Math.floor(weeksDiff / 4);
   
+  // 타겟 날짜가 주기 시작일보다 이전인 경우 처리
+  if (daysDiff < 0) {
+    // 주기 시작일 이전이면 정방향으로 순환 (반대 방향의 역방향)
+    // 예: 주기 시작일이 금요일이고, 4주 전이면 목요일, 8주 전이면 수요일
+    const absCycles = Math.abs(cycles);
+    let currentOffDay = initialOffDay + absCycles;
+    
+    // 5 초과가 되면 5로 나눈 나머지로 조정
+    while (currentOffDay > 5) {
+      currentOffDay -= 5;
+    }
+    
+    return currentOffDay;
+  }
+  
   // 반대 방향 순환: 5(금) → 4(목) → 3(수) → 2(화) → 1(월) → 5(금)
   // 주기가 1 증가할 때마다 1 감소, 0 이하가 되면 5로 순환
   let currentOffDay = initialOffDay - cycles;
@@ -254,6 +269,28 @@ function calculateCycleInfo(cycleStartDate, targetDate, baseOffDay) {
   
   // 주차 범위 계산
   const daysDiff = Math.floor((target - cycleStart) / (1000 * 60 * 60 * 24));
+  
+  // 타겟 날짜가 주기 시작일보다 이전인 경우 처리
+  if (daysDiff < 0) {
+    // 주기 시작일 이전이면 첫 번째 주기로 처리
+    const weekRange = "1-4주차";
+    
+    // 다음 주기 계산 (4주 후)
+    const nextCycleStart = new Date(cycleStart);
+    nextCycleStart.setDate(nextCycleStart.getDate() + 28);
+    const nextOffDay = calculateOffDayByWeekCycle(cycleStart, nextCycleStart, baseOffDay);
+    
+    return {
+      currentOffDay,
+      currentOffDayName: getDayName(currentOffDay),
+      cycleWeek: 1,
+      weekRange: weekRange,
+      nextCycleDate: formatDate(nextCycleStart),
+      nextOffDay,
+      nextOffDayName: getDayName(nextOffDay)
+    };
+  }
+  
   const totalWeeks = Math.floor(daysDiff / 7) + 1;
   const cycleNumber = Math.floor((totalWeeks - 1) / 4);
   const weekStart = (cycleNumber * 4) + 1;

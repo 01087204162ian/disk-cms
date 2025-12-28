@@ -335,6 +335,38 @@ function calculateCycleInfo(workDays, targetDate) {
   // 주차 범위 계산 (예: "1-4주차", "5-8주차")
   // 전체 주기에서 몇 번째 4주 주기인지 계산
   const daysDiff = Math.floor((targetDate - cycleStart) / (1000 * 60 * 60 * 24));
+  
+  // 타겟 날짜가 주기 시작일보다 이전인 경우 처리
+  if (daysDiff < 0) {
+    // 주기 시작일 이전이면 첫 번째 주기로 처리
+    const weekRange = "1-4주차";
+    
+    // 디버깅용 로그
+    console.log('calculateCycleInfo (이전 날짜):', {
+      cycleStart: formatDate(cycleStart),
+      targetDate: formatDate(targetDate),
+      daysDiff,
+      weekRange,
+      currentOffDay,
+      currentOffDayName: getDayName(currentOffDay)
+    });
+    
+    // 다음 주기 계산 (4주 후)
+    const nextCycleStart = new Date(cycleStart);
+    nextCycleStart.setDate(nextCycleStart.getDate() + 28);
+    const nextOffDay = calculateOffDayByWeekCycle(cycleStart, nextCycleStart, workDays.base_off_day);
+    
+    return {
+      currentOffDay,
+      currentOffDayName: getDayName(currentOffDay),
+      cycleWeek: 1,
+      weekRange: weekRange,
+      nextCycleDate: formatDate(nextCycleStart),
+      nextOffDay,
+      nextOffDayName: getDayName(nextOffDay)
+    };
+  }
+  
   const totalWeeks = Math.floor(daysDiff / 7) + 1;
   const cycleNumber = Math.floor((totalWeeks - 1) / 4); // 0부터 시작
   const weekStart = (cycleNumber * 4) + 1;
