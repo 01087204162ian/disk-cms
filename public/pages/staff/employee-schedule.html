@@ -87,6 +87,59 @@
               </div>
             </div>
             
+            <!-- 기본 휴무일 설정 모달 (처음 설정 시) -->
+            <div class="modal fade" id="setWorkDaysModal" tabindex="-1" aria-labelledby="setWorkDaysModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="setWorkDaysModalLabel">
+                      <i class="fas fa-calendar-check me-2"></i>기본 휴무일 설정
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p class="mb-3">주 4일 근무제를 시작하기 위해 기본 휴무일을 선택해주세요.</p>
+                    <p class="text-muted small mb-3">선택한 요일이 4주 동안 고정 휴무일이 됩니다.</p>
+                    <div class="form-group">
+                      <label class="form-label fw-bold">기본 휴무일 선택</label>
+                      <div class="btn-group-vertical w-100" role="group">
+                        <input type="radio" class="btn-check" name="baseOffDay" id="offDay1" value="1" checked>
+                        <label class="btn btn-outline-primary" for="offDay1">
+                          <i class="fas fa-calendar-day me-2"></i>월요일
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="baseOffDay" id="offDay2" value="2">
+                        <label class="btn btn-outline-primary" for="offDay2">
+                          <i class="fas fa-calendar-day me-2"></i>화요일
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="baseOffDay" id="offDay3" value="3">
+                        <label class="btn btn-outline-primary" for="offDay3">
+                          <i class="fas fa-calendar-day me-2"></i>수요일
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="baseOffDay" id="offDay4" value="4">
+                        <label class="btn btn-outline-primary" for="offDay4">
+                          <i class="fas fa-calendar-day me-2"></i>목요일
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="baseOffDay" id="offDay5" value="5">
+                        <label class="btn btn-outline-primary" for="offDay5">
+                          <i class="fas fa-calendar-day me-2"></i>금요일
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="confirmSetWorkDaysBtn">
+                      <i class="fas fa-check me-2"></i>설정 완료
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <!-- 기본 정보 및 사이클 정보 -->
             <div class="row mb-3">
         <div class="col-md-8">

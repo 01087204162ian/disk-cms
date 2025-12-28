@@ -133,7 +133,127 @@ router.get('/my-status', requireAuth, async (req, res) => {
 });
 
 // ===========================
-// 2. 사용자 스케줄 조회
+// 2. 기본 휴무일 설정
+// ===========================
+
+/**
+ * POST /api/staff/work-schedules/set-work-days
+ * 사용자가 처음으로 기본 휴무일을 설정
+ */
+router.post('/set-work-days', requireAuth, async (req, res) => {
+    try {
+        const userEmail = req.session.user.email;
+        const { base_off_day } = req.body;
+        
+        // 파라미터 검증
+        if (!base_off_day || ![1, 2, 3, 4, 5].includes(parseInt(base_off_day, 10))) {
+            return res.status(400).json({
+                success: false,
+                message: '기본 휴무일을 선택해주세요. (1=월, 2=화, 3=수, 4=목, 5=금)',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        const offDay = parseInt(base_off_day, 10);
+        
+        // 사용자 정보 조회
+        const [userRows] = await pool.execute(`
+            SELECT email, name, work_schedule, work_days
+            FROM users
+            WHERE email = ?
+        `, [userEmail]);
+        
+        if (userRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: '사용자를 찾을 수 없습니다.',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        const user = userRows[0];
+        
+        // 이미 설정되어 있는지 확인
+        let existingWorkDays = null;
+        if (user.work_days) {
+            if (typeof user.work_days === 'string') {
+                try {
+                    existingWorkDays = JSON.parse(user.work_days);
+                } catch (error) {
+                    existingWorkDays = null;
+                }
+            } else {
+                existingWorkDays = user.work_days;
+            }
+        }
+        
+        if (existingWorkDays && existingWorkDays.base_off_day) {
+            return res.status(400).json({
+                success: false,
+                message: '이미 기본 휴무일이 설정되어 있습니다. 변경하려면 관리자에게 문의하세요.',
+                code: 'ALREADY_SET'
+            });
+        }
+        
+        // 오늘 날짜 기준으로 주 시작일(월요일) 계산
+        const today = new Date();
+        today.setHours(12, 0, 0, 0); // 정오로 설정하여 타임존 문제 방지
+        
+        // 오늘이 주말인 경우 다음 월요일로 조정
+        const dayOfWeek = today.getDay(); // 0=일, 1=월, ..., 6=토
+        let cycleStartDate = new Date(today);
+        
+        if (dayOfWeek === 0) {
+            // 일요일이면 다음 월요일
+            cycleStartDate.setDate(today.getDate() + 1);
+        } else if (dayOfWeek === 6) {
+            // 토요일이면 다음 월요일
+            cycleStartDate.setDate(today.getDate() + 2);
+        } else {
+            // 평일이면 이번 주 월요일
+            cycleStartDate.setDate(today.getDate() - (dayOfWeek - 1));
+        }
+        
+        cycleStartDate.setHours(0, 0, 0, 0);
+        const cycleStartDateStr = formatDate(cycleStartDate);
+        const initialSelectionDateStr = formatDate(today);
+        
+        // work_days 업데이트
+        const workDaysJson = JSON.stringify({
+            base_off_day: offDay,
+            cycle_start_date: cycleStartDateStr,
+            initial_selection_date: initialSelectionDateStr
+        });
+        
+        await pool.execute(`
+            UPDATE users
+            SET work_days = ?
+            WHERE email = ?
+        `, [workDaysJson, userEmail]);
+        
+        res.json({
+            success: true,
+            message: '기본 휴무일이 설정되었습니다.',
+            data: {
+                base_off_day: offDay,
+                off_day_name: getDayName(offDay),
+                cycle_start_date: cycleStartDateStr,
+                initial_selection_date: initialSelectionDateStr
+            }
+        });
+        
+    } catch (error) {
+        console.error('기본 휴무일 설정 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// ===========================
+// 3. 사용자 스케줄 조회
 // ===========================
 
 /**

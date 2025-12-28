@@ -131,6 +131,11 @@ function setupEventListeners() {
     document.getElementById('submitTemporaryChangeBtn').addEventListener('click', () => {
         submitTemporaryChange();
     });
+    
+    // 기본 휴무일 설정 제출
+    document.getElementById('confirmSetWorkDaysBtn').addEventListener('click', () => {
+        submitSetWorkDays();
+    });
 }
 
 // ===========================
@@ -160,11 +165,32 @@ async function loadSchedule() {
     try {
         showLoading();
         
+        // 먼저 상태 확인
+        const statusResponse = await fetch('/api/staff/work-schedules/my-status');
+        const statusResult = await statusResponse.json();
+        
+        if (!statusResult.success) {
+            throw new Error(statusResult.message || '상태 조회에 실패했습니다.');
+        }
+        
+        // work_days가 설정되지 않은 경우 모달 표시
+        if (!statusResult.data.has_work_days) {
+            hideLoading();
+            showSetWorkDaysModal();
+            return;
+        }
+        
         // API 호출
         const response = await fetch(`/api/staff/work-schedules/my-schedule/${currentYear}/${currentMonth}`);
         const result = await response.json();
         
         if (!result.success) {
+            // WORK_DAYS_NOT_SET 에러인 경우 모달 표시
+            if (result.code === 'WORK_DAYS_NOT_SET') {
+                hideLoading();
+                showSetWorkDaysModal();
+                return;
+            }
             throw new Error(result.message || '스케줄 조회에 실패했습니다.');
         }
         
@@ -571,6 +597,63 @@ async function submitTemporaryChange() {
     } catch (error) {
         console.error('일시적 변경 신청 오류:', error);
         alert('일시적 변경 신청 중 오류가 발생했습니다: ' + error.message);
+        hideLoading();
+    }
+}
+
+// ===========================
+// 기본 휴무일 설정
+// ===========================
+
+function showSetWorkDaysModal() {
+    const modal = new bootstrap.Modal(document.getElementById('setWorkDaysModal'));
+    modal.show();
+}
+
+async function submitSetWorkDays() {
+    try {
+        const selectedOffDay = document.querySelector('input[name="baseOffDay"]:checked');
+        
+        if (!selectedOffDay) {
+            alert('기본 휴무일을 선택해주세요.');
+            return;
+        }
+        
+        const baseOffDay = parseInt(selectedOffDay.value, 10);
+        
+        showLoading();
+        
+        // API 호출
+        const response = await fetch('/api/staff/work-schedules/set-work-days', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                base_off_day: baseOffDay
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || '기본 휴무일 설정에 실패했습니다.');
+        }
+        
+        // 모달 닫기
+        const modal = bootstrap.Modal.getInstance(document.getElementById('setWorkDaysModal'));
+        modal.hide();
+        
+        // 스케줄 다시 로드
+        await loadSchedule();
+        
+        hideLoading();
+        
+        alert('기본 휴무일이 설정되었습니다.');
+        
+    } catch (error) {
+        console.error('기본 휴무일 설정 오류:', error);
+        alert('기본 휴무일 설정 중 오류가 발생했습니다: ' + error.message);
         hideLoading();
     }
 }
