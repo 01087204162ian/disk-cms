@@ -18,7 +18,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../../config/database');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const { requireAuth, requireRole } = require('../../middleware/auth');
 
 /**
  * 날짜 포맷팅 함수
@@ -57,7 +57,7 @@ function getNextWeekday(date) {
  * 공휴일 목록 조회
  * GET /api/staff/holidays?year=2026&startDate=2026-01-01&endDate=2026-12-31
  */
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   try {
     const { year, startDate, endDate } = req.query;
     
@@ -112,7 +112,7 @@ router.get('/', authenticateToken, async (req, res) => {
  * POST /api/staff/holidays
  * Body: { date: '2026-01-01', name: '신정', year: 2026 }
  */
-router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
+router.post('/', requireAuth, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
   try {
     const { date, name, year } = req.body;
     
@@ -185,7 +185,7 @@ router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN'])
  * PUT /api/staff/holidays/:id
  * Body: { name: '신정', isActive: true }
  */
-router.put('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
+router.put('/:id', requireAuth, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, isActive } = req.body;
@@ -235,7 +235,7 @@ router.put('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN'
  * 공휴일 삭제 (비활성화)
  * DELETE /api/staff/holidays/:id
  */
-router.delete('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
+router.delete('/:id', requireAuth, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -266,7 +266,7 @@ router.delete('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'SYSTEM_ADM
  * 주말에 있는 공휴일의 경우 다음 평일을 대체 공휴일로 자동 생성
  * 1년 이내의 날짜만 생성
  */
-router.post('/generate-substitute', authenticateToken, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
+router.post('/generate-substitute', requireAuth, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
   try {
     const { year } = req.body;
     
@@ -360,7 +360,7 @@ router.post('/generate-substitute', authenticateToken, requireRole(['SUPER_ADMIN
  * 공휴일 데이터 검증
  * GET /api/staff/holidays/validate?year=2026
  */
-router.get('/validate', authenticateToken, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
+router.get('/validate', requireAuth, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
   try {
     const { year } = req.query;
     
