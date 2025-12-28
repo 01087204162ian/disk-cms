@@ -421,14 +421,8 @@ function createDayElement(day, dateStr, daySchedule, todayStr) {
         status.className = 'day-status off';
         status.textContent = '휴무일';
         dayElement.appendChild(status);
-    } else {
-        // 근무일
-        dayElement.classList.add('work');
-        const status = document.createElement('div');
-        status.className = 'day-status work';
-        status.textContent = '근무일';
-        dayElement.appendChild(status);
     }
+    // 근무일은 표시하지 않음 (공휴일, 휴무일만 표시)
     
     return dayElement;
 }

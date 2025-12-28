@@ -128,66 +128,104 @@ function getWeekEndDate(date) {
 // ===========================
 
 /**
- * 4주 사이클 번호 계산
+ * 4주 사이클 번호 계산 (공휴일 주 제외)
  * @param {Date|string} cycleStartDate - 사이클 시작일 (KST)
  * @param {Date|string} targetDate - 계산 대상 날짜 (KST)
+ * @param {Array} holidays - 공휴일 배열 [{date: string|Date, name: string}] (선택)
  * @returns {number} 사이클 번호 (0부터 시작)
  */
-function getCycleNumber(cycleStartDate, targetDate) {
+function getCycleNumber(cycleStartDate, targetDate, holidays = []) {
   const start = parseKSTDate(cycleStartDate);
   const target = parseKSTDate(targetDate);
   
-  // 날짜 차이 계산 (밀리초)
-  const diffMs = target.getTime() - start.getTime();
+  // 주 시작일 기준으로 계산
+  const startWeekStart = getWeekStartDate(start);
+  const targetWeekStart = getWeekStartDate(target);
   
-  // 일수로 변환
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  // 사이클 시작일부터 목표 날짜까지 주를 순회하면서 공휴일 주를 제외하고 카운트
+  let currentWeekStart = new Date(startWeekStart);
+  let weekCount = 0; // 공휴일이 없는 주의 개수
+  let cycleNumber = 0;
   
-  // 사이클 번호 계산 (28일 = 4주)
-  const cycleNumber = Math.floor(diffDays / 28);
+  while (currentWeekStart <= targetWeekStart) {
+    // 공휴일 주가 아닌 경우에만 카운트
+    if (!hasHolidayInWeek(currentWeekStart, holidays)) {
+      weekCount++;
+      
+      // 4주가 되면 다음 사이클로
+      if (weekCount > 4) {
+        cycleNumber++;
+        weekCount = 1;
+      }
+    }
+    
+    // 다음 주로 이동
+    currentWeekStart = new Date(currentWeekStart);
+    currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+  }
   
   return cycleNumber;
 }
 
 /**
- * 4주 사이클 내 주차 계산 (1-4)
+ * 4주 사이클 내 주차 계산 (1-4, 공휴일 주 제외)
  * @param {Date|string} cycleStartDate - 사이클 시작일 (KST)
  * @param {Date|string} targetDate - 계산 대상 날짜 (KST)
+ * @param {Array} holidays - 공휴일 배열 [{date: string|Date, name: string}] (선택)
  * @returns {number} 주차 (1-4)
  */
-function getCycleWeek(cycleStartDate, targetDate) {
+function getCycleWeek(cycleStartDate, targetDate, holidays = []) {
   const start = parseKSTDate(cycleStartDate);
   const target = parseKSTDate(targetDate);
   
-  // 날짜 차이 계산
-  const diffMs = target.getTime() - start.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  // 주 시작일 기준으로 계산
+  const startWeekStart = getWeekStartDate(start);
+  const targetWeekStart = getWeekStartDate(target);
   
-  // 사이클 내 일수 계산
-  const daysInCycle = diffDays % 28;
+  // 사이클 시작일부터 목표 날짜까지 주를 순회하면서 공휴일 주를 제외하고 카운트
+  let currentWeekStart = new Date(startWeekStart);
+  let weekCount = 0; // 공휴일이 없는 주의 개수
   
-  // 주차 계산 (0-3 → 1-4)
-  const week = Math.floor(daysInCycle / 7) + 1;
+  while (currentWeekStart <= targetWeekStart) {
+    // 공휴일 주가 아닌 경우에만 카운트
+    if (!hasHolidayInWeek(currentWeekStart, holidays)) {
+      weekCount++;
+    }
+    
+    // 다음 주로 이동
+    currentWeekStart = new Date(currentWeekStart);
+    currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+  }
+  
+  // 사이클 내 주차 계산 (1-4)
+  const week = ((weekCount - 1) % 4) + 1;
   
   return week;
 }
 
 /**
- * 4주 사이클 기준 휴무일 계산
+ * 4주 사이클 기준 휴무일 계산 (공휴일 주 제외)
  * @param {Date|string} cycleStartDate - 사이클 시작일 (KST)
  * @param {Date|string} targetDate - 계산 대상 날짜 (KST)
  * @param {number} baseOffDay - 기본 휴무일 (1=월, 2=화, 3=수, 4=목, 5=금)
+ * @param {Array} holidays - 공휴일 배열 [{date: string|Date, name: string}] (선택)
  * @returns {number} 해당 주의 휴무일 (1-5)
  */
-function calculateOffDayByWeekCycle(cycleStartDate, targetDate, baseOffDay) {
+function calculateOffDayByWeekCycle(cycleStartDate, targetDate, baseOffDay, holidays = []) {
   const start = parseKSTDate(cycleStartDate);
   const target = parseKSTDate(targetDate);
   
   // 주 시작일(월요일) 기준으로 계산
   const weekStart = getWeekStartDate(target);
   
-  // 사이클 번호 계산
-  const cycleNumber = getCycleNumber(start, weekStart);
+  // 공휴일 주인 경우 휴무일 계산 불필요 (주 4일 근무 해제)
+  if (hasHolidayInWeek(weekStart, holidays)) {
+    // 공휴일 주는 기본 휴무일을 반환 (표시용, 실제로는 주 4일 근무 해제)
+    return baseOffDay;
+  }
+  
+  // 사이클 번호 계산 (공휴일 주 제외)
+  const cycleNumber = getCycleNumber(start, weekStart, holidays);
   
   // 사이클 0 (1-4주차)인 경우 base_off_day 사용
   if (cycleNumber === 0) {
@@ -323,12 +361,13 @@ function isProbationPeriod(hireDate, targetDate = new Date()) {
 // ===========================
 
 /**
- * 사이클 정보 계산
+ * 사이클 정보 계산 (공휴일 주 제외)
  * @param {Object} workDays - work_days JSON 객체
  * @param {Date|string} targetDate - 계산 대상 날짜 (KST, 기본값: 오늘)
+ * @param {Array} holidays - 공휴일 배열 [{date: string|Date, name: string}] (선택)
  * @returns {Object} 사이클 정보
  */
-function calculateCycleInfo(workDays, targetDate = new Date()) {
+function calculateCycleInfo(workDays, targetDate = new Date(), holidays = []) {
   if (!workDays || !workDays.cycle_start_date || !workDays.base_off_day) {
     return null;
   }
@@ -339,19 +378,32 @@ function calculateCycleInfo(workDays, targetDate = new Date()) {
   // 주 시작일 기준으로 계산
   const weekStart = getWeekStartDate(target);
   
-  // 사이클 번호 및 주차 계산
-  const cycleNumber = getCycleNumber(cycleStart, weekStart);
-  const cycleWeek = getCycleWeek(cycleStart, weekStart);
+  // 사이클 번호 및 주차 계산 (공휴일 주 제외)
+  const cycleNumber = getCycleNumber(cycleStart, weekStart, holidays);
+  const cycleWeek = getCycleWeek(cycleStart, weekStart, holidays);
   
-  // 현재 휴무일 계산
-  const currentOffDay = calculateOffDayByWeekCycle(cycleStart, weekStart, workDays.base_off_day);
+  // 현재 휴무일 계산 (공휴일 주 제외)
+  const currentOffDay = calculateOffDayByWeekCycle(cycleStart, weekStart, workDays.base_off_day, holidays);
   
-  // 다음 사이클 시작일 계산 (28일 후)
-  const nextCycleStart = new Date(cycleStart);
-  nextCycleStart.setDate(cycleStart.getDate() + (cycleNumber + 1) * 28);
+  // 다음 사이클 시작일 계산 (공휴일 주를 제외한 4주 후)
+  // 사이클 시작일부터 공휴일이 없는 주를 4주 카운트한 후의 날짜
+  let nextCycleStart = new Date(cycleStart);
+  let weekCount = 0;
+  let currentWeek = new Date(getWeekStartDate(cycleStart));
+  
+  while (weekCount < 4) {
+    if (!hasHolidayInWeek(currentWeek, holidays)) {
+      weekCount++;
+    }
+    if (weekCount < 4) {
+      currentWeek = new Date(currentWeek);
+      currentWeek.setDate(currentWeek.getDate() + 7);
+    }
+  }
+  nextCycleStart = new Date(currentWeek);
   
   // 다음 사이클의 휴무일 계산
-  const nextOffDay = calculateOffDayByWeekCycle(cycleStart, nextCycleStart, workDays.base_off_day);
+  const nextOffDay = calculateOffDayByWeekCycle(cycleStart, nextCycleStart, workDays.base_off_day, holidays);
   
   // 주차 범위 계산
   const weekRange = `${(cycleWeek - 1) * 7 + 1}-${cycleWeek * 7}주차`;
@@ -392,12 +444,13 @@ function validateHalfDay(applyDate, userWorkDays, holidays) {
     };
   }
   
-  // 2. 주 시작일 기준으로 휴무일 계산
+  // 2. 주 시작일 기준으로 휴무일 계산 (공휴일 주 제외)
   const weekStart = getWeekStartDate(apply);
   const offDay = calculateOffDayByWeekCycle(
     userWorkDays.cycle_start_date,
     weekStart,
-    userWorkDays.base_off_day
+    userWorkDays.base_off_day,
+    holidays
   );
   
   // 3. 휴무일인지 확인
@@ -458,11 +511,12 @@ function validateTemporaryChange(weekStartDate, temporaryOffDay, userWorkDays, h
     };
   }
   
-  // 2. 원래 휴무일 계산
+  // 2. 원래 휴무일 계산 (공휴일 주 제외)
   const originalOffDay = calculateOffDayByWeekCycle(
     userWorkDays.cycle_start_date,
     weekStart,
-    userWorkDays.base_off_day
+    userWorkDays.base_off_day,
+    holidays
   );
   
   // 3. 원래 휴무일과 동일한지 확인

@@ -397,9 +397,9 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
         // dailySchedule을 생성한 후 각 주별로 공휴일 포함 여부를 확인
         const weekHolidayMap = new Map(); // 주 시작일(문자열) -> 공휴일 포함 여부
         
-        // 사이클 정보 계산 (해당 월의 첫 날 기준)
+        // 사이클 정보 계산 (해당 월의 첫 날 기준, 공휴일 정보 포함)
         const monthFirstDay = new Date(year, month - 1, 1);
-        const cycleInfo = calculateCycleInfo(workDays, monthFirstDay);
+        const cycleInfo = calculateCycleInfo(workDays, monthFirstDay, holidays);
         
         if (!cycleInfo) {
             return res.status(400).json({
@@ -439,11 +439,12 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
                     // 일시적 변경이 있으면 변경된 휴무일 사용
                     offDay = tempChange.temporary_off_day;
                 } else {
-                    // 없으면 정상 순환 계산
+                    // 없으면 정상 순환 계산 (공휴일 주 제외)
                     offDay = calculateOffDayByWeekCycle(
                         workDays.cycle_start_date,
                         weekStart,
-                        workDays.base_off_day
+                        workDays.base_off_day,
+                        holidays
                     );
                 }
                 
@@ -771,28 +772,35 @@ router.post('/temporary-change', requireAuth, async (req, res) => {
             });
         }
         
-        // 원래 휴무일 계산
-        const originalOffDay = calculateOffDayByWeekCycle(
-            workDays.cycle_start_date,
-            weekStart,
-            workDays.base_off_day
-        );
-        
-        // 공휴일 조회
+        // 공휴일 조회 (사이클 계산을 위해 넓은 범위 조회)
         const weekStartDate = new Date(week_start_date);
-        const year = weekStartDate.getFullYear();
-        const month = weekStartDate.getMonth() + 1;
+        
+        // 사이클 시작일부터 해당 주까지의 공휴일 조회
+        const cycleStartDate = parseKSTDate(workDays.cycle_start_date);
+        const queryStartDate = new Date(cycleStartDate);
+        queryStartDate.setFullYear(queryStartDate.getFullYear() - 1); // 1년 전까지
+        const queryEndDate = new Date(weekStartDate);
+        queryEndDate.setFullYear(queryEndDate.getFullYear() + 1); // 1년 후까지
         
         const [holidayRows] = await pool.execute(`
             SELECT holiday_date, name FROM holidays 
-            WHERE YEAR(holiday_date) = ? AND MONTH(holiday_date) = ?
+            WHERE holiday_date >= ? AND holiday_date <= ?
             AND is_active = 1
-        `, [year, month]);
+            ORDER BY holiday_date ASC
+        `, [formatDate(queryStartDate), formatDate(queryEndDate)]);
         
         const holidays = holidayRows.map(row => ({
             date: formatDate(row.holiday_date),
             name: row.name
         }));
+        
+        // 원래 휴무일 계산 (공휴일 주 제외)
+        const originalOffDay = calculateOffDayByWeekCycle(
+            workDays.cycle_start_date,
+            weekStart,
+            workDays.base_off_day,
+            holidays
+        );
         
         // 검증
         const validation = validateTemporaryChange(week_start_date, temporary_off_day, workDays, holidays);
