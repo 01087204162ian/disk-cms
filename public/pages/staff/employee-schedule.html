@@ -67,82 +67,65 @@
               </div>
             </div>
 
-            <!-- 빠른 작업 버튼 -->
-            <div class="card mb-3">
-              <div class="card-header bg-primary text-white">
-                <h6 class="mb-0">
-                  <i class="fas fa-bolt me-2"></i>빠른 작업
-                </h6>
-              </div>
-              <div class="card-body">
-                <button class="btn btn-success w-100 mb-2" id="halfDayBtn">
-                  <i class="fas fa-clock me-2"></i>반차 신청
-                </button>
-                <button class="btn btn-info w-100" id="temporaryChangeBtn">
-                  <i class="fas fa-exchange-alt me-2"></i>휴무일 변경
-                </button>
-              </div>
-            </div>
-
             <!-- 근무 패턴 정보 -->
-            <div class="card mb-3">
-              <div class="card-header bg-info text-white">
-                <h6 class="mb-0">
-                  <i class="fas fa-info-circle me-2"></i>근무 패턴
+            <div class="card mb-3 border-0 shadow-sm">
+              <div class="card-header bg-white border-bottom">
+                <h6 class="mb-0 text-dark">
+                  <i class="fas fa-info-circle me-2 text-primary"></i>근무 패턴
                 </h6>
               </div>
               <div class="card-body">
                 <div class="info-item-compact mb-3">
                   <div class="info-label-compact">
-                    <i class="fas fa-calendar-times me-2 text-danger"></i>기본 휴무일
+                    <i class="fas fa-calendar-times me-2"></i>기본 휴무일
                   </div>
-                  <div class="info-value-compact fw-bold text-danger" id="baseOffDayDisplay">-</div>
+                  <div class="info-value-compact fw-bold" id="baseOffDayDisplay">-</div>
                 </div>
                 
                 <div class="info-item-compact mb-3">
                   <div class="info-label-compact">
-                    <i class="fas fa-sync-alt me-2 text-primary"></i>사이클 정보
+                    <i class="fas fa-sync-alt me-2"></i>사이클 정보
                   </div>
                   <div class="info-value-compact">
-                    <span class="badge bg-primary" id="cycleInfoBadge">-</span>
+                    <span class="badge bg-secondary" id="cycleInfoBadge">-</span>
                   </div>
                 </div>
                 
                 <div class="info-item-compact mb-3">
                   <div class="info-label-compact">
-                    <i class="fas fa-calendar-week me-2 text-info"></i>이번 달 패턴
+                    <i class="fas fa-calendar-week me-2"></i>이번 달 패턴
                   </div>
-                  <div class="info-value-compact fw-bold text-info small" id="currentPatternDisplay">-</div>
+                  <div class="info-value-compact fw-bold small" id="currentPatternDisplay">-</div>
                 </div>
                 
                 <div class="info-item-compact">
                   <div class="info-label-compact">
-                    <i class="fas fa-arrow-right me-2 text-success"></i>다음 사이클
+                    <i class="fas fa-arrow-right me-2"></i>다음 사이클
                   </div>
-                  <div class="info-value-compact text-success small" id="nextCycleDisplay">-</div>
+                  <div class="info-value-compact small" id="nextCycleDisplay">-</div>
                 </div>
               </div>
             </div>
 
             <!-- 통계 정보 -->
-            <div class="card">
-              <div class="card-header bg-success text-white">
-                <h6 class="mb-0">
-                  <i class="fas fa-chart-pie me-2"></i>이번 달 통계
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white border-bottom">
+                <h6 class="mb-0 text-dark">
+                  <i class="fas fa-chart-pie me-2 text-primary"></i>이번 달 통계
                 </h6>
               </div>
               <div class="card-body">
                 <div class="stat-item-compact mb-3">
                   <div class="stat-label-compact text-muted">근무일</div>
-                  <div class="stat-value-compact fw-bold text-success" id="workDaysCount">-</div>
+                  <div class="stat-value-compact fw-bold" id="workDaysCount">-</div>
                 </div>
                 <div class="stat-item-compact mb-3">
                   <div class="stat-label-compact text-muted">휴무일</div>
-                  <div class="stat-value-compact fw-bold text-danger" id="offDaysCount">-</div>
+                  <div class="stat-value-compact fw-bold" id="offDaysCount">-</div>
                 </div>
                 <div class="stat-item-compact">
                   <div class="stat-label-compact text-muted">총 근무시간</div>
-                  <div class="stat-value-compact fw-bold text-primary" id="totalHours">-</div>
+                  <div class="stat-value-compact fw-bold" id="totalHours">-</div>
                 </div>
               </div>
             </div>
@@ -151,50 +134,79 @@
 
         <!-- 오른쪽: 캘린더 영역 (2/3) -->
         <div class="col-lg-8 col-md-12">
-          <!-- 캘린더 영역 -->
-          <div class="card h-100">
-            <div class="card-header bg-light">
-              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <h5 class="mb-0">
-                  <i class="fas fa-calendar-alt me-2"></i>
-                  <span id="currentMonthDisplay">2025년 12월</span>
-                </h5>
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <button class="btn btn-outline-primary btn-sm" id="prevMonthBtn">
-                    <i class="fas fa-chevron-left"></i> <span class="d-none d-sm-inline">이전</span>
-                  </button>
-                  <div class="month-selector d-flex align-items-center gap-2">
-                    <select class="form-control form-control-sm" id="yearSelect" style="width: 90px;">
-                      <!-- 연도 옵션은 JavaScript에서 동적으로 생성 -->
-                    </select>
-                    <span class="small">년</span>
-                    <select class="form-control form-control-sm" id="monthSelect" style="width: 100px;">
-                      <option value="1">1월</option>
-                      <option value="2">2월</option>
-                      <option value="3">3월</option>
-                      <option value="4">4월</option>
-                      <option value="5">5월</option>
-                      <option value="6">6월</option>
-                      <option value="7">7월</option>
-                      <option value="8">8월</option>
-                      <option value="9">9월</option>
-                      <option value="10">10월</option>
-                      <option value="11">11월</option>
-                      <option value="12">12월</option>
-                    </select>
+          <div class="row g-3">
+            <!-- 캘린더 영역 -->
+            <div class="col-12">
+              <div class="card h-100">
+                <div class="card-header bg-light">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <h5 class="mb-0">
+                      <i class="fas fa-calendar-alt me-2"></i>
+                      <span id="currentMonthDisplay">2025년 12월</span>
+                    </h5>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      <button class="btn btn-outline-primary btn-sm" id="prevMonthBtn">
+                        <i class="fas fa-chevron-left"></i> <span class="d-none d-sm-inline">이전</span>
+                      </button>
+                      <div class="month-selector d-flex align-items-center gap-2">
+                        <select class="form-control form-control-sm" id="yearSelect" style="width: 90px;">
+                          <!-- 연도 옵션은 JavaScript에서 동적으로 생성 -->
+                        </select>
+                        <span class="small">년</span>
+                        <select class="form-control form-control-sm" id="monthSelect" style="width: 100px;">
+                          <option value="1">1월</option>
+                          <option value="2">2월</option>
+                          <option value="3">3월</option>
+                          <option value="4">4월</option>
+                          <option value="5">5월</option>
+                          <option value="6">6월</option>
+                          <option value="7">7월</option>
+                          <option value="8">8월</option>
+                          <option value="9">9월</option>
+                          <option value="10">10월</option>
+                          <option value="11">11월</option>
+                          <option value="12">12월</option>
+                        </select>
+                      </div>
+                      <button class="btn btn-outline-primary btn-sm" id="nextMonthBtn">
+                        <span class="d-none d-sm-inline">다음</span> <i class="fas fa-chevron-right"></i>
+                      </button>
+                      <button class="btn btn-primary btn-sm" id="todayBtn">
+                        <i class="fas fa-calendar-day me-1"></i><span class="d-none d-sm-inline">오늘</span>
+                      </button>
+                    </div>
                   </div>
-                  <button class="btn btn-outline-primary btn-sm" id="nextMonthBtn">
-                    <span class="d-none d-sm-inline">다음</span> <i class="fas fa-chevron-right"></i>
-                  </button>
-                  <button class="btn btn-primary btn-sm" id="todayBtn">
-                    <i class="fas fa-calendar-day me-1"></i><span class="d-none d-sm-inline">오늘</span>
-                  </button>
+                </div>
+                <div class="card-body p-2 p-md-3">
+                  <div id="calendarContainer">
+                    <!-- 캘린더는 JavaScript에서 동적으로 생성 -->
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="card-body p-2 p-md-3">
-              <div id="calendarContainer">
-                <!-- 캘린더는 JavaScript에서 동적으로 생성 -->
+            
+            <!-- 빠른 작업 버튼 (맨 오른쪽) -->
+            <div class="col-12">
+              <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                  <h6 class="mb-0 text-dark">
+                    <i class="fas fa-bolt me-2 text-primary"></i>빠른 작업
+                  </h6>
+                </div>
+                <div class="card-body">
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <button class="btn btn-primary w-100" id="halfDayBtn">
+                        <i class="fas fa-clock me-2"></i>반차 신청
+                      </button>
+                    </div>
+                    <div class="col-6">
+                      <button class="btn btn-outline-primary w-100" id="temporaryChangeBtn">
+                        <i class="fas fa-exchange-alt me-2"></i>휴무일 변경
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
