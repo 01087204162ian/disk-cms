@@ -396,12 +396,13 @@ function calculateCycleInfo(workDays, targetDate = new Date(), holidays = []) {
   const currentOffDay = calculateOffDayByWeekCycle(cycleStart, weekStart, workDays.base_off_day, holidays);
   
   // 다음 사이클 시작일 계산
-  // 현재 사이클의 남은 주 수를 계산하여 다음 사이클 시작일 찾기
+  // 현재 사이클의 마지막 주 다음 주를 찾기
+  // 현재 사이클 번호와 주차를 기준으로 다음 사이클 시작일 계산
   let nextCycleStart = new Date(weekStart);
   let currentWeekForNext = new Date(weekStart);
   
   // 현재 사이클의 남은 주 수 계산
-  const remainingWeeks = cycleNumber === 0 ? (4 - cycleWeek) : (4 - cycleWeek);
+  const remainingWeeks = 4 - cycleWeek;
   let weekCountForNext = 0;
   
   // 현재 사이클의 남은 주를 건너뛰기
@@ -421,6 +422,7 @@ function calculateCycleInfo(workDays, targetDate = new Date(), holidays = []) {
   currentWeekForNext = new Date(currentWeekForNext);
   currentWeekForNext.setDate(currentWeekForNext.getDate() + 7);
   
+  // 공휴일 주를 건너뛰면서 다음 사이클의 첫 번째 주 찾기
   while (hasHolidayInWeek(currentWeekForNext, holidays)) {
     currentWeekForNext = new Date(currentWeekForNext);
     currentWeekForNext.setDate(currentWeekForNext.getDate() + 7);
@@ -428,8 +430,16 @@ function calculateCycleInfo(workDays, targetDate = new Date(), holidays = []) {
   
   nextCycleStart = new Date(currentWeekForNext);
   
+  // 디버깅: 다음 사이클 시작일 확인
+  console.log(`[calculateCycleInfo] 현재 사이클: ${cycleNumber}, 주차: ${cycleWeek}`);
+  console.log(`[calculateCycleInfo] 다음 사이클 시작일: ${formatDate(nextCycleStart)}`);
+  
   // 다음 사이클의 휴무일 계산
   const nextOffDay = calculateOffDayByWeekCycle(cycleStart, nextCycleStart, workDays.base_off_day, holidays);
+  
+  // 디버깅: 다음 사이클 휴무일 확인
+  const nextCycleNumber = getCycleNumber(cycleStart, nextCycleStart, holidays);
+  console.log(`[calculateCycleInfo] 다음 사이클 번호: ${nextCycleNumber}, 휴무일: ${nextOffDay} (${getDayName(nextOffDay)})`);
   
   // 주차 범위 계산
   const weekRange = `${(cycleWeek - 1) * 7 + 1}-${cycleWeek * 7}주차`;
