@@ -256,8 +256,9 @@ function calculateOffDayByWeekCycle(cycleStartDate, targetDate, baseOffDay, holi
   const baseIndex = shiftOrder.indexOf(baseOffDay);
   
   // 사이클 번호에 따른 시프트 인덱스 계산
-  // 사이클 1: baseIndex - 1, 사이클 2: baseIndex - 2, ...
-  const shiftIndex = (baseIndex - (cycleNumber - 1) + 5) % 5;
+  // 각 사이클마다 시프트 순서에서 4칸 앞으로 이동 (금→목→수→화→월)
+  // 사이클 1: baseIndex - 4, 사이클 2: baseIndex - 8, ...
+  const shiftIndex = ((baseIndex - cycleNumber * 4) % 5 + 5) % 5;
   
   // 현재 사이클의 휴무일
   const currentOffDay = shiftOrder[shiftIndex];
