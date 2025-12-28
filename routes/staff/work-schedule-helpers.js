@@ -157,7 +157,6 @@ function getCycleNumber(cycleStartDate, targetDate, holidays = []) {
       // weekCount === 5일 때 사이클 1, weekCount === 9일 때 사이클 2, ...
       if (weekCount > 4) {
         cycleNumber = Math.floor((weekCount - 1) / 4);
-        weekCount = ((weekCount - 1) % 4) + 1;
       }
     }
     
@@ -165,6 +164,9 @@ function getCycleNumber(cycleStartDate, targetDate, holidays = []) {
     currentWeekStart = new Date(currentWeekStart);
     currentWeekStart.setDate(currentWeekStart.getDate() + 7);
   }
+  
+  // 디버깅: 사이클 번호 계산 확인
+  console.log(`[getCycleNumber] cycleStart: ${formatDate(startWeekStart)}, target: ${formatDate(targetWeekStart)}, weekCount: ${weekCount}, cycleNumber: ${cycleNumber}`);
   
   return cycleNumber;
 }
@@ -237,6 +239,9 @@ function calculateOffDayByWeekCycle(cycleStartDate, targetDate, baseOffDay, holi
   
   // 사이클 번호 계산 (공휴일 주 제외)
   const cycleNumber = getCycleNumber(start, weekStart, holidays);
+  
+  // 디버깅: 휴무일 계산 확인
+  console.log(`[calculateOffDayByWeekCycle] weekStart: ${formatDate(weekStart)}, cycleNumber: ${cycleNumber}, baseOffDay: ${baseOffDay}`);
   
   // 사이클 0 (1-4주차)인 경우 base_off_day 사용
   if (cycleNumber === 0) {
