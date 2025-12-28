@@ -154,9 +154,10 @@ function getCycleNumber(cycleStartDate, targetDate, holidays = []) {
       
       // 사이클 0은 정확히 4주, 사이클 1부터는 4주 단위
       // weekCount가 4를 넘으면 다음 사이클로
+      // weekCount === 5일 때 사이클 1, weekCount === 9일 때 사이클 2, ...
       if (weekCount > 4) {
-        cycleNumber++;
-        weekCount = 1;
+        cycleNumber = Math.floor((weekCount - 1) / 4);
+        weekCount = ((weekCount - 1) % 4) + 1;
       }
     }
     
