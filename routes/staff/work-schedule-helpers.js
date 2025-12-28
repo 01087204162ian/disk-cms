@@ -11,11 +11,16 @@
  * @returns {Date} 해당 주의 월요일
  */
 function getWeekStartDate(date) {
-  const d = typeof date === 'string' ? new Date(date) : new Date(date);
+  const d = typeof date === 'string' ? new Date(date + 'T00:00:00') : new Date(date);
+  d.setHours(0, 0, 0, 0);
   const day = d.getDay(); // 0=일, 1=월, ..., 6=토
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // 월요일로 조정
-  const monday = new Date(d.setDate(diff));
-  monday.setHours(0, 0, 0, 0);
+  // 월요일로 조정: 월요일(1)이면 0일 전, 화요일(2)이면 1일 전, ..., 일요일(0)이면 6일 전
+  const diff = day === 0 ? -6 : 1 - day;
+  // 년, 월, 일을 직접 계산하여 타임존 문제 방지
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  const dayOfMonth = d.getDate();
+  const monday = new Date(year, month, dayOfMonth + diff, 0, 0, 0, 0);
   return monday;
 }
 
