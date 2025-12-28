@@ -377,11 +377,11 @@ router.post('/work-schedules/apply-half-day', requireAuth, async (req, res) => {
         
         // 해당 월의 공휴일 조회
         const [holidayRows] = await pool.execute(`
-            SELECT date, name FROM holidays 
-            WHERE YEAR(date) = ? AND MONTH(date) = ?
+            SELECT holiday_date, name FROM holidays 
+            WHERE YEAR(holiday_date) = ? AND MONTH(holiday_date) = ?
         `, [year, month]);
         
-        const holidays = holidayRows.map(h => ({ date: h.date, name: h.name }));
+        const holidays = holidayRows.map(h => ({ date: h.holiday_date, name: h.name }));
         
         if (hasHolidayInWeek(weekStart, holidays)) {
             return res.status(400).json({
@@ -643,9 +643,9 @@ router.get('/work-schedules/my-schedule/:year/:month', requireAuth, async (req, 
         
         // 4. 해당 월의 공휴일 조회
         const [holidayRows] = await pool.execute(`
-            SELECT date, name FROM holidays 
-            WHERE YEAR(date) = ? AND MONTH(date) = ?
-            ORDER BY date ASC
+            SELECT holiday_date, name FROM holidays 
+            WHERE YEAR(holiday_date) = ? AND MONTH(holiday_date) = ?
+            ORDER BY holiday_date ASC
         `, [year, month]);
         
         // 5. 현재 주의 공휴일 포함 여부 확인
@@ -715,7 +715,7 @@ router.get('/work-schedules/my-schedule/:year/:month', requireAuth, async (req, 
                     reason: row.reason
                 })),
                 holidays: holidayRows.map(row => ({
-                    date: row.date,
+                    date: row.holiday_date,
                     name: row.name
                 })),
                 is_probation: isProbation,
@@ -790,11 +790,11 @@ router.post('/work-schedules/temporary-change', requireAuth, async (req, res) =>
         const month = weekStart.getMonth() + 1;
         
         const [holidayRows] = await pool.execute(`
-            SELECT date, name FROM holidays 
-            WHERE YEAR(date) = ? AND MONTH(date) = ?
+            SELECT holiday_date, name FROM holidays 
+            WHERE YEAR(holiday_date) = ? AND MONTH(holiday_date) = ?
         `, [year, month]);
         
-        const holidays = holidayRows.map(h => ({ date: h.date, name: h.name }));
+        const holidays = holidayRows.map(h => ({ date: h.holiday_date, name: h.name }));
         
         // 4. 검증
         const validation = validateTemporaryChange(
