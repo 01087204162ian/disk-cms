@@ -11,8 +11,16 @@
  * @returns {Date} 해당 주의 월요일
  */
 function getWeekStartDate(date) {
-  const d = typeof date === 'string' ? new Date(date + 'T00:00:00') : new Date(date);
-  d.setHours(0, 0, 0, 0);
+  let d;
+  if (typeof date === 'string') {
+    // 문자열인 경우 YYYY-MM-DD 형식으로 파싱
+    const parts = date.split('T')[0].split('-');
+    d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0);
+  } else {
+    d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+  }
+  
   const day = d.getDay(); // 0=일, 1=월, ..., 6=토
   // 월요일로 조정: 월요일(1)이면 0일 전, 화요일(2)이면 1일 전, ..., 일요일(0)이면 6일 전
   const diff = day === 0 ? -6 : 1 - day;
