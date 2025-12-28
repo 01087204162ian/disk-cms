@@ -280,6 +280,54 @@ router.post('/kj-certi/update', async (req, res) => {
   }
 });
 
+// 증권번호 변경 검색
+router.post('/kj-certi/change-policy-search', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-change-policy.php`;
+
+    const response = await axios.post(apiUrl, {
+      ...req.body,
+      action: 'search'
+    }, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: { ...getDefaultHeaders(), 'Content-Type': 'application/json' },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-certi change-policy-search proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권번호 변경 검색 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+// 증권번호 변경 실행
+router.post('/kj-certi/change-policy-execute', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-change-policy.php`;
+
+    const response = await axios.post(apiUrl, {
+      ...req.body,
+      action: 'execute'
+    }, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: { ...getDefaultHeaders(), 'Content-Type': 'application/json' },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Insurance KJ-certi change-policy-execute proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권번호 변경 실행 중 오류가 발생했습니다.',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 // 회차 변경 (납입 회차 업데이트)
 router.get('/kj-certi/update-nabang', async (req, res) => {
   try {

@@ -40,6 +40,13 @@
             <!-- 통합 검색/필터 영역 -->
             <div class="search-filter-row">
               <div class="row align-items-end">
+                <!-- 증권번호 변경 버튼 -->
+                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                  <button class="btn btn-warning w-100" type="button" id="policyChangeBtn">
+                    <i class="fas fa-exchange-alt"></i> <span class="d-none d-sm-inline">증권번호 변경</span>
+                  </button>
+                </div>
+                
                 <!-- 계약자명 필터 -->
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <input type="text" id="contractorNameFilter" class="form-control" placeholder="계약자/법인명" />
@@ -127,10 +134,115 @@
     </div>
   </main>
 
+  <!-- 증권번호 변경 모달 -->
+  <div class="modal fade" id="policyChangeModal" tabindex="-1" aria-labelledby="policyChangeModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="policyChangeModalLabel">증권번호 변경</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body">
+          <!-- 기존 정보 -->
+          <div class="mb-4">
+            <h6 class="fw-bold mb-3">기존 정보</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="oldPolicyNum" class="form-label">기존 증권번호</label>
+                <input type="text" id="oldPolicyNum" class="form-control" placeholder="예: 2025-S331191" />
+              </div>
+              <div class="col-md-6">
+                <label for="oldStartyDay" class="form-label">기존 시작일</label>
+                <input type="date" id="oldStartyDay" class="form-control" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 변경 정보 -->
+          <div class="mb-4">
+            <h6 class="fw-bold mb-3">변경 정보</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="newPolicyNum" class="form-label">새 증권번호</label>
+                <input type="text" id="newPolicyNum" class="form-control" placeholder="예: 2025-S999999" />
+              </div>
+              <div class="col-md-6">
+                <label for="newStartyDay" class="form-label">새 시작일</label>
+                <input type="date" id="newStartyDay" class="form-control" />
+              </div>
+              <div class="col-md-12">
+                <label for="newInsuranceCompany" class="form-label">새 보험회사</label>
+                <select id="newInsuranceCompany" class="form-select">
+                  <option value="">=선택=</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 검색 버튼 -->
+          <div class="mb-4">
+            <button type="button" class="btn btn-primary" id="searchPolicyBtn">
+              <i class="fas fa-search"></i> 검색
+            </button>
+          </div>
+
+          <!-- 검색 결과 -->
+          <div id="searchResultArea" style="display: none;">
+            <div class="alert alert-info">
+              <div class="row">
+                <div class="col-md-6">
+                  <strong>검색된 증권:</strong> <span id="certiTableCount">0</span>건
+                </div>
+                <div class="col-md-6">
+                  <strong>연관된 회원:</strong> <span id="memberCount">0</span>건
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="showDetailBtn">
+                <i class="fas fa-list"></i> 상세 목록 보기
+              </button>
+            </div>
+
+            <!-- 상세 목록 -->
+            <div id="detailListArea" style="display: none;">
+              <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                  <thead class="table-light">
+                    <tr>
+                      <th>번호</th>
+                      <th>증권번호</th>
+                      <th>시작일</th>
+                      <th>보험회사</th>
+                      <th>대리운전회사</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detailListBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-danger" id="executeChangeBtn" style="display: none;">
+            <i class="fas fa-exchange-alt"></i> 변경 실행
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- KJ 공통 상수 -->
+  <script src="/js/insurance/kj-constants.js"></script>
   <!-- SJ 템플릿 로더 -->
   <script src="/js/sj-template-loader.js"></script>
+  <!-- 증권번호 변경 기능 -->
+  <script src="/js/insurance/kj-driver-policy-search.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async function() {
       await window.sjTemplateLoader.initializePage('kj-driver-policy-search');
