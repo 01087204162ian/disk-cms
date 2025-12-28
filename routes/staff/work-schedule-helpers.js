@@ -384,7 +384,11 @@ function validateHalfDay(applyDate, userWorkDays, holidays) {
   );
   
   // 3. 휴무일인지 확인
-  if (apply.getDay() === offDay) {
+  // getDay(): 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
+  // offDay: 1=월, 2=화, 3=수, 4=목, 5=금
+  // 일요일(0)과 토요일(6)은 offDay 범위에 없으므로 체크 불필요
+  const applyDayOfWeek = apply.getDay();
+  if (applyDayOfWeek >= 1 && applyDayOfWeek <= 5 && applyDayOfWeek === offDay) {
     return {
       valid: false,
       message: '휴무일에는 반차를 사용할 수 없습니다.',
@@ -402,16 +406,9 @@ function validateHalfDay(applyDate, userWorkDays, holidays) {
   }
   
   // 5. 같은 주인지 확인 (휴무일과 같은 주에만 사용 가능)
-  const offDayDate = new Date(weekStart);
-  offDayDate.setDate(weekStart.getDate() + (offDay - 1));
-  
-  if (!isSameWeek(apply, offDayDate)) {
-    return {
-      valid: false,
-      message: '반차는 같은 주(월~일) 내에서만 사용 가능합니다.',
-      code: 'HALF_DAY_SAME_WEEK_REQUIRED'
-    };
-  }
+  // 휴무일과 같은 주에만 반차 사용 가능
+  // apply는 이미 weekStart와 같은 주에 있으므로, 추가 체크 불필요
+  // 단, 반차는 휴무일을 분할 사용하는 개념이므로 같은 주 내에서만 사용 가능
   
   return {
     valid: true,
@@ -435,28 +432,28 @@ function validateHalfDay(applyDate, userWorkDays, holidays) {
 function validateTemporaryChange(weekStartDate, temporaryOffDay, userWorkDays, holidays) {
   const weekStart = parseKSTDate(weekStartDate);
   
-  // 1. 원래 휴무일 계산
+  // 1. 공휴일 포함 주인지 확인 (먼저 체크)
+  if (hasHolidayInWeek(weekStart, holidays)) {
+    return {
+      valid: false,
+      message: '공휴일이 포함된 주에는 일시적 변경을 할 수 없습니다.',
+      code: 'HOLIDAY_WEEK_NOT_ALLOWED'
+    };
+  }
+  
+  // 2. 원래 휴무일 계산
   const originalOffDay = calculateOffDayByWeekCycle(
     userWorkDays.cycle_start_date,
     weekStart,
     userWorkDays.base_off_day
   );
   
-  // 2. 원래 휴무일과 동일한지 확인
+  // 3. 원래 휴무일과 동일한지 확인
   if (temporaryOffDay === originalOffDay) {
     return {
       valid: false,
       message: '원래 휴무일과 동일한 날짜로 변경할 수 없습니다.',
       code: 'SAME_OFF_DAY'
-    };
-  }
-  
-  // 3. 공휴일 포함 주인지 확인
-  if (hasHolidayInWeek(weekStart, holidays)) {
-    return {
-      valid: false,
-      message: '공휴일이 포함된 주에는 일시적 변경을 할 수 없습니다.',
-      code: 'HOLIDAY_WEEK_NOT_ALLOWED'
     };
   }
   

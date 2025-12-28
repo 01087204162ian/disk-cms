@@ -267,7 +267,11 @@ describe('주 4일 근무제 헬퍼 함수 테스트', () => {
     });
     
     test('휴무일에 반차 신청 불가', () => {
-      const applyDate = '2025-12-05'; // 금요일 (휴무일)
+      // 2025-12-01 주의 휴무일 계산
+      // cycle_start_date: 2025-01-06, base_off_day: 5 (금요일)
+      // 2025-12-01 주는 사이클 11이므로 shiftOrder[11%5=1] = 4 (목요일)
+      // 따라서 2025-12-04 (목요일)이 휴무일
+      const applyDate = '2025-12-04'; // 목요일 (휴무일)
       const holidays = [];
       const result = validateHalfDay(applyDate, userWorkDays, holidays);
       expect(result.valid).toBe(false);
@@ -304,7 +308,8 @@ describe('주 4일 근무제 헬퍼 함수 테스트', () => {
     
     test('원래 휴무일과 동일한 날짜로 변경 불가', () => {
       const weekStartDate = '2025-12-01'; // 월요일
-      const temporaryOffDay = 5; // 금요일 (원래 휴무일)
+      // 2025-12-01 주의 원래 휴무일은 사이클 11이므로 4 (목요일)
+      const temporaryOffDay = 4; // 목요일 (원래 휴무일)
       const holidays = [];
       const result = validateTemporaryChange(weekStartDate, temporaryOffDay, userWorkDays, holidays);
       expect(result.valid).toBe(false);
