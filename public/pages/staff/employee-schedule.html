@@ -42,24 +42,38 @@
   
   <!-- 메인 컨텐츠 -->
   <main class="main-content">
+    <!-- 페이지 헤더 -->
+    <div class="page-header mb-4">
+      <h1 class="page-title">
+        <i class="fas fa-calendar-alt me-2"></i>근무일정
+      </h1>
+      <p class="page-description">주 4일 근무제 스케줄 조회 및 관리</p>
+    </div>
+
     <div class="row">
       <div class="col-12">
         <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-calendar-check me-2"></i>
+              <span id="currentMonthDisplay">2025년 12월</span> 스케줄
+            </h5>
+          </div>
           <div class="card-body">
-                  <!-- 연도/월 선택 영역 -->
-            <div class="search-filter-row mb-3">
+            <!-- 연도/월 선택 영역 -->
+            <div class="search-filter-row mb-4">
               <div class="row align-items-end">
-                <div class="col-md-6">
-                  <div class="d-flex align-items-center gap-3">
+                <div class="col-md-8">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
                     <button class="btn btn-outline-primary btn-sm" id="prevMonthBtn">
-                      <i class="fas fa-chevron-left"></i> 이전 달
+                      <i class="fas fa-chevron-left"></i> <span class="d-none d-sm-inline">이전 달</span>
                     </button>
-                    <div class="month-selector">
-                      <select class="form-control" id="yearSelect" style="display: inline-block; width: auto;">
+                    <div class="month-selector d-flex align-items-center gap-2">
+                      <select class="form-control form-control-sm" id="yearSelect" style="width: 100px;">
                         <!-- 연도 옵션은 JavaScript에서 동적으로 생성 -->
                       </select>
-                      <span class="mx-2">년</span>
-                      <select class="form-control" id="monthSelect" style="display: inline-block; width: auto;">
+                      <span>년</span>
+                      <select class="form-control form-control-sm" id="monthSelect" style="width: 120px;">
                         <option value="1">1월</option>
                         <option value="2">2월</option>
                         <option value="3">3월</option>
@@ -75,14 +89,22 @@
                       </select>
                     </div>
                     <button class="btn btn-outline-primary btn-sm" id="nextMonthBtn">
-                      다음 달 <i class="fas fa-chevron-right"></i>
+                      <span class="d-none d-sm-inline">다음 달</span> <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button class="btn btn-primary btn-sm" id="todayBtn">
+                      <i class="fas fa-calendar-day me-1"></i><span class="d-none d-sm-inline">오늘</span>
                     </button>
                   </div>
                 </div>
-                <div class="col-md-6 text-end">
-                  <button class="btn btn-primary btn-sm" id="todayBtn">
-                    <i class="fas fa-calendar-day me-2"></i>오늘
-                  </button>
+                <div class="col-md-4 text-end mt-2 mt-md-0">
+                  <div class="btn-group" role="group">
+                    <button class="btn btn-success btn-sm" id="halfDayBtn">
+                      <i class="fas fa-clock me-1"></i><span class="d-none d-md-inline">반차 신청</span>
+                    </button>
+                    <button class="btn btn-info btn-sm" id="temporaryChangeBtn">
+                      <i class="fas fa-exchange-alt me-1"></i><span class="d-none d-md-inline">휴무일 변경</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -140,86 +162,115 @@
               </div>
             </div>
             
-            <!-- 기본 정보 및 사이클 정보 -->
-            <div class="row mb-3">
-        <div class="col-md-8">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0">
-                <i class="fas fa-info-circle me-2"></i>
-                근무 패턴 정보
-              </h5>
-            </div>
-            <div class="card-body">
-              <!-- 기본 휴무일 -->
-              <div class="info-row mb-3">
-                <div class="info-label">기본 휴무일:</div>
-                <div class="info-value" id="baseOffDayDisplay">-</div>
-              </div>
-              
-              <!-- 사이클 정보 -->
-              <div class="info-row mb-3">
-                <div class="info-label">사이클 정보:</div>
-                <div class="info-value">
-                  <span class="cycle-info-badge" id="cycleInfoBadge">-</span>
+            <!-- 알림 영역 -->
+            <div id="noticeArea" class="mb-4">
+              <!-- 수습 기간 알림 -->
+              <div class="alert alert-info probation-notice d-flex align-items-center" id="probationNotice" style="display: none;">
+                <i class="fas fa-info-circle me-2 fs-5"></i>
+                <div>
+                  <strong>수습 기간 중입니다.</strong> 주 4일 근무제는 입사 후 3개월 경과 후 적용됩니다.
                 </div>
               </div>
               
-              <!-- 이번 달 근무 패턴 -->
-              <div class="info-row mb-3">
-                <div class="info-label">이번 달 근무 패턴:</div>
-                <div class="info-value" id="currentPatternDisplay">-</div>
-              </div>
-              
-              <!-- 다음 사이클 정보 -->
-              <div class="info-row">
-                <div class="info-label">다음 사이클:</div>
-                <div class="info-value" id="nextCycleDisplay">-</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0">
-                <i class="fas fa-tasks me-2"></i>
-                빠른 작업
-              </h5>
-            </div>
-            <div class="card-body">
-              <button class="btn btn-primary w-100 mb-2" id="halfDayBtn">
-                <i class="fas fa-clock me-2"></i>
-                반차 신청
-              </button>
-              <button class="btn btn-outline-primary w-100" id="temporaryChangeBtn">
-                <i class="fas fa-exchange-alt me-2"></i>
-                휴무일 일시적 변경
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-            <!-- 알림 영역 -->
-            <div id="noticeArea" class="mb-3">
-              <!-- 수습 기간 알림 -->
-              <div class="alert alert-info probation-notice" id="probationNotice" style="display: none;">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>수습 기간 중입니다.</strong> 주 4일 근무제는 입사 후 3개월 경과 후 적용됩니다.
-              </div>
-              
               <!-- 공휴일 포함 주 알림 -->
-              <div class="alert alert-warning holiday-notice" id="holidayNotice" style="display: none;">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <strong>공휴일 포함 주입니다.</strong> 이번 주는 주 4일 근무가 적용되지 않습니다.
+              <div class="alert alert-warning holiday-notice d-flex align-items-center" id="holidayNotice" style="display: none;">
+                <i class="fas fa-exclamation-triangle me-2 fs-5"></i>
+                <div>
+                  <strong>공휴일 포함 주입니다.</strong> 이번 주는 주 4일 근무가 적용되지 않습니다.
+                </div>
+              </div>
+            </div>
+
+            <!-- 정보 카드 영역 -->
+            <div class="row mb-4">
+              <div class="col-lg-8 mb-3 mb-lg-0">
+                <div class="card border-primary">
+                  <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                      <i class="fas fa-info-circle me-2"></i>
+                      근무 패턴 정보
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="info-item">
+                          <div class="info-label">
+                            <i class="fas fa-calendar-times me-2 text-danger"></i>기본 휴무일
+                          </div>
+                          <div class="info-value fw-bold text-danger" id="baseOffDayDisplay">-</div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="info-item">
+                          <div class="info-label">
+                            <i class="fas fa-sync-alt me-2 text-primary"></i>사이클 정보
+                          </div>
+                          <div class="info-value">
+                            <span class="badge bg-primary fs-6" id="cycleInfoBadge">-</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="info-item">
+                          <div class="info-label">
+                            <i class="fas fa-calendar-week me-2 text-info"></i>이번 달 근무 패턴
+                          </div>
+                          <div class="info-value fw-bold text-info" id="currentPatternDisplay">-</div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="info-item">
+                          <div class="info-label">
+                            <i class="fas fa-arrow-right me-2 text-success"></i>다음 사이클
+                          </div>
+                          <div class="info-value text-success" id="nextCycleDisplay">-</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-lg-4">
+                <div class="card border-success">
+                  <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                      <i class="fas fa-chart-pie me-2"></i>
+                      이번 달 통계
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="stat-item mb-3">
+                      <div class="stat-label text-muted small">근무일</div>
+                      <div class="stat-value fw-bold text-success" id="workDaysCount">-</div>
+                    </div>
+                    <div class="stat-item mb-3">
+                      <div class="stat-label text-muted small">휴무일</div>
+                      <div class="stat-value fw-bold text-danger" id="offDaysCount">-</div>
+                    </div>
+                    <div class="stat-item">
+                      <div class="stat-label text-muted small">총 근무시간</div>
+                      <div class="stat-value fw-bold text-primary" id="totalHours">-</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
             <!-- 캘린더 영역 -->
-            <div id="calendarContainer">
-              <!-- 캘린더는 JavaScript에서 동적으로 생성 -->
+            <div class="card">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">
+                  <i class="fas fa-calendar-alt me-2"></i>
+                  월간 캘린더
+                </h5>
+              </div>
+              <div class="card-body p-3">
+                <div id="calendarContainer">
+                  <!-- 캘린더는 JavaScript에서 동적으로 생성 -->
+                </div>
+              </div>
             </div>
           </div>
         </div>

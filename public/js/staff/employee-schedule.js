@@ -267,10 +267,26 @@ function updateScheduleDisplay() {
     const holidayNotice = document.getElementById('holidayNotice');
     if (holidayNotice) {
         if (data.has_holiday_in_week) {
-            holidayNotice.style.display = 'block';
+            holidayNotice.style.display = 'flex';
         } else {
             holidayNotice.style.display = 'none';
         }
+    }
+    
+    // 통계 정보 업데이트
+    const workDaysCount = document.getElementById('workDaysCount');
+    const offDaysCount = document.getElementById('offDaysCount');
+    const totalHours = document.getElementById('totalHours');
+    
+    if (workDaysCount && data.schedule) {
+        workDaysCount.textContent = `${data.schedule.work_days_count}일`;
+    }
+    if (offDaysCount && data.schedule) {
+        const offCount = data.daily_schedule ? data.daily_schedule.filter(d => d.is_off_day).length : 0;
+        offDaysCount.textContent = `${offCount}일`;
+    }
+    if (totalHours && data.schedule) {
+        totalHours.textContent = `${data.schedule.total_hours}시간`;
     }
 }
 
