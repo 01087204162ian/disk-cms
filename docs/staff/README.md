@@ -59,10 +59,6 @@
    - 부서 관리
    - 근무 일정 관리
 
-2. **직원 스케줄** (`employee-schedule.html`)
-   - 개인 월별 스케줄 조회
-   - 반차 신청
-   - 근무 통계
 
 ---
 
@@ -111,10 +107,6 @@
 - `PUT /api/staff/departments/:id` - 부서 수정
 - `DELETE /api/staff/departments/:id` - 부서 삭제
 
-### 근무 스케줄
-- `GET /api/staff/work-schedules/my-schedule/:year/:month` - 내 스케줄 조회
-- `POST /api/staff/work-schedules/half-day` - 반차 신청
-- `GET /api/staff/work-schedules/team/:year/:month` - 팀 스케줄 조회
 
 ---
 

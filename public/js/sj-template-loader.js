@@ -632,10 +632,6 @@ createDynamicModal() {
 			  title: '공지사항',
 			  description: '직원 공지사항'
 			},
-			'employee-schedule': {
-			  title: '근무일정',
-			  description: '직원 근무일정 관리'
-			},
 			'staff-reports': {
 			  title: '고지사항',
 			  description: '직원 고지사항'
@@ -744,7 +740,6 @@ createDynamicModal() {
 			'/pages/dashboard.html': 'dashboard',
 			'/pages/staff/employees.html': 'staff-employees',
 			'/pages/staff/notices.html': 'staff-notices',
-			'/pages/staff/employee-schedule.html': 'employee-schedule',
 			'/pages/staff/reports.html': 'staff-reports',
 			'/pages/pharmacy/applications.html': 'pharmacy-applications',
 			'/pages/pharmacy/claims.html': 'pharmacy-claims',

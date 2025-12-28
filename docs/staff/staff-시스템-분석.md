@@ -61,19 +61,14 @@ disk-cms/
 ├── public/
 │   ├── pages/staff/
 │   │   ├── employees.html              # 직원 관리 페이지
-│   │   ├── employee-schedule.html      # 직원 개인 스케줄 페이지
-│   │   └── workSystem.md               # 4일 근무제 시스템 기획서
 │   └── js/staff/
 │       ├── employee-list.js            # 직원 목록 관리
 │       ├── employee-modal.js           # 직원 상세보기 모달
-│       ├── employee-schedule.js        # 직원 스케줄 관리
 │       ├── department-manager.js       # 부서 관리
-│       ├── work-schedule-manager.js    # 근무 일정 관리
 │       └── vacations.js                # 휴가 관리
 └── routes/staff/
     ├── employees.js                    # 직원 관리 API
-    ├── departments.js                  # 부서 관리 API
-    └── work-schedules.js               # 4일 근무제 스케줄 API
+    └── departments.js                 # 부서 관리 API
 ```
 
 ---
@@ -116,23 +111,6 @@ disk-cms/
 - 가입일
 - 마지막 로그인
 - 상태
-
-### 3.2 직원 개인 스케줄 페이지 (`employee-schedule.html`)
-
-**URL**: `/pages/staff/employee-schedule.html`
-
-**주요 기능**:
-- 월별 스케줄 캘린더 표시
-- 시프트 패턴 확인
-- 근무일/휴무일 표시
-- 반차 신청
-- 근무 통계 (이번 달 근무일, 주당 근무시간, 사용한 반차, 기본 휴무일)
-
-**4일 근무제 특징**:
-- 주 4일 근무 (32시간)
-- 월~금 정상 운영
-- 매월 시프트 순환 (5개월 주기)
-- 반차 신청 가능 (계획/긴급)
 
 ---
 
@@ -243,47 +221,6 @@ Body: {
 DELETE /api/staff/departments/:id
 ```
 
-### 4.3 근무 스케줄 API (`/api/staff/work-schedules`)
-
-#### 내 스케줄 조회
-```
-GET /api/staff/work-schedules/my-schedule/:year/:month
-Response: {
-  "success": true,
-  "data": {
-    "year": 2025,
-    "month": 1,
-    "work_days": {
-      "1": "full",  // 월: 종일
-      "2": "full",  // 화: 종일
-      "3": "full",  // 수: 종일
-      "4": "full",  // 목: 종일
-      "5": "off"    // 금: 휴무
-    },
-    "total_hours": 32,
-    ...
-  }
-}
-```
-
-#### 반차 신청
-```
-POST /api/staff/work-schedules/half-day
-Body: {
-  "year": 2025,
-  "month": 1,
-  "half_day_date": "2025-01-15",
-  "half_day_type": "AFTERNOON",  // MORNING or AFTERNOON
-  "is_emergency": false,
-  "reason": "병원 방문"
-}
-```
-
-#### 팀 스케줄 조회 (관리자)
-```
-GET /api/staff/work-schedules/team/:year/:month
-```
-
 ---
 
 ## 5. JavaScript 모듈
@@ -305,7 +242,6 @@ GET /api/staff/work-schedules/team/:year/:month
 **의존성**:
 - `EmployeeModal`: 직원 상세보기 모달
 - `DepartmentManager`: 부서 관리
-- `WorkScheduleManager`: 근무 일정 관리
 
 ### 5.2 EmployeeModal 클래스 (`employee-modal.js`)
 
@@ -330,91 +266,7 @@ GET /api/staff/work-schedules/team/:year/:month
 - 부서 삭제
 - 부서장 지정
 
-### 5.4 WorkScheduleManager 클래스 (`work-schedule-manager.js`)
-
-**역할**: 근무 일정 관리
-
-**주요 기능**:
-- 근무 스케줄 조회
-- 반차 신청
-- 휴가 관리
-
 ---
-
-## 6. 4일 근무제 시스템
-
-### 6.1 시스템 개요
-
-**목적**:
-- 직원: 주 4일 근무로 워크라이프밸런스 향상
-- 회사: 월~금 연속 서비스 제공 및 운영 효율성 확보
-- 공정성: 모든 직원이 각 요일 휴무를 순환하며 경험
-
-### 6.2 시프트 로테이션
-
-**순환 패턴**:
-- 5개월 주기로 순환 (금→월→화→수→목→금...)
-- 매월 첫 번째 월요일 기준으로 자동 변경
-- 초기 선택: 도입 시 각 직원이 원하는 휴무일 1회 선택
-
-**예시**:
-```
-1월: 금요일 휴무 (초기 선택)
-2월: 월요일 휴무 (시프트)
-3월: 화요일 휴무 (시프트)
-4월: 수요일 휴무 (시프트)
-5월: 목요일 휴무 (시프트)
-6월: 금요일 휴무 (순환 복귀)
-```
-
-### 6.3 반차 시스템
-
-**기본 개념**:
-- 반차 = 휴무일을 반으로 나누어 사용
-- 오전 반차: 14시 출근 (오후 4시간 근무)
-- 오후 반차: 14시 퇴근 (오전 4시간 근무)
-- 주 32시간 원칙 절대 유지
-
-**반차 종류**:
-
-1. **계획된 반차 (사전 신청)**
-   - 해당 주 휴무일을 4시간 근무로 변경하여 32시간 유지
-   - 예: 화요일 휴무자가 목요일 오후 반차 신청
-     - 목요일: 4시간 근무 (14시 퇴근)
-     - 화요일: 4시간 근무 (원래 휴무 → 반일 근무)
-
-2. **긴급 반차 (당일 또는 급작스런 상황)**
-   - 차주 보충 방식으로 처리
-   - 예: 화요일 휴무자가 금요일 긴급 반차
-     - 이번 주: 28시간 (4시간 부족)
-     - 다음 주: 다음 주 휴무일에 4시간 출근하여 36시간
-     - 2주 평균 32시간 유지
-
-### 6.4 JSON 데이터 구조
-
-#### work_schedules.work_days
-```json
-{
-  "first_monday": "2025-01-06",
-  "personal_shift_week": 1,
-  "base_off_day": 5,
-  "days": {
-    "1": "full",     // 월: 종일(8h)
-    "2": "full",     // 화: 종일(8h)
-    "3": "full",     // 수: 종일(8h)
-    "4": "full",     // 목: 종일(8h)
-    "5": "off"       // 금: 휴무
-  },
-  "total_hours": 32,
-  "work_days_count": 4
-}
-```
-
-**근무 타입**:
-- `full`: 종일근무 (8시간)
-- `morning`: 오전근무 (4시간)
-- `afternoon`: 오후근무 (4시간)
-- `off`: 휴무
 
 ---
 
@@ -502,20 +354,7 @@ const requireAdmin = (req, res, next) => {
 - `created_at`: 생성일
 - `updated_at`: 수정일
 
-### 8.3 work_schedules 테이블
-
-**주요 필드**:
-- `id`: 스케줄 ID (PK)
-- `user_id`: 사용자 이메일 (FK)
-- `year`: 연도
-- `month`: 월
-- `shift_week`: 시프트 주차 (1-5)
-- `work_days`: JSON - 월별 스케줄 정보
-- `status`: 상태 (APPROVED, INITIAL_PENDING, ADJUSTMENT_PENDING)
-- `created_at`: 생성일
-- `updated_at`: 수정일
-
-### 8.4 leaves 테이블
+### 8.3 leaves 테이블
 
 **주요 필드**:
 - `id`: 휴가 ID (PK)
@@ -582,27 +421,7 @@ const requireAdmin = (req, res, next) => {
 - 직원이 없는 부서만 삭제 가능
 - 소프트 삭제 (is_active = 0) 권장
 
-### 9.4 4일 근무제 스케줄
-
-**자동 스케줄 생성**:
-- 매월 20일에 다음 달 스케줄 자동 생성
-- 개인별 시프트 주차에 따라 휴무일 결정
-- 공휴일 처리 자동 반영
-
-**반차 신청**:
-- 계획된 반차: 사전 신청 가능
-- 긴급 반차: 당일 신청 가능 (차주 보충)
-- 반차 타입: 오전 반차, 오후 반차
-
-**승인 프로세스**:
-- 반차 신청 → 부서장 승인 → 스케줄 반영
-- 관리자는 승인 대기 목록 조회 및 처리
-
 ---
-
-## 10. 참고 문서
-
-- [4일 근무제 시스템 기획서](../pages/staff/workSystem.md) - 상세한 시스템 기획 내용
 
 ---
 
