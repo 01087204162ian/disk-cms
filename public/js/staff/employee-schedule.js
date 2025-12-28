@@ -485,7 +485,17 @@ function generateCalendar() {
                 scheduleStatus = 'work';
                 scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
               } else {
-                if (dayOfWeek === currentOffDay) {
+                // 공휴일 포함 주 체크
+                const weekStart = getWeekStartDate(date);
+                const holidays = window.currentScheduleData?.holidays || [];
+                const hasHoliday = hasHolidayInWeek(weekStart, holidays);
+                
+                // 공휴일이 포함된 주라면 휴무일을 표시하지 않음
+                if (hasHoliday && dayOfWeek === currentOffDay) {
+                  // 공휴일 포함 주의 휴무일은 근무일로 표시
+                  scheduleStatus = 'work';
+                  scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+                } else if (dayOfWeek === currentOffDay) {
                   scheduleStatus = 'off';
                   scheduleText = '<div class="day-status off"></div><div class="day-info off-info">휴무일</div>';
                 } else {

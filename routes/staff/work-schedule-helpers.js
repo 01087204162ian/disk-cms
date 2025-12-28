@@ -145,8 +145,13 @@ function hasHolidayInWeek(weekStartDate, holidays) {
   weekEnd.setDate(weekEnd.getDate() + 4); // 금요일까지
   
   return holidays.some(h => {
-    const holidayDate = new Date(h.date);
-    return holidayDate >= weekStart && holidayDate <= weekEnd;
+    const holidayDate = new Date(h.date || h.holiday_date);
+    holidayDate.setHours(0, 0, 0, 0);
+    const start = new Date(weekStart);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(weekEnd);
+    end.setHours(0, 0, 0, 0);
+    return holidayDate >= start && holidayDate <= end;
   });
 }
 

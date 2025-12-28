@@ -651,7 +651,8 @@ router.get('/work-schedules/my-schedule/:year/:month', requireAuth, async (req, 
         // 5. 현재 주의 공휴일 포함 여부 확인
         const today = new Date();
         const currentWeekStart = getWeekStartDate(today);
-        const hasHoliday = hasHolidayInWeek(currentWeekStart, holidayRows);
+        const holidaysForCheck = holidayRows.map(h => ({ date: h.date, name: h.name }));
+        const hasHoliday = hasHolidayInWeek(currentWeekStart, holidaysForCheck);
         
         // 6. 수습 기간 여부 확인
         const isProbation = isProbationPeriod(user.hire_date, today);

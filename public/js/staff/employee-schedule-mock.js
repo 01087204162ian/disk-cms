@@ -47,7 +47,8 @@ const mockScheduleData = {
     },
     temporary_changes: [], // 일시적 변경 목록
     holidays: [
-      { date: "2025-01-01", name: "신정" }
+      { date: "2025-01-01", name: "신정" },
+      { date: "2025-12-25", name: "크리스마스" }
     ],
     is_probation: false, // 수습 기간 여부
     has_holiday_in_week: false // 이번 주 공휴일 포함 여부
@@ -219,6 +220,30 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * 특정 주에 공휴일이 포함되어 있는지 확인
+ * @param {Date|string} weekStartDate - 주 시작일(월요일)
+ * @param {Array} holidays - 공휴일 배열 [{date: 'YYYY-MM-DD', name: '공휴일명'}]
+ * @returns {boolean} 공휴일 포함 여부
+ */
+function hasHolidayInWeek(weekStartDate, holidays) {
+  if (!holidays || holidays.length === 0) return false;
+  
+  const weekStart = typeof weekStartDate === 'string' ? new Date(weekStartDate) : weekStartDate;
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 4); // 금요일까지
+  
+  return holidays.some(h => {
+    const holidayDate = new Date(h.date || h.holiday_date);
+    holidayDate.setHours(0, 0, 0, 0);
+    const start = new Date(weekStart);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(weekEnd);
+    end.setHours(0, 0, 0, 0);
+    return holidayDate >= start && holidayDate <= end;
+  });
+}
+
 // 모킹 데이터 사용 여부 플래그
-window.USE_MOCK_DATA = true; // 개발 중에는 true, 실제 API 연동 시 false
+window.USE_MOCK_DATA = false; // 개발 중에는 true, 실제 API 연동 시 false
 
