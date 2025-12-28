@@ -283,9 +283,9 @@ async function loadPersonalSchedule(scheduleData = null) {
     // 전역 변수에 스케줄 데이터 저장
     window.currentScheduleData = scheduleData;
     
-    // 현재 날짜 기준으로 계산 (헤더 표시용)
-    const today = new Date();
-    const cycleInfo = calculateCycleInfo(scheduleData.user.work_days, today);
+    // 현재 표시 중인 월의 첫 날 기준으로 계산 (헤더 표시용)
+    const monthStartDate = new Date(currentYear, currentMonth - 1, 1);
+    const cycleInfo = calculateCycleInfo(scheduleData.user.work_days, monthStartDate);
     
     // 현재 월의 휴무일로 패턴 업데이트
     if (cycleInfo && scheduleData.user.work_days) {
@@ -445,15 +445,18 @@ function generateCalendar() {
           // 각 날짜마다 해당 날짜의 휴무일 계산
           const currentOffDay = calculateOffDayByWeekCycle(cycleStart, date, workDays.base_off_day);
           
-          // 디버깅용 (특정 날짜만)
-          if (day === 1 || day === 4 || day === 10) {
+          // 디버깅용 (12월 전체 또는 특정 날짜)
+          if (currentMonth === 12 && (day === 1 || day === 6 || day === 13 || day === 20 || day === 25 || day === 27)) {
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            const weekStart = getWeekStartDate(date);
             console.log(`캘린더 생성 - ${day}일(${dayNames[dayOfWeek]}):`, {
               date: formatDate(date),
               dayOfWeek,
               currentOffDay,
               dayName: getDayName(currentOffDay),
-              cycleStart: formatDate(cycleStart)
+              cycleStart: formatDate(cycleStart),
+              weekStart: formatDate(weekStart),
+              baseOffDay: workDays.base_off_day
             });
           }
           
@@ -485,22 +488,35 @@ function generateCalendar() {
                 scheduleStatus = 'work';
                 scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
               } else {
-                // 공휴일 포함 주 체크
-                const weekStart = getWeekStartDate(date);
+                // 공휴일 체크 (해당 날짜가 공휴일인지)
+                const dateString = formatDate(date);
                 const holidays = window.currentScheduleData?.holidays || [];
-                const hasHoliday = hasHolidayInWeek(weekStart, holidays);
+                const isHoliday = holidays.some(h => {
+                  const holidayDate = new Date(h.date);
+                  return formatDate(holidayDate) === dateString;
+                });
                 
-                // 공휴일이 포함된 주라면 휴무일을 표시하지 않음
-                if (hasHoliday && dayOfWeek === currentOffDay) {
-                  // 공휴일 포함 주의 휴무일은 근무일로 표시
-                  scheduleStatus = 'work';
-                  scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
-                } else if (dayOfWeek === currentOffDay) {
-                  scheduleStatus = 'off';
-                  scheduleText = '<div class="day-status off"></div><div class="day-info off-info">휴무일</div>';
+                // 공휴일이면 공휴일로 표시
+                if (isHoliday) {
+                  scheduleStatus = 'holiday';
+                  scheduleText = '<div class="day-status holiday"></div><div class="day-info holiday-info">공휴일</div>';
                 } else {
-                  scheduleStatus = 'work';
-                  scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+                  // 공휴일 포함 주 체크
+                  const weekStart = getWeekStartDate(date);
+                  const hasHoliday = hasHolidayInWeek(weekStart, holidays);
+                  
+                  // 공휴일이 포함된 주라면 휴무일을 표시하지 않음
+                  if (hasHoliday && dayOfWeek === currentOffDay) {
+                    // 공휴일 포함 주의 휴무일은 근무일로 표시
+                    scheduleStatus = 'work';
+                    scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+                  } else if (dayOfWeek === currentOffDay) {
+                    scheduleStatus = 'off';
+                    scheduleText = '<div class="day-status off"></div><div class="day-info off-info">휴무일</div>';
+                  } else {
+                    scheduleStatus = 'work';
+                    scheduleText = '<div class="day-status work"></div><div class="day-info work-info">근무일</div>';
+                  }
                 }
               }
             }

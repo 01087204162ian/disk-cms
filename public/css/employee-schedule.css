@@ -439,6 +439,32 @@
   color: #71717a;
 }
 
+/* 공휴일 */
+.calendar-day.holiday {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+}
+
+.calendar-day.holiday:hover {
+  background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+}
+
+.calendar-day.holiday .day-status.holiday {
+  background: #f59e0b;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.calendar-day.holiday .day-info.holiday-info {
+  color: #92400e;
+  font-weight: 600;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
 /* 더 자연스러운 오늘 날짜 */
 .calendar-day.today {
   border: 2px solid #6366f1;
