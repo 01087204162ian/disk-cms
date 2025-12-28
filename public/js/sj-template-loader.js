@@ -403,7 +403,16 @@ createDynamicModal() {
     const isAdmin = this.isAdmin();
 
     adminElements.forEach(el => {
-      el.style.display = isAdmin ? 'block' : 'none';
+      // data-roles 속성이 있는 경우 해당 권한 체크
+      const requiredRoles = el.getAttribute('data-roles');
+      if (requiredRoles) {
+        const roles = requiredRoles.split(',').map(r => r.trim());
+        const hasRole = this.user && roles.includes(this.user.role);
+        el.style.display = hasRole ? 'block' : 'none';
+      } else {
+        // data-roles가 없으면 기본 admin 체크
+        el.style.display = isAdmin ? 'block' : 'none';
+      }
     });
   }
 
