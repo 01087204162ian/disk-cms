@@ -651,7 +651,7 @@ router.get('/work-schedules/my-schedule/:year/:month', requireAuth, async (req, 
         // 5. 현재 주의 공휴일 포함 여부 확인
         const today = new Date();
         const currentWeekStart = getWeekStartDate(today);
-        const holidaysForCheck = holidayRows.map(h => ({ date: h.date, name: h.name }));
+        const holidaysForCheck = holidayRows.map(h => ({ date: formatDate(h.holiday_date), name: h.name }));
         const hasHoliday = hasHolidayInWeek(currentWeekStart, holidaysForCheck);
         
         // 6. 수습 기간 여부 확인
@@ -673,7 +673,66 @@ router.get('/work-schedules/my-schedule/:year/:month', requireAuth, async (req, 
             workDaysPattern[i] = (i === cycleInfo.currentOffDay) ? 'off' : 'full';
         }
         
-        // 9. 응답 반환
+        // 9. 월별 각 날짜의 스케줄 정보 계산 (서버에서 계산하여 타임존 문제 해결)
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const dailySchedule = [];
+        const holidaysMap = new Map(holidayRows.map(h => [formatDate(h.holiday_date), h.name]));
+        const halfDaysMap = new Map(halfDayRows.map(h => [h.start_date.split('T')[0], h]));
+        const temporaryChangesMap = new Map(changeRows.map(c => [formatDate(c.week_start_date), c]));
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month - 1, day, 12, 0, 0, 0); // 정오 시간으로 설정하여 타임존 문제 방지
+            const dayOfWeek = date.getDay(); // 0=일, 1=월, ..., 6=토
+            
+            // 평일만 처리
+            if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                const dateStr = formatDate(date);
+                const weekStart = getWeekStartDate(date);
+                const weekStartStr = formatDate(weekStart);
+                
+                // 일시적 변경이 있는지 확인
+                const tempChange = temporaryChangesMap.get(weekStartStr);
+                let offDay;
+                if (tempChange) {
+                    // 일시적 변경이 있으면 변경된 휴무일 사용
+                    offDay = tempChange.temporary_off_day;
+                } else {
+                    // 없으면 정상 순환 계산
+                    offDay = calculateOffDayByWeekCycle(
+                        workDays.cycle_start_date,
+                        weekStart,
+                        workDays.base_off_day
+                    );
+                }
+                
+                const isHoliday = holidaysMap.has(dateStr);
+                const halfDay = halfDaysMap.get(dateStr);
+                
+                // 공휴일 포함 주 체크
+                const weekHolidays = holidayRows
+                    .filter(h => {
+                        const hDate = new Date(h.holiday_date);
+                        return hDate >= weekStart && hDate <= new Date(weekStart.getTime() + 4 * 24 * 60 * 60 * 1000);
+                    })
+                    .map(h => ({ date: formatDate(h.holiday_date), name: h.name }));
+                const hasHolidayInWeek = hasHolidayInWeek(weekStart, weekHolidays);
+                
+                // 휴무일 판단: 해당 요일이 휴무일이고, 공휴일이 아니며, 공휴일 포함 주가 아닌 경우
+                const isOffDay = (dayOfWeek === offDay) && !isHoliday && !hasHolidayInWeek;
+                
+                dailySchedule.push({
+                    date: dateStr,
+                    day_of_week: dayOfWeek,
+                    off_day: offDay,
+                    is_off_day: isOffDay,
+                    is_holiday: isHoliday,
+                    has_half_day: !!halfDay,
+                    half_day_type: halfDay ? halfDay.leave_type : null
+                });
+            }
+        }
+        
+        // 10. 응답 반환
         res.json({
             success: true,
             data: {
@@ -718,6 +777,7 @@ router.get('/work-schedules/my-schedule/:year/:month', requireAuth, async (req, 
                     date: formatDate(row.holiday_date),
                     name: row.name
                 })),
+                daily_schedule: dailySchedule, // 월별 각 날짜의 스케줄 정보
                 is_probation: isProbation,
                 has_holiday_in_week: hasHoliday
             }
