@@ -142,17 +142,24 @@ function getCycleNumber(cycleStartDate, targetDate, holidays = []) {
   const startWeekStart = getWeekStartDate(start);
   const targetWeekStart = getWeekStartDate(target);
   
-  // 사이클 시작일부터 목표 날짜까지 주를 순회하면서 공휴일 주를 제외하고 카운트
-  let currentWeekStart = new Date(startWeekStart);
+  // 사이클 실제 시작 주 찾기: 사이클 시작일의 주가 공휴일 주면 다음 공휴일이 아닌 주부터 시작
+  let actualCycleStart = new Date(startWeekStart);
+  if (hasHolidayInWeek(actualCycleStart, holidays)) {
+    // 공휴일 주를 건너뛰고 다음 공휴일이 아닌 주 찾기
+    do {
+      actualCycleStart = new Date(actualCycleStart);
+      actualCycleStart.setDate(actualCycleStart.getDate() + 7);
+    } while (hasHolidayInWeek(actualCycleStart, holidays));
+  }
+  
+  // 실제 사이클 시작일부터 목표 날짜까지 주를 순회하면서 공휴일 주를 제외하고 카운트
+  let currentWeekStart = new Date(actualCycleStart);
   let weekCount = 0; // 공휴일이 없는 주의 개수
   let cycleNumber = 0;
   
   while (currentWeekStart <= targetWeekStart) {
-    const isCurrentStartWeek = currentWeekStart.getTime() === startWeekStart.getTime();
-    
-    // 사이클 시작일의 주는 공휴일 주여도 포함 (항상 사이클의 일부)
-    // 그 외 주는 공휴일 주가 아닌 경우에만 카운트
-    if (isCurrentStartWeek || !hasHolidayInWeek(currentWeekStart, holidays)) {
+    // 공휴일 주가 아닌 경우에만 카운트
+    if (!hasHolidayInWeek(currentWeekStart, holidays)) {
       weekCount++;
       
       // 사이클 0은 정확히 4주, 사이클 1부터는 4주 단위
@@ -169,7 +176,7 @@ function getCycleNumber(cycleStartDate, targetDate, holidays = []) {
   }
   
   // 디버깅: 사이클 번호 계산 확인
-  console.log(`[getCycleNumber] cycleStart: ${formatDate(startWeekStart)}, target: ${formatDate(targetWeekStart)}, weekCount: ${weekCount}, cycleNumber: ${cycleNumber}`);
+  console.log(`[getCycleNumber] cycleStart: ${formatDate(startWeekStart)}, actualCycleStart: ${formatDate(actualCycleStart)}, target: ${formatDate(targetWeekStart)}, weekCount: ${weekCount}, cycleNumber: ${cycleNumber}`);
   
   return cycleNumber;
 }
@@ -189,18 +196,24 @@ function getCycleWeek(cycleStartDate, targetDate, holidays = []) {
   const startWeekStart = getWeekStartDate(start);
   const targetWeekStart = getWeekStartDate(target);
   
-  // 사이클 시작일부터 목표 날짜까지 주를 순회하면서 공휴일 주를 제외하고 카운트
-  let currentWeekStart = new Date(startWeekStart);
+  // 사이클 실제 시작 주 찾기: 사이클 시작일의 주가 공휴일 주면 다음 공휴일이 아닌 주부터 시작
+  let actualCycleStart = new Date(startWeekStart);
+  if (hasHolidayInWeek(actualCycleStart, holidays)) {
+    // 공휴일 주를 건너뛰고 다음 공휴일이 아닌 주 찾기
+    do {
+      actualCycleStart = new Date(actualCycleStart);
+      actualCycleStart.setDate(actualCycleStart.getDate() + 7);
+    } while (hasHolidayInWeek(actualCycleStart, holidays));
+  }
+  
+  // 실제 사이클 시작일부터 목표 날짜까지 주를 순회하면서 공휴일 주를 제외하고 카운트
+  let currentWeekStart = new Date(actualCycleStart);
   let weekCount = 0; // 공휴일이 없는 주의 개수
   let cycleNumber = 0;
-  const isStartWeek = true; // 첫 번째 반복인지 확인
   
   while (currentWeekStart <= targetWeekStart) {
-    const isCurrentStartWeek = currentWeekStart.getTime() === startWeekStart.getTime();
-    
-    // 사이클 시작일의 주는 공휴일 주여도 포함 (항상 사이클의 일부)
-    // 그 외 주는 공휴일 주가 아닌 경우에만 카운트
-    if (isCurrentStartWeek || !hasHolidayInWeek(currentWeekStart, holidays)) {
+    // 공휴일 주가 아닌 경우에만 카운트
+    if (!hasHolidayInWeek(currentWeekStart, holidays)) {
       weekCount++;
       
       // 사이클 0은 정확히 4주, 사이클 1부터는 4주 단위
