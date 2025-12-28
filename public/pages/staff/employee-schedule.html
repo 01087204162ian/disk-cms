@@ -48,25 +48,6 @@
         <!-- 왼쪽: 정보 및 버튼 영역 (1/3) -->
         <div class="col-lg-4 col-md-12">
           <div class="sticky-sidebar">
-            <!-- 알림 영역 -->
-            <div id="noticeArea" class="mb-3">
-              <!-- 수습 기간 알림 -->
-              <div class="alert alert-info probation-notice d-flex align-items-center" id="probationNotice" style="display: none;">
-                <i class="fas fa-info-circle me-2"></i>
-                <div class="small">
-                  <strong>수습 기간 중입니다.</strong> 주 4일 근무제는 입사 후 3개월 경과 후 적용됩니다.
-                </div>
-              </div>
-              
-              <!-- 공휴일 포함 주 알림 -->
-              <div class="alert alert-warning holiday-notice d-flex align-items-center" id="holidayNotice" style="display: none;">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <div class="small">
-                  <strong>공휴일 포함 주입니다.</strong> 이번 주는 주 4일 근무가 적용되지 않습니다.
-                </div>
-              </div>
-            </div>
-
             <!-- 근무 패턴 정보 -->
             <div class="card mb-3">
               <div class="card-body">
@@ -74,13 +55,13 @@
                   <i class="fas fa-info-circle me-2"></i>근무 패턴
                 </h6>
                 <div class="row g-2">
-                  <div class="col-6">
+                  <div class="col-12">
                     <div class="info-item-simple mb-2 pb-2 border-bottom">
                       <div class="info-label-simple text-muted small">기본 휴무일</div>
                       <div class="info-value-simple fw-semibold" id="baseOffDayDisplay">-</div>
                     </div>
                   </div>
-                  <div class="col-6">
+                  <div class="col-12">
                     <div class="info-item-simple mb-2 pb-2 border-bottom">
                       <div class="info-label-simple text-muted small">사이클 정보</div>
                       <div class="info-value-simple">
@@ -88,13 +69,13 @@
                       </div>
                     </div>
                   </div>
-                  <div class="col-6">
+                  <div class="col-12">
                     <div class="info-item-simple mb-2 pb-2 border-bottom">
                       <div class="info-label-simple text-muted small">이번 달 패턴</div>
                       <div class="info-value-simple fw-semibold small" id="currentPatternDisplay">-</div>
                     </div>
                   </div>
-                  <div class="col-6">
+                  <div class="col-12">
                     <div class="info-item-simple mb-2 pb-2 border-bottom">
                       <div class="info-label-simple text-muted small">다음 사이클</div>
                       <div class="info-value-simple small" id="nextCycleDisplay">-</div>
@@ -105,7 +86,7 @@
             </div>
 
             <!-- 통계 정보 -->
-            <div class="card">
+            <div class="card mb-3">
               <div class="card-body">
                 <h6 class="mb-3 text-muted small fw-normal text-uppercase">
                   <i class="fas fa-chart-pie me-2"></i>이번 달 통계
@@ -129,6 +110,25 @@
                       <div class="stat-value-simple fw-semibold" id="totalHours">-</div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 알림 영역 -->
+            <div id="noticeArea">
+              <!-- 수습 기간 알림 -->
+              <div class="alert alert-info probation-notice d-flex align-items-center" id="probationNotice" style="display: none;">
+                <i class="fas fa-info-circle me-2"></i>
+                <div class="small">
+                  <strong>수습 기간 중입니다.</strong> 주 4일 근무제는 입사 후 3개월 경과 후 적용됩니다.
+                </div>
+              </div>
+              
+              <!-- 공휴일 포함 주 알림 -->
+              <div class="alert alert-warning holiday-notice d-flex align-items-center" id="holidayNotice" style="display: none;">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div class="small">
+                  <strong>공휴일 포함 주입니다.</strong> 이번 주는 주 4일 근무가 적용되지 않습니다.
                 </div>
               </div>
             </div>
