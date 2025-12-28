@@ -56,6 +56,41 @@
               </div>
             </div>
 
+            <!-- 현황 표시 영역 -->
+            <div id="statisticsArea" style="display: none;" class="mb-4">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h6 class="card-title mb-3">검색 현황</h6>
+                  <div class="row">
+                    <div class="col-md-3 col-6 mb-2">
+                      <div class="text-center">
+                        <div class="fw-bold text-primary small">전체 증권</div>
+                        <div id="statTotalRows" class="fw-bold fs-5">0</div>
+                      </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                      <div class="text-center">
+                        <div class="fw-bold text-success small">인원 1명 이상</div>
+                        <div id="statFilteredRows" class="fw-bold fs-5">0</div>
+                      </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                      <div class="text-center">
+                        <div class="fw-bold text-primary small">전체 인원</div>
+                        <div id="statTotalMember" class="fw-bold fs-5">0</div>
+                      </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-2">
+                      <div class="text-center">
+                        <div class="fw-bold text-success small">인원 1명 이상 합계</div>
+                        <div id="statFilteredMember" class="fw-bold fs-5">0</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- 검색 결과 테이블 -->
             <div class="table-responsive">
               <table class="table table-bordered table-hover table-sm">

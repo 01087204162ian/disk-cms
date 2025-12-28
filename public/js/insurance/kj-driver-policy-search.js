@@ -27,7 +27,9 @@
     }
 
     // 로딩 표시
+    const statisticsArea = document.getElementById('statisticsArea');
     const tbody = document.getElementById('policySearchTableBody');
+    statisticsArea.style.display = 'none';
     tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> 검색 중...</td></tr>';
 
     try {
@@ -51,11 +53,13 @@
 
       if (!data.success) {
         alert(data.error || '검색 중 오류가 발생했습니다.');
+        statisticsArea.style.display = 'none';
         tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">검색 중 오류가 발생했습니다.</td></tr>';
         return;
       }
 
-      // 결과 표시
+      // 현황 표시 후 결과 표시
+      displayStatistics(data.data);
       displaySearchResults(data.data);
 
     } catch (error) {
@@ -65,16 +69,35 @@
     }
   }
 
-  // 검색 결과 표시
+  // 현황 표시
+  function displayStatistics(data) {
+    const statisticsArea = document.getElementById('statisticsArea');
+    
+    if (!data) {
+      statisticsArea.style.display = 'none';
+      return;
+    }
+
+    // 현황 데이터 설정
+    document.getElementById('statTotalRows').textContent = data.totalRows || 0;
+    document.getElementById('statFilteredRows').textContent = data.filteredRows || 0;
+    document.getElementById('statTotalMember').textContent = (data.memberCount || 0).toLocaleString();
+    document.getElementById('statFilteredMember').textContent = (data.filteredMemberCount || 0).toLocaleString();
+    
+    // 현황 영역 표시
+    statisticsArea.style.display = 'block';
+  }
+
+  // 검색 결과 표시 (인원 1명 이상인 항목만)
   function displaySearchResults(data) {
     const tbody = document.getElementById('policySearchTableBody');
     
     if (!data || !data.certiTableRows || data.certiTableRows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">검색 결과가 없습니다.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">인원 1명 이상인 증권이 없습니다.</td></tr>';
       return;
     }
 
-    const rows = data.certiTableRows;
+    const rows = data.certiTableRows; // 이미 필터링된 데이터 (인원 1명 이상)
     
     // 인원 수를 포함한 행 생성
     tbody.innerHTML = rows.map((row, index) => {
@@ -85,7 +108,7 @@
           <td class="text-center">${index + 1}</td>
           <td>${row.DaeriCompany || ''}</td>
           <td>${row.policyNum || ''}</td>
-          <td class="text-center">${currentInwon}</td>
+          <td class="text-center">${currentInwon.toLocaleString()}</td>
           <td class="text-center">${row.startyDay || ''}</td>
         </tr>
       `;
