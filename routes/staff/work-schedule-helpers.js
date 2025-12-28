@@ -189,11 +189,21 @@ function calculateOffDayByWeekCycle(cycleStartDate, targetDate, baseOffDay) {
   // 사이클 번호 계산
   const cycleNumber = getCycleNumber(start, weekStart);
   
+  // 사이클 0 (1-4주차)인 경우 base_off_day 사용
+  if (cycleNumber === 0) {
+    return baseOffDay;
+  }
+  
+  // 사이클 1 이상부터 시프트 순환
   // 시프트 순서: 금(5) → 목(4) → 수(3) → 화(2) → 월(1) → 금(5)
   const shiftOrder = [5, 4, 3, 2, 1]; // 금, 목, 수, 화, 월
   
-  // 사이클 번호에 따른 시프트 인덱스
-  const shiftIndex = cycleNumber % 5;
+  // base_off_day의 시프트 순서 내 인덱스 찾기
+  const baseIndex = shiftOrder.indexOf(baseOffDay);
+  
+  // 사이클 번호에 따른 시프트 인덱스 계산
+  // 사이클 1: baseIndex - 1, 사이클 2: baseIndex - 2, ...
+  const shiftIndex = (baseIndex - (cycleNumber - 1) + 5) % 5;
   
   // 현재 사이클의 휴무일
   const currentOffDay = shiftOrder[shiftIndex];
