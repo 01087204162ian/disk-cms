@@ -316,14 +316,18 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
                     weekHasHoliday = hasHolidayInWeek(weekStart, holidays);
                     weekHolidayMap.set(weekStartStr, weekHasHoliday);
                     
-                    // 디버깅: 12월 28일이 포함된 주 확인
-                    if (month === 12 && day === 28) {
+                    // 디버깅: 12월 29일 주 확인 (1월 1일 포함)
+                    if (month === 12 && day === 29) {
                         const weekEnd = getWeekEndDate(weekStart);
-                        console.log(`[디버깅] 12월 28일 주: ${formatDate(weekStart)} ~ ${formatDate(weekEnd)}, 공휴일 포함: ${weekHasHoliday}`);
-                        console.log(`[디버깅] 해당 주의 공휴일:`, holidays.filter(h => {
-                            const hDate = parseKSTDate(h.date);
-                            return hDate >= weekStart && hDate <= weekEnd;
-                        }));
+                        console.log(`[디버깅] 12월 29일 주: ${formatDate(weekStart)} ~ ${formatDate(weekEnd)}, 공휴일 포함: ${weekHasHoliday}`);
+                        const weekHolidays = holidays.filter(h => {
+                            const hDateStr = typeof h.date === 'string' ? h.date : formatDate(h.date);
+                            const weekStartStr = formatDate(weekStart);
+                            const weekEndStr = formatDate(weekEnd);
+                            return hDateStr >= weekStartStr && hDateStr <= weekEndStr;
+                        });
+                        console.log(`[디버깅] 해당 주의 공휴일:`, weekHolidays);
+                        console.log(`[디버깅] 전체 공휴일 목록:`, holidays.map(h => h.date));
                     }
                 }
                 

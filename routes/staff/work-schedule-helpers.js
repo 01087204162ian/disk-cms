@@ -239,10 +239,17 @@ function hasHolidayInWeek(weekStartDate, holidays) {
   weekEnd.setHours(23, 59, 59, 999);
   
   return holidays.some(h => {
-    const holidayDate = h.date instanceof Date ? h.date : parseKSTDate(h.date);
+    // h.date가 문자열인 경우 parseKSTDate 사용
+    const holidayDate = typeof h.date === 'string' ? parseKSTDate(h.date) : (h.date instanceof Date ? new Date(h.date) : parseKSTDate(h.date));
     holidayDate.setHours(12, 0, 0, 0); // 정오로 설정하여 날짜 비교 정확도 향상
     
-    return holidayDate >= weekStart && holidayDate <= weekEnd;
+    // 날짜 비교 (시간 제외)
+    const holidayDateStr = formatDate(holidayDate);
+    const weekStartStr = formatDate(weekStart);
+    const weekEndStr = formatDate(weekEnd);
+    
+    // 문자열 비교로 날짜 범위 확인
+    return holidayDateStr >= weekStartStr && holidayDateStr <= weekEndStr;
   });
 }
 
