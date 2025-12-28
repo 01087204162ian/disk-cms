@@ -18,7 +18,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const attendanceRoutes = require('./routes/attendance');
 const employeesRoutes = require('./routes/staff/employees'); // 직원리스트
 const departmentRoutes = require('./routes/staff/departments'); // 부서
-const workSchedulesRouter = require('./routes/staff/work-schedules'); // 휴가
+// const workSchedulesRouter = require('./routes/staff/work-schedules'); // 주4일 근무제 (삭제됨)
 
 // 보험 관련 라우트들
 const pharmacyRoutes = require('./routes/pharmacy'); // 약국배상책임보험
@@ -80,7 +80,7 @@ app.use('/api/attendance', attendanceRoutes);
 
 // 직원 관리
 app.use('/api/staff/departments', departmentRoutes);
-app.use('/api/staff', workSchedulesRouter);
+// app.use('/api/staff', workSchedulesRouter); // 주4일 근무제 (삭제됨)
 app.use('/api/staff', employeesRoutes);
 
 // 약국배상책임보험 관련
