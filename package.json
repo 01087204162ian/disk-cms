@@ -10,7 +10,12 @@
     "create-page": "node scripts/create-page.js",
     "create-crud": "node scripts/create-page.js $1 $2 crud",
     "create-simple": "node scripts/create-page.js $1 $2 simple",
-    "setup-templates": "node scripts/setup-templates.js"
+    "setup-templates": "node scripts/setup-templates.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration"
   },
   "keywords": [
     "insurance",
@@ -40,7 +45,9 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
   },
   "engines": {
     "node": ">=16.0.0"
