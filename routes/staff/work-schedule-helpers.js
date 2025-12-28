@@ -1,0 +1,509 @@
+/**
+ * ================================================================
+ * 주 4일 근무제 헬퍼 함수 모듈
+ * ================================================================
+ * 
+ * 주요 기능:
+ * - 타임존(KST) 기준 날짜 처리
+ * - 4주 사이클 계산
+ * - 휴무일 계산
+ * - 공휴일 포함 주 체크
+ * - 반차 검증
+ * 
+ * 타임존 규칙:
+ * - 모든 날짜 계산은 KST (Asia/Seoul, UTC+9) 기준
+ * - 서버에서 모든 날짜 계산 수행
+ * 
+ * Created: 2025-12-28
+ * Version: 1.0.0
+ * ================================================================
+ */
+
+// 타임존 설정 확인 (서버 레벨에서 이미 설정되어 있어야 함)
+if (!process.env.TZ || process.env.TZ !== 'Asia/Seoul') {
+  console.warn('⚠️ 경고: process.env.TZ가 Asia/Seoul로 설정되지 않았습니다.');
+}
+
+// ===========================
+// 타임존 헬퍼 함수
+// ===========================
+
+/**
+ * KST 기준 날짜 생성
+ * @param {number} year - 연도
+ * @param {number} month - 월 (1-12)
+ * @param {number} day - 일
+ * @param {number} hour - 시 (기본값: 0)
+ * @param {number} minute - 분 (기본값: 0)
+ * @param {number} second - 초 (기본값: 0)
+ * @returns {Date} KST 기준 Date 객체
+ */
+function createKSTDate(year, month, day, hour = 0, minute = 0, second = 0) {
+  // KST는 UTC+9이므로, UTC로 변환하여 저장
+  // 하지만 JavaScript Date는 로컬 타임존을 사용하므로
+  // 명시적으로 시간을 설정하여 KST 기준으로 처리
+  const date = new Date(year, month - 1, day, hour, minute, second);
+  return date;
+}
+
+/**
+ * 날짜 문자열을 KST 기준 Date 객체로 변환
+ * @param {string|Date} dateInput - 날짜 문자열 (YYYY-MM-DD) 또는 Date 객체
+ * @returns {Date} KST 기준 Date 객체
+ */
+function parseKSTDate(dateInput) {
+  if (dateInput instanceof Date) {
+    return dateInput;
+  }
+  
+  // YYYY-MM-DD 형식 파싱
+  const parts = dateInput.split('-');
+  if (parts.length !== 3) {
+    throw new Error(`Invalid date format: ${dateInput}. Expected YYYY-MM-DD`);
+  }
+  
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  
+  return createKSTDate(year, month, day);
+}
+
+/**
+ * 날짜를 YYYY-MM-DD 형식 문자열로 변환
+ * @param {Date|string} date - Date 객체 또는 날짜 문자열
+ * @returns {string} YYYY-MM-DD 형식 문자열
+ */
+function formatDate(date) {
+  if (!date) return null;
+  
+  const d = date instanceof Date ? date : parseKSTDate(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * 주 시작일 계산 (월요일 00:00:00 KST)
+ * @param {Date|string} date - 기준 날짜
+ * @returns {Date} 주 시작일 (월요일 00:00:00 KST)
+ */
+function getWeekStartDate(date) {
+  const d = date instanceof Date ? new Date(date) : parseKSTDate(date);
+  
+  // 요일 확인 (0=일, 1=월, ..., 6=토)
+  const dayOfWeek = d.getDay();
+  
+  // 월요일까지의 일수 계산
+  // 일요일(0)인 경우 6일 전, 월요일(1)인 경우 0일 전
+  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  
+  // 월요일로 이동
+  const weekStart = new Date(d);
+  weekStart.setDate(d.getDate() - daysToMonday);
+  weekStart.setHours(0, 0, 0, 0);
+  
+  return weekStart;
+}
+
+/**
+ * 주 종료일 계산 (일요일 23:59:59 KST)
+ * @param {Date|string} date - 기준 날짜
+ * @returns {Date} 주 종료일 (일요일 23:59:59 KST)
+ */
+function getWeekEndDate(date) {
+  const weekStart = getWeekStartDate(date);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+  
+  return weekEnd;
+}
+
+// ===========================
+// 4주 사이클 계산 함수
+// ===========================
+
+/**
+ * 4주 사이클 번호 계산
+ * @param {Date|string} cycleStartDate - 사이클 시작일 (KST)
+ * @param {Date|string} targetDate - 계산 대상 날짜 (KST)
+ * @returns {number} 사이클 번호 (0부터 시작)
+ */
+function getCycleNumber(cycleStartDate, targetDate) {
+  const start = parseKSTDate(cycleStartDate);
+  const target = parseKSTDate(targetDate);
+  
+  // 날짜 차이 계산 (밀리초)
+  const diffMs = target.getTime() - start.getTime();
+  
+  // 일수로 변환
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  // 사이클 번호 계산 (28일 = 4주)
+  const cycleNumber = Math.floor(diffDays / 28);
+  
+  return cycleNumber;
+}
+
+/**
+ * 4주 사이클 내 주차 계산 (1-4)
+ * @param {Date|string} cycleStartDate - 사이클 시작일 (KST)
+ * @param {Date|string} targetDate - 계산 대상 날짜 (KST)
+ * @returns {number} 주차 (1-4)
+ */
+function getCycleWeek(cycleStartDate, targetDate) {
+  const start = parseKSTDate(cycleStartDate);
+  const target = parseKSTDate(targetDate);
+  
+  // 날짜 차이 계산
+  const diffMs = target.getTime() - start.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  // 사이클 내 일수 계산
+  const daysInCycle = diffDays % 28;
+  
+  // 주차 계산 (0-3 → 1-4)
+  const week = Math.floor(daysInCycle / 7) + 1;
+  
+  return week;
+}
+
+/**
+ * 4주 사이클 기준 휴무일 계산
+ * @param {Date|string} cycleStartDate - 사이클 시작일 (KST)
+ * @param {Date|string} targetDate - 계산 대상 날짜 (KST)
+ * @param {number} baseOffDay - 기본 휴무일 (1=월, 2=화, 3=수, 4=목, 5=금)
+ * @returns {number} 해당 주의 휴무일 (1-5)
+ */
+function calculateOffDayByWeekCycle(cycleStartDate, targetDate, baseOffDay) {
+  const start = parseKSTDate(cycleStartDate);
+  const target = parseKSTDate(targetDate);
+  
+  // 주 시작일(월요일) 기준으로 계산
+  const weekStart = getWeekStartDate(target);
+  
+  // 사이클 번호 계산
+  const cycleNumber = getCycleNumber(start, weekStart);
+  
+  // 시프트 순서: 금(5) → 목(4) → 수(3) → 화(2) → 월(1) → 금(5)
+  const shiftOrder = [5, 4, 3, 2, 1]; // 금, 목, 수, 화, 월
+  
+  // 사이클 번호에 따른 시프트 인덱스
+  const shiftIndex = cycleNumber % 5;
+  
+  // 현재 사이클의 휴무일
+  const currentOffDay = shiftOrder[shiftIndex];
+  
+  return currentOffDay;
+}
+
+/**
+ * 요일 번호를 한글 요일명으로 변환
+ * @param {number} dayNumber - 요일 번호 (1=월, 2=화, 3=수, 4=목, 5=금)
+ * @returns {string} 한글 요일명
+ */
+function getDayName(dayNumber) {
+  const dayNames = {
+    1: '월요일',
+    2: '화요일',
+    3: '수요일',
+    4: '목요일',
+    5: '금요일'
+  };
+  
+  return dayNames[dayNumber] || '알 수 없음';
+}
+
+// ===========================
+// 공휴일 처리 함수
+// ===========================
+
+/**
+ * 주에 공휴일이 포함되어 있는지 확인
+ * @param {Date|string} weekStartDate - 주 시작일 (월요일, KST)
+ * @param {Array} holidays - 공휴일 배열 [{date: string|Date, name: string}]
+ * @returns {boolean} 공휴일 포함 여부
+ */
+function hasHolidayInWeek(weekStartDate, holidays) {
+  if (!holidays || holidays.length === 0) return false;
+  
+  const weekStart = weekStartDate instanceof Date ? weekStartDate : parseKSTDate(weekStartDate);
+  const weekEnd = getWeekEndDate(weekStart);
+  
+  // 주 시작일과 종료일을 00:00:00으로 설정하여 비교
+  weekStart.setHours(0, 0, 0, 0);
+  weekEnd.setHours(23, 59, 59, 999);
+  
+  return holidays.some(h => {
+    const holidayDate = h.date instanceof Date ? h.date : parseKSTDate(h.date);
+    holidayDate.setHours(12, 0, 0, 0); // 정오로 설정하여 날짜 비교 정확도 향상
+    
+    return holidayDate >= weekStart && holidayDate <= weekEnd;
+  });
+}
+
+/**
+ * 특정 날짜가 공휴일인지 확인
+ * @param {Date|string} date - 확인할 날짜 (KST)
+ * @param {Array} holidays - 공휴일 배열 [{date: string|Date, name: string}]
+ * @returns {boolean} 공휴일 여부
+ */
+function isHoliday(date, holidays) {
+  if (!holidays || holidays.length === 0) return false;
+  
+  const targetDate = date instanceof Date ? date : parseKSTDate(date);
+  const targetDateStr = formatDate(targetDate);
+  
+  return holidays.some(h => {
+    const holidayDate = h.date instanceof Date ? h.date : parseKSTDate(h.date);
+    const holidayDateStr = formatDate(holidayDate);
+    return holidayDateStr === targetDateStr;
+  });
+}
+
+// ===========================
+// 날짜 비교 함수
+// ===========================
+
+/**
+ * 두 날짜가 같은 주인지 확인
+ * @param {Date|string} date1 - 첫 번째 날짜 (KST)
+ * @param {Date|string} date2 - 두 번째 날짜 (KST)
+ * @returns {boolean} 같은 주 여부
+ */
+function isSameWeek(date1, date2) {
+  const weekStart1 = getWeekStartDate(date1);
+  const weekStart2 = getWeekStartDate(date2);
+  
+  return formatDate(weekStart1) === formatDate(weekStart2);
+}
+
+/**
+ * 수습 기간 여부 확인
+ * @param {Date|string} hireDate - 입사일 (KST)
+ * @param {Date|string} targetDate - 확인할 날짜 (KST, 기본값: 오늘)
+ * @returns {boolean} 수습 기간 여부 (입사 후 3개월 미만)
+ */
+function isProbationPeriod(hireDate, targetDate = new Date()) {
+  if (!hireDate) return false;
+  
+  const hire = parseKSTDate(hireDate);
+  const target = targetDate instanceof Date ? targetDate : parseKSTDate(targetDate);
+  
+  // 3개월 후 날짜 계산
+  const threeMonthsLater = new Date(hire);
+  threeMonthsLater.setMonth(hire.getMonth() + 3);
+  
+  return target < threeMonthsLater;
+}
+
+// ===========================
+// 사이클 정보 계산 함수
+// ===========================
+
+/**
+ * 사이클 정보 계산
+ * @param {Object} workDays - work_days JSON 객체
+ * @param {Date|string} targetDate - 계산 대상 날짜 (KST, 기본값: 오늘)
+ * @returns {Object} 사이클 정보
+ */
+function calculateCycleInfo(workDays, targetDate = new Date()) {
+  if (!workDays || !workDays.cycle_start_date || !workDays.base_off_day) {
+    return null;
+  }
+  
+  const cycleStart = parseKSTDate(workDays.cycle_start_date);
+  const target = targetDate instanceof Date ? targetDate : parseKSTDate(targetDate);
+  
+  // 주 시작일 기준으로 계산
+  const weekStart = getWeekStartDate(target);
+  
+  // 사이클 번호 및 주차 계산
+  const cycleNumber = getCycleNumber(cycleStart, weekStart);
+  const cycleWeek = getCycleWeek(cycleStart, weekStart);
+  
+  // 현재 휴무일 계산
+  const currentOffDay = calculateOffDayByWeekCycle(cycleStart, weekStart, workDays.base_off_day);
+  
+  // 다음 사이클 시작일 계산 (28일 후)
+  const nextCycleStart = new Date(cycleStart);
+  nextCycleStart.setDate(cycleStart.getDate() + (cycleNumber + 1) * 28);
+  
+  // 다음 사이클의 휴무일 계산
+  const nextOffDay = calculateOffDayByWeekCycle(cycleStart, nextCycleStart, workDays.base_off_day);
+  
+  // 주차 범위 계산
+  const weekRange = `${(cycleWeek - 1) * 7 + 1}-${cycleWeek * 7}주차`;
+  
+  return {
+    cycleNumber,
+    cycleWeek,
+    weekRange,
+    currentOffDay,
+    currentOffDayName: getDayName(currentOffDay),
+    cycleStartDate: formatDate(cycleStart),
+    nextCycleDate: formatDate(nextCycleStart),
+    nextOffDay,
+    nextOffDayName: getDayName(nextOffDay)
+  };
+}
+
+// ===========================
+// 반차 검증 함수
+// ===========================
+
+/**
+ * 반차 신청 검증
+ * @param {Date|string} applyDate - 신청 날짜 (KST)
+ * @param {Object} userWorkDays - 사용자 work_days 정보
+ * @param {Array} holidays - 공휴일 배열
+ * @returns {Object} {valid: boolean, message: string, code: string}
+ */
+function validateHalfDay(applyDate, userWorkDays, holidays) {
+  const apply = parseKSTDate(applyDate);
+  
+  // 1. 공휴일인지 확인
+  if (isHoliday(apply, holidays)) {
+    return {
+      valid: false,
+      message: '공휴일에는 반차를 사용할 수 없습니다.',
+      code: 'HOLIDAY_NOT_ALLOWED'
+    };
+  }
+  
+  // 2. 주 시작일 기준으로 휴무일 계산
+  const weekStart = getWeekStartDate(apply);
+  const offDay = calculateOffDayByWeekCycle(
+    userWorkDays.cycle_start_date,
+    weekStart,
+    userWorkDays.base_off_day
+  );
+  
+  // 3. 휴무일인지 확인
+  if (apply.getDay() === offDay) {
+    return {
+      valid: false,
+      message: '휴무일에는 반차를 사용할 수 없습니다.',
+      code: 'OFF_DAY_NOT_ALLOWED'
+    };
+  }
+  
+  // 4. 공휴일 포함 주인지 확인
+  if (hasHolidayInWeek(weekStart, holidays)) {
+    return {
+      valid: false,
+      message: '공휴일이 포함된 주에는 반차를 사용할 수 없습니다.',
+      code: 'HOLIDAY_WEEK_NOT_ALLOWED'
+    };
+  }
+  
+  // 5. 같은 주인지 확인 (휴무일과 같은 주에만 사용 가능)
+  const offDayDate = new Date(weekStart);
+  offDayDate.setDate(weekStart.getDate() + (offDay - 1));
+  
+  if (!isSameWeek(apply, offDayDate)) {
+    return {
+      valid: false,
+      message: '반차는 같은 주(월~일) 내에서만 사용 가능합니다.',
+      code: 'HALF_DAY_SAME_WEEK_REQUIRED'
+    };
+  }
+  
+  return {
+    valid: true,
+    message: '검증 통과',
+    code: 'VALID'
+  };
+}
+
+// ===========================
+// 일시적 변경 검증 함수
+// ===========================
+
+/**
+ * 일시적 휴무일 변경 검증
+ * @param {Date|string} weekStartDate - 변경할 주의 시작일 (월요일, KST)
+ * @param {number} temporaryOffDay - 임시 휴무일 (1-5)
+ * @param {Object} userWorkDays - 사용자 work_days 정보
+ * @param {Array} holidays - 공휴일 배열
+ * @returns {Object} {valid: boolean, message: string, code: string}
+ */
+function validateTemporaryChange(weekStartDate, temporaryOffDay, userWorkDays, holidays) {
+  const weekStart = parseKSTDate(weekStartDate);
+  
+  // 1. 원래 휴무일 계산
+  const originalOffDay = calculateOffDayByWeekCycle(
+    userWorkDays.cycle_start_date,
+    weekStart,
+    userWorkDays.base_off_day
+  );
+  
+  // 2. 원래 휴무일과 동일한지 확인
+  if (temporaryOffDay === originalOffDay) {
+    return {
+      valid: false,
+      message: '원래 휴무일과 동일한 날짜로 변경할 수 없습니다.',
+      code: 'SAME_OFF_DAY'
+    };
+  }
+  
+  // 3. 공휴일 포함 주인지 확인
+  if (hasHolidayInWeek(weekStart, holidays)) {
+    return {
+      valid: false,
+      message: '공휴일이 포함된 주에는 일시적 변경을 할 수 없습니다.',
+      code: 'HOLIDAY_WEEK_NOT_ALLOWED'
+    };
+  }
+  
+  // 4. 임시 휴무일이 유효한 범위인지 확인
+  if (temporaryOffDay < 1 || temporaryOffDay > 5) {
+    return {
+      valid: false,
+      message: '유효하지 않은 휴무일입니다. (1=월, 2=화, 3=수, 4=목, 5=금)',
+      code: 'INVALID_OFF_DAY'
+    };
+  }
+  
+  return {
+    valid: true,
+    message: '검증 통과',
+    code: 'VALID'
+  };
+}
+
+// ===========================
+// 모듈 내보내기
+// ===========================
+
+module.exports = {
+  // 타임존 헬퍼
+  createKSTDate,
+  parseKSTDate,
+  formatDate,
+  getWeekStartDate,
+  getWeekEndDate,
+  
+  // 사이클 계산
+  getCycleNumber,
+  getCycleWeek,
+  calculateOffDayByWeekCycle,
+  getDayName,
+  calculateCycleInfo,
+  
+  // 공휴일 처리
+  hasHolidayInWeek,
+  isHoliday,
+  
+  // 날짜 비교
+  isSameWeek,
+  isProbationPeriod,
+  
+  // 검증
+  validateHalfDay,
+  validateTemporaryChange
+};
+

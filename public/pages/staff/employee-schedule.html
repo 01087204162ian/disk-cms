@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | {{PAGE_TITLE}}</title>
+  
+  <!-- 한글 폰트 (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/sj-styles.css" rel="stylesheet">
+  <link href="/css/employee-schedule.css" rel="stylesheet">
+</head>
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <div>페이지를 불러오는 중...</div>
+    </div>
+  </div>
+  
+  <!-- 헤더 컨테이너 -->
+  <div id="header-container">
+    <!-- sj-header.html 컴포넌트가 여기에 로드됩니다 -->
+  </div>
+  
+  <!-- 사이드바 오버레이 (모바일용) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container">
+    <!-- sj-sidebar.html 컴포넌트가 여기에 로드됩니다 -->
+  </div>
+  
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <div class="container-fluid">
+      <!-- 페이지 헤더 -->
+      <div class="page-header mb-4">
+        <h1 class="page-title">
+          <i class="fas fa-calendar-alt me-2"></i>
+          근무일정
+        </h1>
+        <p class="page-description">주 4일 근무제 스케줄 조회 및 관리</p>
+      </div>
+      
+      <!-- 연도/월 선택 영역 -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-primary" id="prevMonthBtn">
+                  <i class="fas fa-chevron-left"></i> 이전 달
+                </button>
+                <div class="month-selector">
+                  <select class="form-select" id="yearSelect" style="display: inline-block; width: auto;">
+                    <!-- 연도 옵션은 JavaScript에서 동적으로 생성 -->
+                  </select>
+                  <span class="mx-2">년</span>
+                  <select class="form-select" id="monthSelect" style="display: inline-block; width: auto;">
+                    <option value="1">1월</option>
+                    <option value="2">2월</option>
+                    <option value="3">3월</option>
+                    <option value="4">4월</option>
+                    <option value="5">5월</option>
+                    <option value="6">6월</option>
+                    <option value="7">7월</option>
+                    <option value="8">8월</option>
+                    <option value="9">9월</option>
+                    <option value="10">10월</option>
+                    <option value="11">11월</option>
+                    <option value="12">12월</option>
+                  </select>
+                </div>
+                <button class="btn btn-outline-primary" id="nextMonthBtn">
+                  다음 달 <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6 text-end">
+              <button class="btn btn-primary" id="todayBtn">
+                <i class="fas fa-calendar-day me-2"></i>오늘
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 기본 정보 및 사이클 정보 -->
+      <div class="row mb-4">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                근무 패턴 정보
+              </h5>
+            </div>
+            <div class="card-body">
+              <!-- 기본 휴무일 -->
+              <div class="info-row mb-3">
+                <div class="info-label">기본 휴무일:</div>
+                <div class="info-value" id="baseOffDayDisplay">-</div>
+              </div>
+              
+              <!-- 사이클 정보 -->
+              <div class="info-row mb-3">
+                <div class="info-label">사이클 정보:</div>
+                <div class="info-value">
+                  <span class="cycle-info-badge" id="cycleInfoBadge">-</span>
+                </div>
+              </div>
+              
+              <!-- 이번 달 근무 패턴 -->
+              <div class="info-row mb-3">
+                <div class="info-label">이번 달 근무 패턴:</div>
+                <div class="info-value" id="currentPatternDisplay">-</div>
+              </div>
+              
+              <!-- 다음 사이클 정보 -->
+              <div class="info-row">
+                <div class="info-label">다음 사이클:</div>
+                <div class="info-value" id="nextCycleDisplay">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-tasks me-2"></i>
+                빠른 작업
+              </h5>
+            </div>
+            <div class="card-body">
+              <button class="btn btn-primary w-100 mb-2" id="halfDayBtn">
+                <i class="fas fa-clock me-2"></i>
+                반차 신청
+              </button>
+              <button class="btn btn-outline-primary w-100" id="temporaryChangeBtn">
+                <i class="fas fa-exchange-alt me-2"></i>
+                휴무일 일시적 변경
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 알림 영역 -->
+      <div id="noticeArea" class="mb-4">
+        <!-- 수습 기간 알림 -->
+        <div class="alert alert-info probation-notice" id="probationNotice" style="display: none;">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>수습 기간 중입니다.</strong> 주 4일 근무제는 입사 후 3개월 경과 후 적용됩니다.
+        </div>
+        
+        <!-- 공휴일 포함 주 알림 -->
+        <div class="alert alert-warning holiday-notice" id="holidayNotice" style="display: none;">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>공휴일 포함 주입니다.</strong> 이번 주는 주 4일 근무가 적용되지 않습니다.
+        </div>
+      </div>
+      
+      <!-- 캘린더 영역 -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <span id="currentMonthDisplay">2025년 12월</span> 캘린더
+          </h5>
+        </div>
+        <div class="card-body">
+          <div id="calendarContainer">
+            <!-- 캘린더는 JavaScript에서 동적으로 생성 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- 반차 신청 모달 -->
+  <div class="modal fade" id="halfDayModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-clock me-2"></i>
+            반차 신청
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">신청 날짜</label>
+            <input type="date" class="form-control" id="halfDayDate" required>
+            <small class="form-text text-muted">같은 주(월~일) 내에서만 사용 가능합니다.</small>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">반차 타입</label>
+            <select class="form-select" id="halfDayType" required>
+              <option value="">선택하세요</option>
+              <option value="HALF_AM">오전 반차 (14시 출근)</option>
+              <option value="HALF_PM">오후 반차 (14시 퇴근)</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">사유</label>
+            <textarea class="form-control" id="halfDayReason" rows="3" required></textarea>
+          </div>
+          
+          <!-- 검증 메시지 영역 -->
+          <div class="alert alert-warning half-day-validation" id="halfDayValidation" style="display: none;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="halfDayValidationMessage"></span>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-primary" id="submitHalfDayBtn">신청하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 일시적 변경 모달 -->
+  <div class="modal fade" id="temporaryChangeModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-exchange-alt me-2"></i>
+            휴무일 일시적 변경
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">변경할 주 시작일 (월요일)</label>
+            <input type="date" class="form-control" id="weekStartDate" readonly>
+            <small class="form-text text-muted">해당 주의 월요일이 자동으로 설정됩니다.</small>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">원래 휴무일</label>
+            <input type="text" class="form-control" id="originalOffDay" readonly>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">임시 휴무일</label>
+            <select class="form-select" id="temporaryOffDay" required>
+              <option value="">선택하세요</option>
+              <option value="1">월요일</option>
+              <option value="2">화요일</option>
+              <option value="3">수요일</option>
+              <option value="4">목요일</option>
+              <option value="5">금요일</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">대체 직원 (선택사항)</label>
+            <input type="email" class="form-control" id="substituteEmployee" placeholder="이메일 주소">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">변경 사유</label>
+            <textarea class="form-control" id="temporaryChangeReason" rows="3" required></textarea>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-primary" id="submitTemporaryChangeBtn">신청하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- SJ Template Loader -->
+  <script src="/js/sj-template-loader.js"></script>
+  
+  <!-- Employee Schedule JS -->
+  <script src="/js/staff/employee-schedule.js"></script>
+</body>
+</html>
+

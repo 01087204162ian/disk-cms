@@ -1,0 +1,295 @@
+/**
+ * 주 4일 근무제 스케줄 페이지 스타일
+ * 작성일: 2025-12-28
+ */
+
+/* ===========================
+   기본 레이아웃
+   =========================== */
+
+.page-header {
+  padding: 1.5rem 0;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.page-description {
+  color: #6c757d;
+  margin-bottom: 0;
+}
+
+/* ===========================
+   정보 표시 영역
+   =========================== */
+
+.info-row {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 500;
+  color: #495057;
+  min-width: 150px;
+  margin-right: 1rem;
+}
+
+.info-value {
+  color: #212529;
+  flex: 1;
+}
+
+.cycle-info-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* ===========================
+   알림 영역
+   =========================== */
+
+.probation-notice {
+  border-left: 4px solid #17a2b8;
+  background-color: #d1ecf1;
+}
+
+.holiday-notice {
+  border-left: 4px solid #ffc107;
+  background-color: #fff3cd;
+}
+
+.half-day-validation {
+  border-left: 4px solid #ffc107;
+  background-color: #fff3cd;
+  margin-top: 1rem;
+}
+
+/* ===========================
+   캘린더 스타일
+   =========================== */
+
+#calendarContainer {
+  padding: 1rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-weight: 600;
+  color: #495057;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.calendar-day {
+  min-height: 100px;
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background-color: #fff;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calendar-day:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.calendar-day.weekend {
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+.calendar-day.work {
+  background-color: #e7f5e7;
+}
+
+.calendar-day.off {
+  background-color: #ffe7e7;
+}
+
+.calendar-day.holiday {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+}
+
+.calendar-day.half-morning {
+  background: linear-gradient(to bottom, #ffe7e7 50%, #e7f5e7 50%);
+}
+
+.calendar-day.half-afternoon {
+  background: linear-gradient(to bottom, #e7f5e7 50%, #ffe7e7 50%);
+}
+
+.calendar-day.today {
+  border: 2px solid #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.day-number {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.day-status {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+  display: inline-block;
+}
+
+.day-status.work {
+  background-color: #28a745;
+  color: white;
+}
+
+.day-status.off {
+  background-color: #dc3545;
+  color: white;
+}
+
+.day-status.holiday {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.day-status.half {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.day-info {
+  font-size: 0.7rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* ===========================
+   버튼 스타일
+   =========================== */
+
+.btn-temporary-change {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.btn-temporary-change:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-temporary-change:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===========================
+   반응형 디자인
+   =========================== */
+
+@media (max-width: 768px) {
+  .calendar-grid {
+    gap: 0.25rem;
+  }
+  
+  .calendar-day {
+    min-height: 80px;
+    padding: 0.25rem;
+  }
+  
+  .day-number {
+    font-size: 0.9rem;
+  }
+  
+  .day-status {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+  }
+  
+  .info-label {
+    min-width: 120px;
+    font-size: 0.9rem;
+  }
+  
+  .cycle-info-badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+/* ===========================
+   모달 스타일
+   =========================== */
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.modal-header .btn-close {
+  filter: invert(1);
+}
+
+/* ===========================
+   로딩 상태
+   =========================== */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading {
+  text-align: center;
+  color: white;
+}
+
+.loading i {
+  font-size: 3rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
