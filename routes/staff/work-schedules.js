@@ -204,13 +204,22 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
         const firstDayWeekStart = getWeekStartDate(monthStart);
         const lastDayWeekEnd = getWeekEndDate(monthEnd);
         
+        // 12월의 경우, 마지막 날이 포함된 주의 다음 주도 확인 (1월 1일 포함)
+        let queryEndDate = lastDayWeekEnd;
+        if (month === 12) {
+            // 12월 마지막 날의 다음 주 종료일까지 포함
+            const nextWeekEnd = new Date(lastDayWeekEnd);
+            nextWeekEnd.setDate(lastDayWeekEnd.getDate() + 7);
+            queryEndDate = nextWeekEnd;
+        }
+        
         // 해당 월과 겹치는 모든 주의 공휴일 조회
         const [holidayRows] = await pool.execute(`
             SELECT holiday_date, name FROM holidays 
             WHERE holiday_date >= ? AND holiday_date <= ?
             AND is_active = 1
             ORDER BY holiday_date ASC
-        `, [formatDate(firstDayWeekStart), formatDate(lastDayWeekEnd)]);
+        `, [formatDate(firstDayWeekStart), formatDate(queryEndDate)]);
         
         const holidays = holidayRows.map(row => ({
             date: formatDate(row.holiday_date),
@@ -239,13 +248,13 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
             ORDER BY week_start_date ASC
         `, [userEmail, year, month]);
         
-        // 현재 주의 공휴일 포함 여부 확인
-        const today = new Date();
-        const currentWeekStart = getWeekStartDate(today);
-        const hasHoliday = hasHolidayInWeek(currentWeekStart, holidays);
-        
         // 수습 기간 확인
+        const today = new Date();
         const isProbation = isProbationPeriod(user.hire_date, today);
+        
+        // 해당 월의 모든 주에 대해 공휴일 포함 여부 확인
+        // dailySchedule을 생성한 후 각 주별로 공휴일 포함 여부를 확인
+        const weekHolidayMap = new Map(); // 주 시작일(문자열) -> 공휴일 포함 여부
         
         // 사이클 정보 계산 (해당 월의 첫 날 기준)
         const monthFirstDay = new Date(year, month - 1, 1);
@@ -300,12 +309,23 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
                 const isHolidayDate = holidaysMap.has(dateStr);
                 const halfDay = halfDaysMap.get(dateStr);
                 
-                // 공휴일 포함 주 체크
-                const weekHolidays = holidays.filter(h => {
-                    const hDate = new Date(h.date);
-                    return hDate >= weekStart && hDate <= new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
-                });
-                const weekHasHoliday = hasHolidayInWeek(weekStart, weekHolidays);
+                // 공휴일 포함 주 체크 (캐시 사용하여 중복 계산 방지)
+                let weekHasHoliday = weekHolidayMap.get(weekStartStr);
+                if (weekHasHoliday === undefined) {
+                    // 캐시에 없으면 계산
+                    weekHasHoliday = hasHolidayInWeek(weekStart, holidays);
+                    weekHolidayMap.set(weekStartStr, weekHasHoliday);
+                    
+                    // 디버깅: 12월 28일이 포함된 주 확인
+                    if (month === 12 && day === 28) {
+                        const weekEnd = getWeekEndDate(weekStart);
+                        console.log(`[디버깅] 12월 28일 주: ${formatDate(weekStart)} ~ ${formatDate(weekEnd)}, 공휴일 포함: ${weekHasHoliday}`);
+                        console.log(`[디버깅] 해당 주의 공휴일:`, holidays.filter(h => {
+                            const hDate = parseKSTDate(h.date);
+                            return hDate >= weekStart && hDate <= weekEnd;
+                        }));
+                    }
+                }
                 
                 // 휴무일 판단: 해당 요일이 휴무일이고, 공휴일이 아니며, 공휴일 포함 주가 아닌 경우
                 const isOffDay = (dayOfWeek === offDay) && !isHolidayDate && !weekHasHoliday;
@@ -368,7 +388,8 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
                 })),
                 holidays: holidays,
                 is_probation: isProbation,
-                has_holiday_in_week: hasHoliday
+                // 해당 월의 모든 주 중 하나라도 공휴일이 포함되어 있으면 true
+                has_holiday_in_week: Array.from(weekHolidayMap.values()).some(hasHoliday => hasHoliday === true)
             }
         });
         
