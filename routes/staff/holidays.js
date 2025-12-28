@@ -61,7 +61,7 @@ router.get('/', requireAuth, async (req, res) => {
   try {
     const { year, startDate, endDate } = req.query;
     
-    let query = 'SELECT id, holiday_date, name, year, is_active, created_at, updated_at FROM holidays WHERE 1=1';
+    let query = 'SELECT id, holiday_date, name, year, is_active FROM holidays WHERE 1=1';
     const params = [];
     
     if (year) {
@@ -88,9 +88,7 @@ router.get('/', requireAuth, async (req, res) => {
       date: formatDate(row.holiday_date),
       name: row.name,
       year: row.year,
-      isActive: row.is_active === 1,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+      isActive: row.is_active === 1
     }));
     
     res.json({
