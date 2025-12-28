@@ -253,20 +253,34 @@ function calculateOffDayByWeekCycle(cycleStartDate, targetDate, baseOffDay, holi
   const weekStart = getWeekStartDate(target);
   
   // 공휴일 주인 경우 휴무일 계산 불필요 (주 4일 근무 해제)
-  if (hasHolidayInWeek(weekStart, holidays)) {
-    // 공휴일 주는 기본 휴무일을 반환 (표시용, 실제로는 주 4일 근무 해제)
-    return baseOffDay;
-  }
+  // 하지만 사이클 번호는 계산해야 함 (공휴일 주는 사이클에서 제외되므로)
+  const isHolidayWeek = hasHolidayInWeek(weekStart, holidays);
   
   // 사이클 번호 계산 (공휴일 주 제외)
-  const cycleNumber = getCycleNumber(start, weekStart, holidays);
+  // 공휴일 주는 getCycleNumber에서 제외되므로, 공휴일 주의 사이클 번호는
+  // 이전 주의 사이클 번호와 동일하거나, 다음 공휴일이 아닌 주의 사이클 번호를 사용해야 함
+  let cycleNumber;
+  if (isHolidayWeek) {
+    // 공휴일 주인 경우, 이전 주의 사이클 번호를 사용
+    // 이전 주로 이동하여 사이클 번호 계산
+    const prevWeekStart = new Date(weekStart);
+    prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+    cycleNumber = getCycleNumber(start, prevWeekStart, holidays);
+  } else {
+    cycleNumber = getCycleNumber(start, weekStart, holidays);
+  }
   
   // 디버깅: 휴무일 계산 확인
-  console.log(`[calculateOffDayByWeekCycle] weekStart: ${formatDate(weekStart)}, cycleNumber: ${cycleNumber}, baseOffDay: ${baseOffDay}`);
+  console.log(`[calculateOffDayByWeekCycle] weekStart: ${formatDate(weekStart)}, isHolidayWeek: ${isHolidayWeek}, cycleNumber: ${cycleNumber}, baseOffDay: ${baseOffDay}`);
   
   // 디버깅: 2026-02-23 주 확인
   if (formatDate(weekStart) === '2026-02-23') {
-    console.log(`[calculateOffDayByWeekCycle] 2026-02-23 주 디버깅: cycleNumber=${cycleNumber}, baseOffDay=${baseOffDay}`);
+    console.log(`[calculateOffDayByWeekCycle] 2026-02-23 주 디버깅: isHolidayWeek=${isHolidayWeek}, cycleNumber=${cycleNumber}, baseOffDay=${baseOffDay}`);
+  }
+  
+  // 공휴일 주인 경우 기본 휴무일 반환 (표시용, 실제로는 주 4일 근무 해제)
+  if (isHolidayWeek) {
+    return baseOffDay;
   }
   
   // 사이클 0 (1-4주차)인 경우 base_off_day 사용
@@ -334,12 +348,19 @@ function hasHolidayInWeek(weekStartDate, holidays) {
     const holidayDate = typeof h.date === 'string' ? parseKSTDate(h.date) : (h.date instanceof Date ? new Date(h.date) : parseKSTDate(h.date));
     holidayDate.setHours(12, 0, 0, 0); // 정오로 설정하여 날짜 비교 정확도 향상
     
+    // 주말(토요일=6, 일요일=0)에 있는 공휴일은 제외
+    // 주 4일 근무제에서는 평일(월~금)에 있는 공휴일만 고려
+    const dayOfWeek = holidayDate.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return false; // 주말 공휴일은 무시
+    }
+    
     // 날짜 비교 (시간 제외)
     const holidayDateStr = formatDate(holidayDate);
     const weekStartStr = formatDate(weekStart);
     const weekEndStr = formatDate(weekEnd);
     
-    // 문자열 비교로 날짜 범위 확인
+    // 문자열 비교로 날짜 범위 확인 (평일만)
     return holidayDateStr >= weekStartStr && holidayDateStr <= weekEndStr;
   });
 }
