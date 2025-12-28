@@ -148,8 +148,11 @@ function getCycleNumber(cycleStartDate, targetDate, holidays = []) {
   let cycleNumber = 0;
   
   while (currentWeekStart <= targetWeekStart) {
-    // 공휴일 주가 아닌 경우에만 카운트
-    if (!hasHolidayInWeek(currentWeekStart, holidays)) {
+    const isCurrentStartWeek = currentWeekStart.getTime() === startWeekStart.getTime();
+    
+    // 사이클 시작일의 주는 공휴일 주여도 포함 (항상 사이클의 일부)
+    // 그 외 주는 공휴일 주가 아닌 경우에만 카운트
+    if (isCurrentStartWeek || !hasHolidayInWeek(currentWeekStart, holidays)) {
       weekCount++;
       
       // 사이클 0은 정확히 4주, 사이클 1부터는 4주 단위
@@ -190,10 +193,14 @@ function getCycleWeek(cycleStartDate, targetDate, holidays = []) {
   let currentWeekStart = new Date(startWeekStart);
   let weekCount = 0; // 공휴일이 없는 주의 개수
   let cycleNumber = 0;
+  const isStartWeek = true; // 첫 번째 반복인지 확인
   
   while (currentWeekStart <= targetWeekStart) {
-    // 공휴일 주가 아닌 경우에만 카운트
-    if (!hasHolidayInWeek(currentWeekStart, holidays)) {
+    const isCurrentStartWeek = currentWeekStart.getTime() === startWeekStart.getTime();
+    
+    // 사이클 시작일의 주는 공휴일 주여도 포함 (항상 사이클의 일부)
+    // 그 외 주는 공휴일 주가 아닌 경우에만 카운트
+    if (isCurrentStartWeek || !hasHolidayInWeek(currentWeekStart, holidays)) {
       weekCount++;
       
       // 사이클 0은 정확히 4주, 사이클 1부터는 4주 단위
@@ -403,39 +410,31 @@ function calculateCycleInfo(workDays, targetDate = new Date(), holidays = []) {
   const currentOffDay = calculateOffDayByWeekCycle(cycleStart, weekStart, workDays.base_off_day, holidays);
   
   // 다음 사이클 시작일 계산
-  // 현재 사이클의 마지막 주 다음 주를 찾기
-  // 현재 사이클 번호와 주차를 기준으로 다음 사이클 시작일 계산
+  // 다음 사이클은 (cycleNumber + 1) 사이클의 1주차가 되는 주
+  // 현재 주에서 시작해서 주를 하나씩 증가시키면서 다음 사이클 번호의 1주차를 찾기
   let nextCycleStart = new Date(weekStart);
   let currentWeekForNext = new Date(weekStart);
+  const targetCycleNumber = cycleNumber + 1;
   
-  // 현재 사이클의 남은 주 수 계산
-  const remainingWeeks = 4 - cycleWeek;
-  let weekCountForNext = 0;
-  
-  // 현재 사이클의 남은 주를 건너뛰기
-  while (weekCountForNext < remainingWeeks) {
+  // 최대 20주까지만 검색 (무한 루프 방지)
+  let searchCount = 0;
+  while (searchCount < 20) {
     // 다음 주로 이동
     currentWeekForNext = new Date(currentWeekForNext);
     currentWeekForNext.setDate(currentWeekForNext.getDate() + 7);
     
-    // 공휴일 주가 아닌 경우에만 카운트
-    if (!hasHolidayInWeek(currentWeekForNext, holidays)) {
-      weekCountForNext++;
+    // 다음 사이클 번호와 주차 계산
+    const nextCycleNum = getCycleNumber(cycleStart, currentWeekForNext, holidays);
+    const nextCycleWk = getCycleWeek(cycleStart, currentWeekForNext, holidays);
+    
+    // 다음 사이클 번호의 1주차를 찾으면 종료
+    if (nextCycleNum === targetCycleNumber && nextCycleWk === 1) {
+      nextCycleStart = new Date(currentWeekForNext);
+      break;
     }
+    
+    searchCount++;
   }
-  
-  // 다음 사이클의 첫 번째 주 찾기 (공휴일 주가 아닌 주)
-  // 남은 주를 건너뛴 후, 다음 공휴일이 아닌 주를 찾기
-  currentWeekForNext = new Date(currentWeekForNext);
-  currentWeekForNext.setDate(currentWeekForNext.getDate() + 7);
-  
-  // 공휴일 주를 건너뛰면서 다음 사이클의 첫 번째 주 찾기
-  while (hasHolidayInWeek(currentWeekForNext, holidays)) {
-    currentWeekForNext = new Date(currentWeekForNext);
-    currentWeekForNext.setDate(currentWeekForNext.getDate() + 7);
-  }
-  
-  nextCycleStart = new Date(currentWeekForNext);
   
   // 디버깅: 다음 사이클 시작일 확인
   console.log(`[calculateCycleInfo] 현재 사이클: ${cycleNumber}, 주차: ${cycleWeek}`);
