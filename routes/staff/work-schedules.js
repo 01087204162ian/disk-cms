@@ -715,10 +715,10 @@ router.get('/work-schedules/my-schedule/:year/:month', requireAuth, async (req, 
                         return hDate >= weekStart && hDate <= new Date(weekStart.getTime() + 4 * 24 * 60 * 60 * 1000);
                     })
                     .map(h => ({ date: formatDate(h.holiday_date), name: h.name }));
-                const hasHolidayInWeek = hasHolidayInWeek(weekStart, weekHolidays);
+                const weekHasHoliday = hasHolidayInWeek(weekStart, weekHolidays);
                 
                 // 휴무일 판단: 해당 요일이 휴무일이고, 공휴일이 아니며, 공휴일 포함 주가 아닌 경우
-                const isOffDay = (dayOfWeek === offDay) && !isHoliday && !hasHolidayInWeek;
+                const isOffDay = (dayOfWeek === offDay) && !isHoliday && !weekHasHoliday;
                 
                 dailySchedule.push({
                     date: dateStr,
