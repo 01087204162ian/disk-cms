@@ -334,12 +334,33 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
         }
         
         // 해당 월과 겹치는 모든 주의 공휴일 조회
+        // 주의: 연도 경계를 넘어가는 경우를 대비하여 ±1년 범위로 확장
+        const queryStartDate = new Date(firstDayWeekStart);
+        queryStartDate.setFullYear(queryStartDate.getFullYear() - 1); // 1년 전까지
+        const queryEndDateExtended = new Date(queryEndDate);
+        queryEndDateExtended.setFullYear(queryEndDateExtended.getFullYear() + 1); // 1년 후까지
+        
         const [holidayRows] = await pool.execute(`
             SELECT holiday_date, name FROM holidays 
             WHERE holiday_date >= ? AND holiday_date <= ?
             AND is_active = 1
             ORDER BY holiday_date ASC
-        `, [formatDate(firstDayWeekStart), formatDate(queryEndDate)]);
+        `, [formatDate(queryStartDate), formatDate(queryEndDateExtended)]);
+        
+        // 경고: 공휴일이 없거나 부족한 경우 로그
+        if (holidayRows.length === 0) {
+            console.warn(`[공휴일 경고] ${year}년 ${month}월 조회 시 공휴일 데이터가 없습니다.`);
+        } else {
+            const holidayYears = [...new Set(holidayRows.map(row => new Date(row.holiday_date).getFullYear()))];
+            const requiredYears = [year];
+            if (queryEndDateExtended.getFullYear() > year) {
+                requiredYears.push(queryEndDateExtended.getFullYear());
+            }
+            const missingYears = requiredYears.filter(y => !holidayYears.includes(y));
+            if (missingYears.length > 0) {
+                console.warn(`[공휴일 경고] ${missingYears.join(', ')}년 공휴일 데이터가 없습니다.`);
+            }
+        }
         
         const holidays = holidayRows.map(row => ({
             date: formatDate(row.holiday_date),
