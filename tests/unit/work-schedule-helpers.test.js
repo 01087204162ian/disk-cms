@@ -24,7 +24,7 @@ const {
   validateHalfDay,
   validateTemporaryChange,
   calculateCycleInfo
-} = require('../../../routes/staff/work-schedule-helpers');
+} = require('../../routes/staff/work-schedule-helpers');
 
 describe('주 4일 근무제 헬퍼 함수 테스트', () => {
   
