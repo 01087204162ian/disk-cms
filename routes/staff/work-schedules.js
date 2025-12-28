@@ -91,7 +91,21 @@ router.get('/my-status', requireAuth, async (req, res) => {
         }
         
         const user = userRows[0];
-        const workDays = user.work_days ? JSON.parse(user.work_days) : null;
+        // work_days가 이미 객체인지 확인 (MySQL JSON 타입은 자동 파싱될 수 있음)
+        let workDays = null;
+        if (user.work_days) {
+            if (typeof user.work_days === 'string') {
+                try {
+                    workDays = JSON.parse(user.work_days);
+                } catch (error) {
+                    console.error('work_days JSON 파싱 오류:', error);
+                    workDays = null;
+                }
+            } else {
+                // 이미 객체인 경우
+                workDays = user.work_days;
+            }
+        }
         
         // 수습 기간 확인
         const today = new Date();
@@ -156,7 +170,21 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
         }
         
         const user = userRows[0];
-        const workDays = user.work_days ? JSON.parse(user.work_days) : null;
+        // work_days가 이미 객체인지 확인 (MySQL JSON 타입은 자동 파싱될 수 있음)
+        let workDays = null;
+        if (user.work_days) {
+            if (typeof user.work_days === 'string') {
+                try {
+                    workDays = JSON.parse(user.work_days);
+                } catch (error) {
+                    console.error('work_days JSON 파싱 오류:', error);
+                    workDays = null;
+                }
+            } else {
+                // 이미 객체인 경우
+                workDays = user.work_days;
+            }
+        }
         
         if (!workDays) {
             return res.status(400).json({
@@ -390,7 +418,21 @@ router.post('/apply-half-day', requireAuth, async (req, res) => {
         }
         
         const user = userRows[0];
-        const workDays = user.work_days ? JSON.parse(user.work_days) : null;
+        // work_days가 이미 객체인지 확인 (MySQL JSON 타입은 자동 파싱될 수 있음)
+        let workDays = null;
+        if (user.work_days) {
+            if (typeof user.work_days === 'string') {
+                try {
+                    workDays = JSON.parse(user.work_days);
+                } catch (error) {
+                    console.error('work_days JSON 파싱 오류:', error);
+                    workDays = null;
+                }
+            } else {
+                // 이미 객체인 경우
+                workDays = user.work_days;
+            }
+        }
         
         if (!workDays) {
             return res.status(400).json({
@@ -508,7 +550,21 @@ router.post('/temporary-change', requireAuth, async (req, res) => {
         }
         
         const user = userRows[0];
-        const workDays = user.work_days ? JSON.parse(user.work_days) : null;
+        // work_days가 이미 객체인지 확인 (MySQL JSON 타입은 자동 파싱될 수 있음)
+        let workDays = null;
+        if (user.work_days) {
+            if (typeof user.work_days === 'string') {
+                try {
+                    workDays = JSON.parse(user.work_days);
+                } catch (error) {
+                    console.error('work_days JSON 파싱 오류:', error);
+                    workDays = null;
+                }
+            } else {
+                // 이미 객체인 경우
+                workDays = user.work_days;
+            }
+        }
         
         if (!workDays) {
             return res.status(400).json({
