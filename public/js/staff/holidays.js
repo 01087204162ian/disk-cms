@@ -27,8 +27,10 @@ class HolidayManager {
         this.addHolidayBtn = document.getElementById('addHolidayBtn');
         this.generateSubstituteBtn = document.getElementById('generateSubstituteBtn');
         this.validateHolidaysBtn = document.getElementById('validateHolidaysBtn');
-        this.holidaysList = document.getElementById('holidaysList');
-        this.noHolidays = document.getElementById('noHolidays');
+        this.refreshListBtn = document.getElementById('refreshListBtn');
+        this.tableBody = document.getElementById('holidays_table_body');
+        this.mobileCards = document.getElementById('holidays_mobile_cards');
+        this.paginationInfo = document.getElementById('pagination_info');
         this.holidayModal = new bootstrap.Modal(document.getElementById('holidayModal'));
         this.validateModal = new bootstrap.Modal(document.getElementById('validateModal'));
         this.validateResults = document.getElementById('validateResults');
@@ -47,6 +49,7 @@ class HolidayManager {
         this.addHolidayBtn.addEventListener('click', () => this.showAddModal());
         this.generateSubstituteBtn.addEventListener('click', () => this.generateSubstitute());
         this.validateHolidaysBtn.addEventListener('click', () => this.validateHolidays());
+        this.refreshListBtn.addEventListener('click', () => this.loadHolidays());
         this.saveHolidayBtn.addEventListener('click', () => this.saveHoliday());
         this.holidayDate.addEventListener('change', () => this.updateYearFromDate());
     }
@@ -111,42 +114,100 @@ class HolidayManager {
     }
     
     renderHolidays() {
+        this.renderDesktopTable();
+        this.renderMobileCards();
+        this.updatePaginationInfo();
+    }
+    
+    renderDesktopTable() {
         if (this.holidays.length === 0) {
-            this.holidaysList.innerHTML = '';
-            this.noHolidays.style.display = 'block';
+            this.tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4">공휴일이 없습니다.</td></tr>';
             return;
         }
         
-        this.noHolidays.style.display = 'none';
-        
-        this.holidaysList.innerHTML = this.holidays.map(holiday => {
+        this.tableBody.innerHTML = this.holidays.map(holiday => {
             const date = new Date(holiday.date);
             const dayOfWeek = date.getDay();
             const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
             const isSubstitute = holiday.name.includes('대체공휴일');
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            const statusBadge = holiday.isActive 
+                ? '<span class="badge bg-success">활성</span>' 
+                : '<span class="badge bg-secondary">비활성</span>';
+            
+            let dateBadges = '';
+            if (isWeekend) dateBadges += '<span class="badge bg-warning text-dark ms-1">주말</span>';
+            if (isSubstitute) dateBadges += '<span class="badge bg-info ms-1">대체</span>';
             
             return `
-                <div class="col-md-4">
-                    <div class="holiday-card ${!holiday.isActive ? 'inactive' : ''}">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="holiday-date">
-                                    ${this.formatDate(holiday.date)} (${dayNames[dayOfWeek]})
-                                    ${isWeekend ? '<span class="badge badge-weekend ms-2">주말</span>' : ''}
-                                    ${isSubstitute ? '<span class="badge badge-substitute ms-2">대체</span>' : ''}
-                                </div>
-                                <div class="holiday-name">${holiday.name}</div>
-                                <div class="holiday-year">${holiday.year}년</div>
-                            </div>
-                            <div class="btn-group-vertical">
-                                <button class="btn btn-sm btn-outline-primary" onclick="holidayManager.editHoliday(${holiday.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="holidayManager.deleteHoliday(${holiday.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                <tr>
+                    <td class="col-date">
+                        ${this.formatFullDate(holiday.date)} (${dayNames[dayOfWeek]})
+                        ${dateBadges}
+                    </td>
+                    <td class="col-company-name">${holiday.name}</td>
+                    <td class="col-manager">${holiday.year}</td>
+                    <td class="col-status">${statusBadge}</td>
+                    <td class="col-status">
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="holidayManager.editHoliday(${holiday.id})" title="수정">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="holidayManager.deleteHoliday(${holiday.id})" title="삭제">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    renderMobileCards() {
+        if (this.holidays.length === 0) {
+            this.mobileCards.innerHTML = '<div class="text-center py-4">공휴일이 없습니다.</div>';
+            return;
+        }
+        
+        this.mobileCards.innerHTML = this.holidays.map(holiday => {
+            const date = new Date(holiday.date);
+            const dayOfWeek = date.getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            const isSubstitute = holiday.name.includes('대체공휴일');
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            const statusBadge = holiday.isActive 
+                ? '<span class="badge bg-success">활성</span>' 
+                : '<span class="badge bg-secondary">비활성</span>';
+            
+            let dateBadges = '';
+            if (isWeekend) dateBadges += '<span class="badge bg-warning text-dark ms-1">주말</span>';
+            if (isSubstitute) dateBadges += '<span class="badge bg-info ms-1">대체</span>';
+            
+            return `
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div class="d-flex align-items-center">
+                            <span class="mobile-card-title">${holiday.name}</span>
+                        </div>
+                        <div>${statusBadge}</div>
+                    </div>
+                    <div class="mobile-card-body">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">날짜:</span>
+                            <span class="mobile-card-value">
+                                ${this.formatFullDate(holiday.date)} (${dayNames[dayOfWeek]})
+                                ${dateBadges}
+                            </span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">연도:</span>
+                            <span class="mobile-card-value">${holiday.year}년</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="holidayManager.editHoliday(${holiday.id})">
+                                <i class="fas fa-edit"></i> 수정
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="holidayManager.deleteHoliday(${holiday.id})">
+                                <i class="fas fa-trash"></i> 삭제
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -154,11 +215,18 @@ class HolidayManager {
         }).join('');
     }
     
-    formatDate(dateStr) {
+    updatePaginationInfo() {
+        if (this.paginationInfo) {
+            this.paginationInfo.textContent = `총 ${this.holidays.length}개의 공휴일이 있습니다.`;
+        }
+    }
+    
+    formatFullDate(dateStr) {
         const date = new Date(dateStr);
+        const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        return `${month}/${day}`;
+        return `${year}-${month}-${day}`;
     }
     
     showAddModal() {
@@ -325,15 +393,22 @@ class HolidayManager {
     }
     
     showLoading(show) {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) {
-            overlay.style.display = show ? 'flex' : 'none';
+        // sj-template-loader의 로딩 오버레이 사용
+        if (window.sjTemplateLoader) {
+            if (show) {
+                window.sjTemplateLoader.showPageLoading();
+            } else {
+                window.sjTemplateLoader.hidePageLoading();
+            }
         }
     }
     
     showSuccess(message) {
-        // 간단한 알림 (나중에 더 나은 알림 시스템으로 교체 가능)
-        alert(message);
+        if (window.sjTemplateLoader) {
+            window.sjTemplateLoader.showToast(message, 'success');
+        } else {
+            alert(message);
+        }
     }
     
     async validateHolidays() {
@@ -418,7 +493,11 @@ class HolidayManager {
     }
     
     showError(message) {
-        alert('오류: ' + message);
+        if (window.sjTemplateLoader) {
+            window.sjTemplateLoader.showToast(message, 'error');
+        } else {
+            alert('오류: ' + message);
+        }
     }
 }
 

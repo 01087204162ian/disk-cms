@@ -15,128 +15,122 @@
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="/css/sj-styles.css" rel="stylesheet">
-  
-  <style>
-    .holiday-card {
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      transition: box-shadow 0.2s;
-    }
-    .holiday-card:hover {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .holiday-card.inactive {
-      opacity: 0.6;
-      background-color: #f8f9fa;
-    }
-    .holiday-date {
-      font-weight: 600;
-      color: #495057;
-      font-size: 1.1rem;
-    }
-    .holiday-name {
-      font-size: 1rem;
-      color: #212529;
-      margin-top: 0.5rem;
-    }
-    .holiday-year {
-      color: #6c757d;
-      font-size: 0.9rem;
-    }
-    .badge-weekend {
-      background-color: #ffc107;
-      color: #000;
-    }
-    .badge-substitute {
-      background-color: #17a2b8;
-      color: #fff;
-    }
-  </style>
 </head>
 <body>
   <!-- 로딩 오버레이 -->
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading">
-      <i class="fas fa-spinner fa-spin"></i>
+      <i class="fas fa-spinner"></i>
       <div>페이지를 불러오는 중...</div>
     </div>
   </div>
   
   <!-- 헤더 컨테이너 -->
-  <div id="header-container"></div>
+  <div id="header-container">
+    <!-- sj-header.html 컴포넌트가 여기에 로드됩니다 -->
+  </div>
   
   <!-- 사이드바 오버레이 (모바일용) -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
   
   <!-- 사이드바 컨테이너 -->
-  <div id="sidebar-container"></div>
+  <div id="sidebar-container">
+    <!-- sj-sidebar.html 컴포넌트가 여기에 로드됩니다 -->
+  </div>
   
   <!-- 메인 컨텐츠 -->
   <main class="main-content">
-    <div class="container-fluid py-4">
-      
-      <!-- 페이지 헤더 -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>공휴일 관리</h2>
-        <div>
-          <button class="btn btn-primary" id="addHolidayBtn">
-            <i class="fas fa-plus me-2"></i>공휴일 추가
-          </button>
-          <button class="btn btn-success" id="generateSubstituteBtn">
-            <i class="fas fa-magic me-2"></i>대체 공휴일 자동 생성
-          </button>
-          <button class="btn btn-warning" id="validateHolidaysBtn">
-            <i class="fas fa-check-circle me-2"></i>데이터 검증
-          </button>
-        </div>
-      </div>
-      
-      <!-- 필터 영역 -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="row align-items-end">
-            <div class="col-md-3">
-              <label class="form-label">연도</label>
-              <select class="form-select" id="yearFilter">
-                <!-- 동적으로 생성 -->
-              </select>
+    
+    <!-- 공휴일 관리 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            
+            <!-- 버튼 영역 -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <div class="btn-row">
+                  <button type="button" class="btn btn-primary btn-sm" id="addHolidayBtn">
+                    <i class="fas fa-plus"></i> <span class="d-none d-md-inline">공휴일 추가</span>
+                  </button>
+                  <button type="button" class="btn btn-success btn-sm" id="generateSubstituteBtn">
+                    <i class="fas fa-magic"></i> <span class="d-none d-md-inline">대체 공휴일 자동 생성</span>
+                  </button>
+                  <button type="button" class="btn btn-warning btn-sm" id="validateHolidaysBtn">
+                    <i class="fas fa-check-circle"></i> <span class="d-none d-md-inline">데이터 검증</span>
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="refreshListBtn">
+                    <i class="fas fa-sync-alt"></i> <span class="d-none d-md-inline">새로고침</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <div class="col-md-3">
-              <label class="form-label">시작일</label>
-              <input type="date" class="form-control" id="startDateFilter">
+
+            <!-- 필터 영역 -->
+            <div class="search-filter-row">
+              <div class="row align-items-end">
+                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                  <label class="filter-label">연도</label>
+                  <select id="yearFilter" class="form-control filter-select">
+                    <!-- 동적으로 생성 -->
+                  </select>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                  <label class="filter-label">시작일</label>
+                  <input type="date" id="startDateFilter" class="form-control filter-select">
+                </div>
+                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                  <label class="filter-label">종료일</label>
+                  <input type="date" id="endDateFilter" class="form-control filter-select">
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+                  <label class="filter-label">&nbsp;</label>
+                  <button class="btn btn-secondary btn-sm w-100" id="applyFilterBtn">
+                    <i class="fas fa-filter"></i> 필터 적용
+                  </button>
+                </div>
+              </div>
             </div>
-            <div class="col-md-3">
-              <label class="form-label">종료일</label>
-              <input type="date" class="form-control" id="endDateFilter">
+
+            <!-- 공휴일 목록 테이블 -->
+            <div class="desktop-table">
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm">
+                  <thead class="thead-light">
+                    <tr>
+                      <th class="col-date">날짜</th>
+                      <th class="col-company-name">공휴일명</th>
+                      <th class="col-manager">연도</th>
+                      <th class="col-status">상태</th>
+                      <th class="col-status">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody id="holidays_table_body">
+                    <tr>
+                      <td colspan="5" class="text-center py-4">데이터를 불러오는 중...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div class="col-md-3">
-              <button class="btn btn-secondary w-100" id="applyFilterBtn">
-                <i class="fas fa-filter me-2"></i>필터 적용
-              </button>
+
+            <!-- 모바일 카드 -->
+            <div class="mobile-cards" id="holidays_mobile_cards">
+              <div class="text-center py-4">데이터를 불러오는 중...</div>
+            </div>
+
+            <!-- 페이징 (공휴일은 페이징이 필요 없을 수도 있지만 구조는 유지) -->
+            <div class="row mt-3">
+              <div class="col-md-6 col-12 mb-2">
+                <div id="pagination_info" class="dataTables_info text-center text-md-left"></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- 공휴일 목록 -->
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0">공휴일 목록</h5>
-        </div>
-        <div class="card-body">
-          <div id="holidaysList" class="row">
-            <!-- 공휴일 목록이 여기에 표시됩니다 -->
-          </div>
-          <div id="noHolidays" class="text-center py-5 text-muted" style="display: none;">
-            <i class="fas fa-calendar-times fa-3x mb-3"></i>
-            <p>공휴일이 없습니다.</p>
-          </div>
-        </div>
-      </div>
-      
     </div>
+
   </main>
   
   <!-- 공휴일 추가/수정 모달 -->
@@ -204,25 +198,22 @@
     </div>
   </div>
   
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
-  <!-- Template Loader -->
+  <!-- SJ 템플릿 로더 -->
   <script src="/js/sj-template-loader.js"></script>
   
   <!-- 공휴일 관리 스크립트 -->
   <script src="/js/staff/holidays.js"></script>
   
   <script>
-    // 페이지 초기화
-    $(document).ready(function() {
-      // 템플릿 로더 초기화
-      if (typeof initializePage === 'function') {
-        initializePage();
-      }
+    // 페이지 로드 후 자동 초기화
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('공휴일 관리 페이지가 로드되었습니다.');
+      
+      // holidays는 사이드바의 data-menu 값과 일치
+      await window.sjTemplateLoader.initializePage('holidays');
       
       // 공휴일 관리 초기화
       if (typeof HolidayManager !== 'undefined') {
@@ -232,4 +223,3 @@
   </script>
 </body>
 </html>
-
