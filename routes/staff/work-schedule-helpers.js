@@ -264,6 +264,11 @@ function calculateOffDayByWeekCycle(cycleStartDate, targetDate, baseOffDay, holi
   // 디버깅: 휴무일 계산 확인
   console.log(`[calculateOffDayByWeekCycle] weekStart: ${formatDate(weekStart)}, cycleNumber: ${cycleNumber}, baseOffDay: ${baseOffDay}`);
   
+  // 디버깅: 2026-02-23 주 확인
+  if (formatDate(weekStart) === '2026-02-23') {
+    console.log(`[calculateOffDayByWeekCycle] 2026-02-23 주 디버깅: cycleNumber=${cycleNumber}, baseOffDay=${baseOffDay}`);
+  }
+  
   // 사이클 0 (1-4주차)인 경우 base_off_day 사용
   if (cycleNumber === 0) {
     return baseOffDay;

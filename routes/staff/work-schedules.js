@@ -452,6 +452,16 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
                         );
                         // 캐시에 저장
                         weekOffDayMap.set(weekStartStr, offDay);
+                        
+                        // 디버깅: 2026-02-23 주 확인
+                        if (weekStartStr === '2026-02-23') {
+                            console.log(`[work-schedules] 2026-02-23 주 캐시 저장: offDay=${offDay}`);
+                        }
+                    } else {
+                        // 디버깅: 2026-02-23 주 캐시 확인
+                        if (weekStartStr === '2026-02-23') {
+                            console.log(`[work-schedules] 2026-02-23 주 캐시에서 로드: offDay=${offDay}`);
+                        }
                     }
                 }
                 
