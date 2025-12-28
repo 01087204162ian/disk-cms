@@ -307,6 +307,7 @@ async function loadPersonalSchedule(scheduleData = null) {
     updateCycleInfo(displayCycleInfo);
     
     // 오늘 날짜 기준으로 수습 기간/공휴일 체크
+    const today = new Date();
     checkProbationPeriod(scheduleData.user.hire_date);
     checkHolidayInWeek(scheduleData.holidays, today);
     
