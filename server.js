@@ -1,8 +1,11 @@
 // ==============================
 // server.js - 메인 서버 파일
 // ==============================
-process.env.TZ = 'Asia/Seoul';
+// dotenv를 가장 먼저 로드 (환경 변수 설정 전)
 require('dotenv').config();
+
+// 타임존 설정 (dotenv 로드 후, 기본값 설정)
+process.env.TZ = process.env.TZ || 'Asia/Seoul';
 const express = require('express');
 const path = require('path');
 const cors = require('cors');

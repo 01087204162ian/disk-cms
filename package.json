@@ -7,6 +7,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "prod": "NODE_ENV=production node server.js",
+    "start:win": "set TZ=Asia/Seoul && node server.js",
+    "dev:win": "set TZ=Asia/Seoul && nodemon server.js",
     "create-page": "node scripts/create-page.js",
     "create-crud": "node scripts/create-page.js $1 $2 crud",
     "create-simple": "node scripts/create-page.js $1 $2 simple",

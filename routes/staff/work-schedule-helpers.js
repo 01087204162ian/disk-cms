@@ -19,9 +19,10 @@
  * ================================================================
  */
 
-// 타임존 설정 확인 (서버 레벨에서 이미 설정되어 있어야 함)
+// 타임존 설정 (이 모듈이 먼저 로드될 경우를 대비)
 if (!process.env.TZ || process.env.TZ !== 'Asia/Seoul') {
-  console.warn('⚠️ 경고: process.env.TZ가 Asia/Seoul로 설정되지 않았습니다.');
+  process.env.TZ = 'Asia/Seoul';
+  console.log('✅ work-schedule-helpers: 타임존이 Asia/Seoul로 설정되었습니다.');
 }
 
 // ===========================
