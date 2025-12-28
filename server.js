@@ -167,6 +167,18 @@ let server;
 server = app.listen(PORT, () => {
     console.log(`🚀 보험 CMS 서버가 포트 ${PORT}에서 실행 중입니다.`);
     console.log(`🔗 접속 URL: http://localhost:${PORT}`);
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`\n❌ 오류: 포트 ${PORT}가 이미 사용 중입니다.`);
+        console.error(`\n해결 방법:`);
+        console.error(`1. 실행 중인 프로세스 종료: kill -9 $(lsof -ti:${PORT})`);
+        console.error(`2. PM2 사용 중인 경우: pm2 stop all`);
+        console.error(`3. 다른 포트 사용: PORT=3001 npm run dev`);
+        console.error(`\n자세한 내용: docs/서버-포트-충돌-해결.md\n`);
+        process.exit(1);
+    } else {
+        throw err;
+    }
     console.log(`📋 약국보험: http://localhost:${PORT}/pharmacy-applications.html`);
     console.log(`🏗️ 근재보험: http://localhost:${PORT}/workers-comp-contracts.html`);
     
