@@ -195,39 +195,56 @@ function updateScheduleDisplay() {
     const cycle = data.current_cycle;
     
     // 기본 휴무일 표시
-    const baseOffDayName = getDayNameFromNumber(workDays.base_off_day);
-    document.getElementById('baseOffDayDisplay').textContent = baseOffDayName;
+    const baseOffDayElement = document.getElementById('baseOffDayDisplay');
+    if (baseOffDayElement) {
+        const baseOffDayName = getDayNameFromNumber(workDays.base_off_day);
+        baseOffDayElement.textContent = baseOffDayName;
+    }
     
     // 사이클 정보 배지
-    const cycleInfoText = `${cycle.week_range} | ${cycle.off_day_name} 휴무`;
-    document.getElementById('cycleInfoBadge').textContent = cycleInfoText;
+    const cycleInfoBadgeElement = document.getElementById('cycleInfoBadge');
+    if (cycleInfoBadgeElement) {
+        const cycleInfoText = `${cycle.week_range} | ${cycle.off_day_name} 휴무`;
+        cycleInfoBadgeElement.textContent = cycleInfoText;
+    }
     
     // 이번 달 근무 패턴
-    document.getElementById('currentPatternDisplay').textContent = 
-        `휴무일: ${cycle.off_day_name}`;
+    const currentPatternElement = document.getElementById('currentPatternDisplay');
+    if (currentPatternElement) {
+        currentPatternElement.textContent = `휴무일: ${cycle.off_day_name}`;
+    }
     
     // 다음 사이클 정보
-    document.getElementById('nextCycleDisplay').textContent = 
-        `${formatDateDisplay(cycle.next_cycle_date)}부터 ${cycle.next_off_day_name} 휴무`;
+    const nextCycleElement = document.getElementById('nextCycleDisplay');
+    if (nextCycleElement) {
+        nextCycleElement.textContent = 
+            `${formatDateDisplay(cycle.next_cycle_date)}부터 ${cycle.next_off_day_name} 휴무`;
+    }
     
     // 월 표시
-    document.getElementById('currentMonthDisplay').textContent = 
-        `${currentYear}년 ${currentMonth}월`;
+    const currentMonthElement = document.getElementById('currentMonthDisplay');
+    if (currentMonthElement) {
+        currentMonthElement.textContent = `${currentYear}년 ${currentMonth}월`;
+    }
     
     // 수습 기간 알림
     const probationNotice = document.getElementById('probationNotice');
-    if (data.is_probation) {
-        probationNotice.style.display = 'block';
-    } else {
-        probationNotice.style.display = 'none';
+    if (probationNotice) {
+        if (data.is_probation) {
+            probationNotice.style.display = 'block';
+        } else {
+            probationNotice.style.display = 'none';
+        }
     }
     
     // 공휴일 포함 주 알림
     const holidayNotice = document.getElementById('holidayNotice');
-    if (data.has_holiday_in_week) {
-        holidayNotice.style.display = 'block';
-    } else {
-        holidayNotice.style.display = 'none';
+    if (holidayNotice) {
+        if (data.has_holiday_in_week) {
+            holidayNotice.style.display = 'block';
+        } else {
+            holidayNotice.style.display = 'none';
+        }
     }
 }
 
