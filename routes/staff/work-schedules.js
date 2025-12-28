@@ -480,6 +480,13 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
                     }
                 }
                 
+                // 디버깅: 2026년 2월 27일 확인
+                if (dateStr === '2026-02-27') {
+                    const weekEnd = getWeekEndDate(weekStart);
+                    console.log(`[디버깅] 2026-02-27: weekStart=${weekStartStr}, dayOfWeek=${dayOfWeek}, offDay=${offDay}, isHolidayDate=${isHolidayDate}, weekHasHoliday=${weekHasHoliday}`);
+                    console.log(`[디버깅] 2026-02-27 주: ${formatDate(weekStart)} ~ ${formatDate(weekEnd)}`);
+                }
+                
                 // 휴무일 판단: 해당 요일이 휴무일이고, 공휴일이 아니며, 공휴일 포함 주가 아닌 경우
                 const isOffDay = (dayOfWeek === offDay) && !isHolidayDate && !weekHasHoliday;
                 
