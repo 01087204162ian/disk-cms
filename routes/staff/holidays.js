@@ -356,5 +356,128 @@ router.post('/generate-substitute', authenticateToken, requireRole(['SUPER_ADMIN
   }
 });
 
+/**
+ * 공휴일 데이터 검증
+ * GET /api/staff/holidays/validate?year=2026
+ */
+router.get('/validate', authenticateToken, requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
+  try {
+    const { year } = req.query;
+    
+    if (!year) {
+      return res.status(400).json({
+        success: false,
+        message: '연도를 입력해주세요.'
+      });
+    }
+    
+    const targetYear = parseInt(year);
+    
+    // 해당 연도의 모든 공휴일 조회
+    const [holidays] = await pool.execute(
+      'SELECT id, holiday_date, name, year, is_active FROM holidays WHERE year = ? AND is_active = 1 ORDER BY holiday_date ASC',
+      [targetYear]
+    );
+    
+    const errors = [];
+    const warnings = [];
+    
+    // 고정 공휴일 목록 (날짜 기준)
+    const fixedHolidays = {
+      '01-01': '신정',
+      '03-01': '삼일절',
+      '05-05': '어린이날',
+      '06-06': '현충일',
+      '08-15': '광복절',
+      '10-03': '개천절',
+      '10-09': '한글날',
+      '12-25': '성탄절'
+    };
+    
+    // 찾은 공휴일 체크
+    const foundHolidays = new Set();
+    
+    for (const holiday of holidays) {
+      const holidayDate = new Date(holiday.holiday_date);
+      const monthDay = String(holidayDate.getMonth() + 1).padStart(2, '0') + '-' + String(holidayDate.getDate()).padStart(2, '0');
+      const dateStr = formatDate(holidayDate);
+      
+      // 연도 확인
+      if (holidayDate.getFullYear() !== targetYear) {
+        errors.push({
+          id: holiday.id,
+          date: dateStr,
+          name: holiday.name,
+          issue: '날짜와 연도가 일치하지 않습니다.',
+          type: 'error'
+        });
+      }
+      
+      // 고정 공휴일 확인
+      if (fixedHolidays[monthDay]) {
+        foundHolidays.add(monthDay);
+        if (holiday.name !== fixedHolidays[monthDay] && !holiday.name.includes('대체공휴일')) {
+          warnings.push({
+            id: holiday.id,
+            date: dateStr,
+            name: holiday.name,
+            expected: fixedHolidays[monthDay],
+            issue: `고정 공휴일 이름이 예상과 다릅니다. 예상: ${fixedHolidays[monthDay]}`,
+            type: 'warning'
+          });
+        }
+      }
+      
+      // 중복 날짜 확인
+      const duplicates = holidays.filter(h => 
+        h.id !== holiday.id && 
+        formatDate(h.holiday_date) === dateStr
+      );
+      
+      if (duplicates.length > 0) {
+        errors.push({
+          id: holiday.id,
+          date: dateStr,
+          name: holiday.name,
+          issue: `중복된 날짜의 공휴일이 있습니다. (ID: ${duplicates.map(d => d.id).join(', ')})`,
+          type: 'error'
+        });
+      }
+    }
+    
+    // 누락된 고정 공휴일 확인
+    const missingHolidays = [];
+    for (const [monthDay, name] of Object.entries(fixedHolidays)) {
+      if (!foundHolidays.has(monthDay)) {
+        const [month, day] = monthDay.split('-');
+        missingHolidays.push({
+          date: `${targetYear}-${month}-${day}`,
+          name: name,
+          issue: '고정 공휴일이 누락되었습니다.',
+          type: 'error'
+        });
+      }
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        year: targetYear,
+        totalHolidays: holidays.length,
+        errors: [...errors, ...missingHolidays],
+        warnings: warnings,
+        isValid: errors.length === 0 && missingHolidays.length === 0
+      }
+    });
+  } catch (error) {
+    console.error('공휴일 검증 오류:', error);
+    res.status(500).json({
+      success: false,
+      message: '공휴일 검증 중 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
 

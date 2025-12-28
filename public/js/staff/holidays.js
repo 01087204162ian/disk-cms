@@ -26,9 +26,12 @@ class HolidayManager {
         this.applyFilterBtn = document.getElementById('applyFilterBtn');
         this.addHolidayBtn = document.getElementById('addHolidayBtn');
         this.generateSubstituteBtn = document.getElementById('generateSubstituteBtn');
+        this.validateHolidaysBtn = document.getElementById('validateHolidaysBtn');
         this.holidaysList = document.getElementById('holidaysList');
         this.noHolidays = document.getElementById('noHolidays');
         this.holidayModal = new bootstrap.Modal(document.getElementById('holidayModal'));
+        this.validateModal = new bootstrap.Modal(document.getElementById('validateModal'));
+        this.validateResults = document.getElementById('validateResults');
         this.holidayForm = document.getElementById('holidayForm');
         this.holidayId = document.getElementById('holidayId');
         this.holidayDate = document.getElementById('holidayDate');
@@ -43,6 +46,7 @@ class HolidayManager {
         this.applyFilterBtn.addEventListener('click', () => this.loadHolidays());
         this.addHolidayBtn.addEventListener('click', () => this.showAddModal());
         this.generateSubstituteBtn.addEventListener('click', () => this.generateSubstitute());
+        this.validateHolidaysBtn.addEventListener('click', () => this.validateHolidays());
         this.saveHolidayBtn.addEventListener('click', () => this.saveHoliday());
         this.holidayDate.addEventListener('change', () => this.updateYearFromDate());
     }
@@ -330,6 +334,87 @@ class HolidayManager {
     showSuccess(message) {
         // 간단한 알림 (나중에 더 나은 알림 시스템으로 교체 가능)
         alert(message);
+    }
+    
+    async validateHolidays() {
+        const year = this.yearFilter.value || new Date().getFullYear();
+        
+        try {
+            this.showLoading(true);
+            
+            const response = await fetch(`/api/staff/holidays/validate?year=${year}`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error('공휴일 검증에 실패했습니다.');
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showValidateResults(result.data);
+            } else {
+                throw new Error(result.message || '공휴일 검증에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('공휴일 검증 오류:', error);
+            this.showError(error.message);
+        } finally {
+            this.showLoading(false);
+        }
+    }
+    
+    showValidateResults(data) {
+        let html = `
+            <div class="mb-3">
+                <h6>검증 연도: ${data.year}년</h6>
+                <p>총 공휴일 수: ${data.totalHolidays}개</p>
+            </div>
+        `;
+        
+        if (data.isValid) {
+            html += `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    모든 공휴일 데이터가 정상입니다.
+                </div>
+            `;
+        } else {
+            if (data.errors && data.errors.length > 0) {
+                html += `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-circle me-2"></i>오류 (${data.errors.length}개)</h6>
+                        <ul class="mb-0">
+                            ${data.errors.map(error => `
+                                <li>
+                                    <strong>${error.date || error.name}</strong>: ${error.issue}
+                                    ${error.expected ? ` (예상: ${error.expected})` : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (data.warnings && data.warnings.length > 0) {
+                html += `
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>경고 (${data.warnings.length}개)</h6>
+                        <ul class="mb-0">
+                            ${data.warnings.map(warning => `
+                                <li>
+                                    <strong>${warning.date}</strong> - ${warning.name}: ${warning.issue}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+        
+        this.validateResults.innerHTML = html;
+        this.validateModal.show();
     }
     
     showError(message) {
