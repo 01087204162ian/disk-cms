@@ -24,22 +24,35 @@
           "order": 1
         },
         {
+          "id": "employee-schedule",
+          "title": "근무일정",
+          "page": "staff/employee-schedule",
+          "order": 2
+        },
+        {
+          "id": "holidays",
+          "title": "공휴일 관리",
+          "page": "staff/holidays",
+          "order": 3,
+          "roles": ["SUPER_ADMIN", "SYSTEM_ADMIN"]
+        },
+        {
           "id": "notices",
           "title": "공지사항",
           "page": "staff/notices",
-          "order": 2
+          "order": 4
         },
         {
           "id": "vacations",
           "title": "휴가일정",
           "page": "staff/vacations",
-          "order": 3
+          "order": 5
         },
         {
           "id": "reports",
           "title": "고지사항",
           "page": "staff/reports",
-          "order": 4
+          "order": 6
         }
       ]
     },
