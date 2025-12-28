@@ -43,9 +43,44 @@
 }
 
 /* ===========================
-   정보 표시 영역 (컴팩트 버전)
+   정보 표시 영역 (심플 버전 - 참조 페이지 스타일)
    =========================== */
 
+.info-item-simple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.info-label-simple {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: 400;
+}
+
+.info-value-simple {
+  font-size: 0.875rem;
+  color: #212529;
+  text-align: right;
+}
+
+.stat-item-simple {
+  padding: 0.5rem 0;
+}
+
+.stat-label-simple {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: 400;
+}
+
+.stat-value-simple {
+  font-size: 0.875rem;
+  color: #212529;
+}
+
+/* 기존 컴팩트 스타일 유지 (하위 호환) */
 .info-item-compact {
   padding: 0.75rem;
   background: #f8f9fa;
@@ -109,15 +144,21 @@
    =========================== */
 
 .probation-notice {
-  border-left: 4px solid #6c757d;
+  border-left: 3px solid #6c757d;
   background-color: #f8f9fa;
-  border-radius: 4px;
+  border-radius: 0;
+  border-right: none;
+  border-top: none;
+  border-bottom: none;
 }
 
 .holiday-notice {
-  border-left: 4px solid #ffc107;
+  border-left: 3px solid #ffc107;
   background-color: #fffbf0;
-  border-radius: 4px;
+  border-radius: 0;
+  border-right: none;
+  border-top: none;
+  border-bottom: none;
 }
 
 .half-day-validation {
