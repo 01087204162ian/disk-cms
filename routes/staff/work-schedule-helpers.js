@@ -278,7 +278,7 @@ function calculateOffDayByWeekCycle(cycleStartDate, targetDate, baseOffDay, holi
     console.log(`[calculateOffDayByWeekCycle] 2026-02-23 주 디버깅: isHolidayWeek=${isHolidayWeek}, cycleNumber=${cycleNumber}, baseOffDay=${baseOffDay}`);
   }
   
-  // 공휴일 주인 경우 기본 휴무일 반환 (표시용, 실제로는 주 4일 근무 해제)
+  // 공휴일 주인 경우 기본 휴무일 반환 (공휴일 포함 주도 주 4일 근무 유지)
   if (isHolidayWeek) {
     return baseOffDay;
   }
@@ -542,8 +542,9 @@ function validateHalfDay(applyDate, userWorkDays, holidays) {
   const applyDayOfWeek = apply.getDay();
   const isOffDay = applyDayOfWeek >= 1 && applyDayOfWeek <= 5 && applyDayOfWeek === offDay;
   
-  // 4. 공휴일 포함 주 확인 (공휴일 포함 주에도 반차 사용 허용)
-  // 공휴일 포함 주는 주 4일 근무가 해제되지만, 반차 사용은 가능합니다.
+  // 4. 공휴일 포함 주 확인
+  // 공휴일 포함 주: 공휴일 1일 + 평일 4일 근무 = 주 4일 근무 (별도 휴무일 불필요)
+  // 공휴일 포함 주에 반차 사용 시: 28시간 근무 → 다음 주 휴무일 중 반나절(4시간) 회수 필요
   const isHolidayWeek = hasHolidayInWeek(weekStart, holidays);
   
   // 5. 같은 주인지 확인 (휴무일과 같은 주에만 사용 가능)
@@ -560,7 +561,7 @@ function validateHalfDay(applyDate, userWorkDays, holidays) {
   }
   
   if (isHolidayWeek) {
-    messages.push('공휴일 포함 주입니다. 주 4일 근무가 해제되지만 반차 사용은 가능합니다.');
+    messages.push('공휴일 포함 주입니다. 반차 사용 시 근무시간이 28시간이 되어, 다음 주 휴무일 중 반나절(4시간)을 회수해야 합니다.');
   }
   
   if (isOffDay && !isHolidayWeek) {

@@ -497,8 +497,12 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
                     console.log(`[디버깅] 2026-02-27 주: ${formatDate(weekStart)} ~ ${formatDate(weekEnd)}`);
                 }
                 
-                // 휴무일 판단: 해당 요일이 휴무일이고, 공휴일이 아니며, 공휴일 포함 주가 아닌 경우
-                const isOffDay = (dayOfWeek === offDay) && !isHolidayDate && !weekHasHoliday;
+                // 휴무일 판단
+                // 공휴일 포함 주: 공휴일이 있는 날은 공휴일로 쉬므로, 별도 휴무일 불필요 (주 4일 근무 자동 달성)
+                // 공휴일이 없는 주: 휴무일 적용
+                const isOffDay = weekHasHoliday 
+                    ? false  // 공휴일 포함 주는 휴무일 없음 (공휴일로 이미 1일 쉼)
+                    : ((dayOfWeek === offDay) && !isHolidayDate);  // 일반 주는 휴무일 적용
                 
                 dailySchedule.push({
                     date: dateStr,
