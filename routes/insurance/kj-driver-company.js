@@ -57,10 +57,15 @@ const policyHeaders = () => ({
 // 증권 리스트 조회
 router.get('/kj-code/policy-search', async (req, res) => {
   try {
-    const { sj, fromDate = '', toDate = '' } = req.query;
+    const { sj, fromDate = '', toDate = '', certi = '' } = req.query;
     const apiUrl = `${PHP_API_BASE_URL}/kj-policy-search.php`;
+    const params = { sj, fromDate, toDate };
+    // certi 파라미터가 있으면 추가
+    if (certi) {
+      params.certi = certi;
+    }
     const response = await axios.get(apiUrl, {
-      params: { sj, fromDate, toDate },
+      params,
       timeout: DEFAULT_TIMEOUT,
       headers: policyHeaders(),
     });

@@ -268,17 +268,20 @@
       if (policyNumSelect && policyNumSelect.value === '__DIRECT_INPUT__') {
         // 직접 입력 모드
         certi = policyNumInput ? policyNumInput.value.trim() : '';
-      } else if (policyNumSelect && policyNumSelect.value) {
-        // select에서 선택
+      } else if (policyNumSelect && policyNumSelect.value && policyNumSelect.value !== '') {
+        // select에서 선택 (빈 문자열이 아닐 때만)
         certi = policyNumSelect.value.trim();
       }
+      
+      console.log('fetchList - certi 값:', certi, 'select value:', policyNumSelect?.value);
       
       // fromDate, toDate는 백엔드에서 기본값 설정 (최근 1년)
       const url = new URL(`${API_BASE}/kj-code/policy-search`, window.location.origin);
       url.searchParams.set('sj', sj);
       // 증권번호가 있으면 필터 파라미터 추가
-      if (certi) {
+      if (certi && certi !== '') {
         url.searchParams.set('certi', certi);
+        console.log('certi 파라미터 추가:', certi);
       }
       // 날짜 파라미터는 백엔드에서 자동 설정되므로 전송하지 않음
       const res = await fetch(url.toString(), { credentials: 'include' });
