@@ -1099,8 +1099,18 @@
         input.value = '';
         input.focus();
       }
-    } else {
+      // 직접 입력 모드에서는 자동 검색하지 않음
+    } else if (selectedValue) {
       // input 필드 숨김
+      if (input) {
+        input.style.display = 'none';
+        input.value = '';
+      }
+      // 증권번호 선택 시 자동 검색 실행
+      state.currentPage = 1;
+      fetchList();
+    } else {
+      // "=선택=" 선택 시 input 필드 숨김
       if (input) {
         input.style.display = 'none';
         input.value = '';
