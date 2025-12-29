@@ -366,8 +366,17 @@
     
     const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
 
-    // 검색 섹션 제거
-    document.getElementById('policyNum_daeriCompany').innerHTML = '';
+    // 모달 열 때 모든 섹션 초기화 (이전 데이터 제거)
+    const daeriCompanyEl = document.getElementById('policyNum_daeriCompany');
+    const mPolicyNumEl = document.getElementById('m_policyNum');
+    const statsEl = document.getElementById('Insurance_premium_statistics');
+    const modalFooter = modalElement.querySelector('.modal-footer');
+    
+    if (daeriCompanyEl) daeriCompanyEl.innerHTML = '';
+    if (mPolicyNumEl) mPolicyNumEl.innerHTML = '';
+    if (statsEl) statsEl.innerHTML = '';
+    // 모달 footer도 초기화 (보험료 입력 버튼 제거)
+    if (modalFooter) modalFooter.innerHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>';
 
     showLoading();
     try {
@@ -451,6 +460,7 @@
     } catch (e) {
       console.error('policy detail error', e);
       alert('데이터 조회 중 오류가 발생했습니다.');
+      // 에러 발생 시 모달을 열지 않음 (이미 초기화된 상태 유지)
     } finally {
       hideLoading();
     }
