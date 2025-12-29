@@ -197,18 +197,19 @@
     container.innerHTML = `
       <div class="search-filter-row mb-3">
         <div class="row align-items-end">
-          <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-            <input type="date" id="fromDate" class="form-control" />
-          </div>
-          <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-            <input type="date" id="toDate" class="form-control" />
+          <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+            <label for="policyNumSelect" class="form-label">증권번호</label>
+            <select id="policyNumSelect" class="form-select">
+              <option value="">=선택=</option>
+            </select>
+            <input type="text" id="policyNumInput" class="form-control mt-2" placeholder="직접 입력: 예: 2025-S331191" style="display: none;" />
           </div>
           <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
             <button class="btn btn-primary w-100" type="button" id="search_btn">
               <i class="fas fa-search"></i> <span class="d-none d-sm-inline">검색</span>
             </button>
           </div>
-          <div class="col-md-4 col-sm-12 mt-2 mt-md-0 text-md-end text-sm-start">
+          <div class="col-md-6 col-sm-12 mt-2 mt-md-0 text-md-end text-sm-start">
             <span id="currentSituation" class="small text-muted"></span>
           </div>
         </div>
@@ -259,12 +260,10 @@
 
     showLoading();
     try {
-      const fromDate = document.getElementById('fromDate')?.value || '';
-      const toDate = document.getElementById('toDate')?.value || '';
+      // fromDate, toDate는 백엔드에서 기본값 설정 (최근 1년)
       const url = new URL(`${API_BASE}/kj-code/policy-search`, window.location.origin);
       url.searchParams.set('sj', sj);
-      url.searchParams.set('fromDate', fromDate);
-      url.searchParams.set('toDate', toDate);
+      // 날짜 파라미터는 백엔드에서 자동 설정되므로 전송하지 않음
       const res = await fetch(url.toString(), { credentials: 'include' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -1035,18 +1034,102 @@
       });
   };
 
-  const initPage = () => {
+  // 증권번호 목록 로드
+  async function loadCertiList() {
+    try {
+      const response = await fetch(`${API_BASE}/kj-certi/list`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        console.error('증권번호 목록 조회 실패:', data.error);
+        return;
+      }
+      
+      const certiList = data.data || [];
+      const select = document.getElementById('policyNumSelect');
+      
+      if (!select) return;
+      
+      // 기존 옵션 제거 (첫 번째 "=선택=" 옵션 제외)
+      while (select.options.length > 1) {
+        select.remove(1);
+      }
+      
+      // 증권번호 목록 추가
+      certiList.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.certi || '';
+        option.textContent = item.certi || '';
+        option.dataset.sigi = item.sigi || ''; // sigi 값을 data 속성에 저장
+        select.appendChild(option);
+      });
+      
+      // "직접 입력" 옵션 추가
+      const directInputOption = document.createElement('option');
+      directInputOption.value = '__DIRECT_INPUT__';
+      directInputOption.textContent = '직접 입력';
+      select.appendChild(directInputOption);
+      
+    } catch (error) {
+      console.error('증권번호 목록 로드 오류:', error);
+    }
+  }
+
+  // 증권번호 선택 시 시작일 자동 설정 및 직접 입력 필드 표시/숨김
+  function onPolicyNumSelectChange() {
+    const select = document.getElementById('policyNumSelect');
+    const input = document.getElementById('policyNumInput');
+    
+    if (!select) return;
+    
+    const selectedValue = select.value;
+    
+    // "직접 입력" 선택 시
+    if (selectedValue === '__DIRECT_INPUT__') {
+      // input 필드 표시 및 활성화
+      if (input) {
+        input.style.display = 'block';
+        input.value = '';
+        input.focus();
+      }
+    } else {
+      // input 필드 숨김
+      if (input) {
+        input.style.display = 'none';
+        input.value = '';
+      }
+    }
+  }
+
+  const initPage = async () => {
     buildPageLayout();
-    // 기본 날짜 세팅: 끝 = 오늘, 시작 = 끝 - 1년
-    const today = new Date();
-    const todayStr = formatDateInput(today);
-    const start = new Date();
-    start.setFullYear(today.getFullYear() - 1);
-    const startStr = formatDateInput(start);
-    const fromEl = document.getElementById('fromDate');
-    const toEl = document.getElementById('toDate');
-    if (fromEl) fromEl.value = startStr;
-    if (toEl) toEl.value = todayStr;
+    
+    // 증권번호 목록 로드
+    await loadCertiList();
+    
+    // 증권번호 select 변경 이벤트
+    const policyNumSelect = document.getElementById('policyNumSelect');
+    if (policyNumSelect) {
+      policyNumSelect.addEventListener('change', onPolicyNumSelectChange);
+    }
+    
+    // 직접 입력 필드 엔터키로 검색
+    const policyNumInput = document.getElementById('policyNumInput');
+    if (policyNumInput) {
+      policyNumInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const searchBtn = document.getElementById('search_btn');
+          if (searchBtn) searchBtn.click();
+        }
+      });
+    }
 
     // 검색 버튼 클릭 이벤트
     const searchBtn = document.getElementById('search_btn');
