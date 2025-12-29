@@ -13,13 +13,27 @@
   // 검색 실행
   async function searchPolicy() {
     const oldPolicyNumSelect = document.getElementById('oldPolicyNum');
-    const oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
+    const oldPolicyNumInput = document.getElementById('oldPolicyNumInput');
     const oldStartyDay = document.getElementById('oldStartyDay').value;
+    
+    // 증권번호 가져오기 (select 또는 input에서)
+    let oldPolicyNum = '';
+    if (oldPolicyNumSelect && oldPolicyNumSelect.value === '__DIRECT_INPUT__') {
+      // 직접 입력 모드
+      oldPolicyNum = oldPolicyNumInput ? oldPolicyNumInput.value.trim() : '';
+    } else {
+      // select에서 선택
+      oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
+    }
 
     // 검증
     if (!oldPolicyNum) {
-      alert('증권번호를 선택하세요.');
-      if (oldPolicyNumSelect) oldPolicyNumSelect.focus();
+      alert('증권번호를 선택하거나 입력하세요.');
+      if (oldPolicyNumSelect && oldPolicyNumSelect.value === '__DIRECT_INPUT__' && oldPolicyNumInput) {
+        oldPolicyNumInput.focus();
+      } else if (oldPolicyNumSelect) {
+        oldPolicyNumSelect.focus();
+      }
       return;
     }
 
@@ -130,7 +144,15 @@
 
     // 변경 전 정보 설정 (검색한 값)
     const oldPolicyNumSelect = document.getElementById('oldPolicyNum');
-    const oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
+    const oldPolicyNumInput = document.getElementById('oldPolicyNumInput');
+    
+    let oldPolicyNum = '';
+    if (oldPolicyNumSelect && oldPolicyNumSelect.value === '__DIRECT_INPUT__') {
+      oldPolicyNum = oldPolicyNumInput ? oldPolicyNumInput.value.trim() : '';
+    } else {
+      oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
+    }
+    
     const oldStartyDay = document.getElementById('oldStartyDay').value;
 
     document.getElementById('modalOldPolicyNum').value = oldPolicyNum;
@@ -150,7 +172,15 @@
   // 변경 실행
   async function executePolicyChange() {
     const oldPolicyNumSelect = document.getElementById('oldPolicyNum');
-    const oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
+    const oldPolicyNumInput = document.getElementById('oldPolicyNumInput');
+    
+    let oldPolicyNum = '';
+    if (oldPolicyNumSelect && oldPolicyNumSelect.value === '__DIRECT_INPUT__') {
+      oldPolicyNum = oldPolicyNumInput ? oldPolicyNumInput.value.trim() : '';
+    } else {
+      oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
+    }
+    
     const oldStartyDay = document.getElementById('oldStartyDay').value;
     const newPolicyNum = document.getElementById('modalNewPolicyNum').value.trim();
     const newStartyDay = document.getElementById('modalNewStartyDay').value;
@@ -239,7 +269,15 @@
     }
 
     const oldPolicyNumSelect = document.getElementById('oldPolicyNum');
-    const oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
+    const oldPolicyNumInput = document.getElementById('oldPolicyNumInput');
+    
+    let oldPolicyNum = '';
+    if (oldPolicyNumSelect && oldPolicyNumSelect.value === '__DIRECT_INPUT__') {
+      oldPolicyNum = oldPolicyNumInput ? oldPolicyNumInput.value.trim() : '';
+    } else {
+      oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
+    }
+    
     const oldStartyDay = document.getElementById('oldStartyDay').value;
 
     if (!oldPolicyNum || !oldStartyDay) {
@@ -412,25 +450,53 @@
         select.appendChild(option);
       });
       
+      // "직접 입력" 옵션 추가
+      const directInputOption = document.createElement('option');
+      directInputOption.value = '__DIRECT_INPUT__';
+      directInputOption.textContent = '직접 입력';
+      select.appendChild(directInputOption);
+      
     } catch (error) {
       console.error('증권번호 목록 로드 오류:', error);
     }
   }
 
-  // 증권번호 선택 시 시작일 자동 설정
+  // 증권번호 선택 시 시작일 자동 설정 및 직접 입력 필드 표시/숨김
   function onCertiSelectChange() {
     const select = document.getElementById('oldPolicyNum');
+    const input = document.getElementById('oldPolicyNumInput');
     const startyDayInput = document.getElementById('oldStartyDay');
     
     if (!select || !startyDayInput) return;
     
-    const selectedOption = select.options[select.selectedIndex];
-    const sigi = selectedOption.dataset.sigi || '';
+    const selectedValue = select.value;
     
-    if (sigi) {
-      startyDayInput.value = sigi;
-    } else {
+    // "직접 입력" 선택 시
+    if (selectedValue === '__DIRECT_INPUT__') {
+      // input 필드 표시 및 활성화
+      if (input) {
+        input.style.display = 'block';
+        input.value = '';
+        input.focus();
+      }
+      // 시작일 초기화
       startyDayInput.value = '';
+    } else {
+      // input 필드 숨김
+      if (input) {
+        input.style.display = 'none';
+        input.value = '';
+      }
+      
+      // 선택한 증권번호의 sigi 값으로 시작일 설정
+      const selectedOption = select.options[select.selectedIndex];
+      const sigi = selectedOption.dataset.sigi || '';
+      
+      if (sigi) {
+        startyDayInput.value = sigi;
+      } else {
+        startyDayInput.value = '';
+      }
     }
   }
 
@@ -471,6 +537,16 @@
     
     if (oldStartyDayInput) {
       oldStartyDayInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          searchPolicy();
+        }
+      });
+    }
+    
+    // 직접 입력 필드 엔터키로 검색
+    const oldPolicyNumInput = document.getElementById('oldPolicyNumInput');
+    if (oldPolicyNumInput) {
+      oldPolicyNumInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
           searchPolicy();
         }
