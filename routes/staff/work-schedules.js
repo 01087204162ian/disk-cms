@@ -29,6 +29,7 @@ const {
   getDayName,
   getCycleWeek,
   calculateCycleInfo,
+  getNextOffDays,
   isProbationPeriod,
   isSameWeek,
   hasHolidayInWeek,
@@ -369,7 +370,7 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
         
         // 해당 월의 반차 조회
         const [halfDayRows] = await pool.execute(`
-            SELECT id, start_date, leave_type, reason, status
+            SELECT id, start_date, leave_type, compensation_date, reason, status
             FROM leaves
             WHERE user_id = ?
             AND YEAR(start_date) = ? AND MONTH(start_date) = ?
@@ -557,6 +558,7 @@ router.get('/my-schedule/:year/:month', requireAuth, async (req, res) => {
                     id: row.id,
                     start_date: formatDate(row.start_date),
                     leave_type: row.leave_type,
+                    compensation_date: row.compensation_date ? formatDate(row.compensation_date) : null,
                     reason: row.reason,
                     status: row.status
                 })),
@@ -682,25 +684,122 @@ router.post('/apply-half-day', requireAuth, async (req, res) => {
             });
         }
         
-        // 반차 신청 저장
+        // 보충 일정 정보 (선택사항)
+        const { compensation_date } = req.body;
+        
+        // 반차 신청 저장 (compensation_date 컬럼 포함)
         const [result] = await pool.execute(`
-            INSERT INTO leaves (user_id, leave_type, start_date, end_date, days_count, reason, status)
-            VALUES (?, ?, ?, ?, 0.5, ?, 'PENDING')
-        `, [userEmail, leave_type, date, date, reason]);
+            INSERT INTO leaves (user_id, leave_type, start_date, end_date, days_count, reason, status, compensation_date)
+            VALUES (?, ?, ?, ?, 0.5, ?, 'PENDING', ?)
+        `, [userEmail, leave_type, date, date, reason, compensation_date || null]);
         
         res.json({
             success: true,
-            message: '반차 신청이 완료되었습니다.',
+            message: '반차 신청이 완료되었습니다.' + (compensation_date ? ` 보충일정: ${compensation_date}` : ''),
             data: {
                 id: result.insertId,
                 date: date,
                 leave_type: leave_type,
+                compensation_date: compensation_date || null,
                 status: 'PENDING'
             }
         });
         
     } catch (error) {
         console.error('반차 신청 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+/**
+ * GET /api/staff/work-schedules/next-off-days
+ * 다음 휴무일 목록 조회 (보충 일정 선택용)
+ */
+router.get('/next-off-days', requireAuth, async (req, res) => {
+    try {
+        const userEmail = req.session.user.email;
+        const { date, weeks } = req.query; // date: 반차 신청 날짜, weeks: 조회할 주 수 (기본값: 4)
+        
+        if (!date) {
+            return res.status(400).json({
+                success: false,
+                message: '날짜 파라미터가 필요합니다.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        // 사용자 정보 조회
+        const [userRows] = await pool.execute(`
+            SELECT email, name, hire_date, work_days
+            FROM users
+            WHERE email = ?
+        `, [userEmail]);
+        
+        if (userRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: '사용자를 찾을 수 없습니다.',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        const user = userRows[0];
+        let workDays = null;
+        if (user.work_days) {
+            if (typeof user.work_days === 'string') {
+                try {
+                    workDays = JSON.parse(user.work_days);
+                } catch (error) {
+                    console.error('work_days JSON 파싱 오류:', error);
+                    workDays = null;
+                }
+            } else {
+                workDays = user.work_days;
+            }
+        }
+        
+        if (!workDays) {
+            return res.status(400).json({
+                success: false,
+                message: '주4일 근무제 설정이 없습니다.',
+                code: 'WORK_DAYS_NOT_SET'
+            });
+        }
+        
+        // 공휴일 조회 (다음 4주 범위)
+        const applyDate = new Date(date);
+        const year = applyDate.getFullYear();
+        const month = applyDate.getMonth() + 1;
+        
+        const [holidayRows] = await pool.execute(`
+            SELECT holiday_date, name FROM holidays 
+            WHERE YEAR(holiday_date) = ? AND is_active = 1
+        `, [year]);
+        
+        const holidays = holidayRows.map(row => ({
+            date: formatDate(row.holiday_date),
+            name: row.name
+        }));
+        
+        // 다음 휴무일 목록 조회
+        const nextOffDays = getNextOffDays(
+            date,
+            workDays,
+            holidays,
+            weeks ? parseInt(weeks, 10) : 4
+        );
+        
+        res.json({
+            success: true,
+            data: nextOffDays
+        });
+        
+    } catch (error) {
+        console.error('다음 휴무일 목록 조회 중 오류:', error);
         res.status(500).json({
             success: false,
             message: '서버 내부 오류가 발생했습니다.',
@@ -719,7 +818,7 @@ router.get('/my-half-days', requireAuth, async (req, res) => {
         const { year, month, status } = req.query;
         
         let query = `
-            SELECT id, leave_type, start_date, end_date, reason, status, created_at
+            SELECT id, leave_type, start_date, end_date, compensation_date, reason, status, created_at
             FROM leaves
             WHERE user_id = ? AND leave_type IN ('HALF_AM', 'HALF_PM')
         `;
@@ -751,6 +850,7 @@ router.get('/my-half-days', requireAuth, async (req, res) => {
                 date: formatDate(row.start_date),
                 leave_type: row.leave_type,
                 leave_type_name: row.leave_type === 'HALF_AM' ? '오전 반차' : '오후 반차',
+                compensation_date: row.compensation_date ? formatDate(row.compensation_date) : null,
                 reason: row.reason,
                 status: row.status,
                 created_at: row.created_at
@@ -778,7 +878,7 @@ router.get('/pending-half-days', requireAuth, requireManager, async (req, res) =
         
         let query = `
             SELECT l.id, l.user_id, u.name as user_name, u.department_id,
-                   l.leave_type, l.start_date, l.reason, l.status, l.created_at
+                   l.leave_type, l.start_date, l.compensation_date, l.reason, l.status, l.created_at
             FROM leaves l
             INNER JOIN users u ON l.user_id = u.email
             WHERE l.leave_type IN ('HALF_AM', 'HALF_PM') AND l.status = 'PENDING'
@@ -804,6 +904,7 @@ router.get('/pending-half-days', requireAuth, requireManager, async (req, res) =
                 date: formatDate(row.start_date),
                 leave_type: row.leave_type,
                 leave_type_name: row.leave_type === 'HALF_AM' ? '오전 반차' : '오후 반차',
+                compensation_date: row.compensation_date ? formatDate(row.compensation_date) : null,
                 reason: row.reason,
                 status: row.status,
                 requested_at: row.created_at

@@ -303,6 +303,19 @@
             <textarea class="form-control" id="halfDayReason" rows="3" required></textarea>
           </div>
           
+          <!-- 보충 일정 선택 (선택사항) -->
+          <div class="mb-3" id="compensationDateSection" style="display: none;">
+            <label class="form-label">
+              보충 일정 선택 <span class="text-muted small">(선택사항)</span>
+            </label>
+            <select class="form-select" id="compensationDate">
+              <option value="">선택하세요</option>
+            </select>
+            <small class="form-text text-muted">
+              반차 사용으로 부족한 4시간을 다음 휴무일 중 보충할 날짜를 선택하세요.
+            </small>
+          </div>
+          
           <!-- 검증 메시지 영역 -->
           <div class="alert alert-warning half-day-validation" id="halfDayValidation" style="display: none;">
             <i class="fas fa-exclamation-triangle me-2"></i>

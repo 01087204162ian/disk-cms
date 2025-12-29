@@ -458,11 +458,57 @@ function openHalfDayModal() {
     document.getElementById('halfDayDate').value = '';
     document.getElementById('halfDayType').value = '';
     document.getElementById('halfDayReason').value = '';
+    document.getElementById('compensationDate').innerHTML = '<option value="">선택하세요</option>';
+    document.getElementById('compensationDateSection').style.display = 'none';
     document.getElementById('halfDayValidation').style.display = 'none';
+    
+    // 날짜 선택 이벤트 리스너 추가
+    const dateInput = document.getElementById('halfDayDate');
+    dateInput.addEventListener('change', loadNextOffDays);
     
     // 모달 열기
     const modal = new bootstrap.Modal(document.getElementById('halfDayModal'));
     modal.show();
+}
+
+// 다음 휴무일 목록 로드
+async function loadNextOffDays() {
+    const date = document.getElementById('halfDayDate').value;
+    const compensationSection = document.getElementById('compensationDateSection');
+    const compensationSelect = document.getElementById('compensationDate');
+    
+    if (!date) {
+        compensationSection.style.display = 'none';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/staff/work-schedules/next-off-days?date=${date}&weeks=4`);
+        const result = await response.json();
+        
+        if (!result.success || !result.data || result.data.length === 0) {
+            compensationSection.style.display = 'none';
+            return;
+        }
+        
+        // 보충 일정 선택 필드 표시
+        compensationSection.style.display = 'block';
+        
+        // 옵션 초기화
+        compensationSelect.innerHTML = '<option value="">선택하세요</option>';
+        
+        // 다음 휴무일 목록 추가
+        result.data.forEach(offDay => {
+            const option = document.createElement('option');
+            option.value = offDay.date;
+            option.textContent = `${offDay.date} (${offDay.dayName}) - ${offDay.weekNumber}주 후`;
+            compensationSelect.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('다음 휴무일 목록 조회 오류:', error);
+        compensationSection.style.display = 'none';
+    }
 }
 
 // ===========================
@@ -473,6 +519,7 @@ async function submitHalfDay() {
     const date = document.getElementById('halfDayDate').value;
     const leaveType = document.getElementById('halfDayType').value;
     const reason = document.getElementById('halfDayReason').value.trim();
+    const compensationDate = document.getElementById('compensationDate').value;
     
     // 기본 검증
     if (!date || !leaveType || !reason) {
@@ -483,16 +530,23 @@ async function submitHalfDay() {
     try {
         showLoading();
         
+        const requestBody = {
+            date: date,
+            leave_type: leaveType,
+            reason: reason
+        };
+        
+        // 보충 일정이 선택된 경우 추가
+        if (compensationDate) {
+            requestBody.compensation_date = compensationDate;
+        }
+        
         const response = await fetch('/api/staff/work-schedules/apply-half-day', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                date: date,
-                leave_type: leaveType,
-                reason: reason
-            })
+            body: JSON.stringify(requestBody)
         });
         
         const result = await response.json();

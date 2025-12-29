@@ -657,6 +657,68 @@ module.exports = {
   getDayName,
   calculateCycleInfo,
   
+  /**
+   * 다음 휴무일 목록 조회 (보충 일정 선택용)
+   * @param {Date|string} applyDate - 반차 신청 날짜 (KST)
+   * @param {Object} userWorkDays - 사용자 work_days 정보
+   * @param {Array} holidays - 공휴일 배열
+   * @param {number} weeks - 조회할 주 수 (기본값: 4주)
+   * @returns {Array} 다음 휴무일 목록 [{date: string, dayOfWeek: number, dayName: string, weekStart: string}]
+   */
+  getNextOffDays(applyDate, userWorkDays, holidays = [], weeks = 4) {
+    if (!userWorkDays || !userWorkDays.cycle_start_date || !userWorkDays.base_off_day) {
+      return [];
+    }
+    
+    const apply = parseKSTDate(applyDate);
+    const cycleStart = parseKSTDate(userWorkDays.cycle_start_date);
+    const applyWeekStart = getWeekStartDate(apply);
+    
+    const nextOffDays = [];
+    let currentWeekStart = new Date(applyWeekStart);
+    
+    // 다음 주부터 시작 (신청 주는 제외)
+    currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+    
+    // 지정된 주 수만큼 조회
+    for (let i = 0; i < weeks; i++) {
+      // 해당 주의 휴무일 계산
+      const offDay = calculateOffDayByWeekCycle(
+        cycleStart,
+        currentWeekStart,
+        userWorkDays.base_off_day,
+        holidays
+      );
+      
+      // 휴무일 날짜 계산 (월요일=1, 화요일=2, ..., 금요일=5)
+      const offDayDate = new Date(currentWeekStart);
+      const daysToAdd = offDay - 1; // 월요일이 1이므로 0일 추가, 화요일이 2이므로 1일 추가...
+      offDayDate.setDate(offDayDate.getDate() + daysToAdd);
+      
+      // 공휴일인지 확인
+      const isHoliday = holidays.some(h => {
+        const hDate = typeof h.date === 'string' ? parseKSTDate(h.date) : h.date;
+        return formatDate(hDate) === formatDate(offDayDate);
+      });
+      
+      // 공휴일이 아닌 경우만 추가
+      if (!isHoliday) {
+        nextOffDays.push({
+          date: formatDate(offDayDate),
+          dayOfWeek: offDay,
+          dayName: getDayName(offDay),
+          weekStart: formatDate(currentWeekStart),
+          weekNumber: i + 1
+        });
+      }
+      
+      // 다음 주로 이동
+      currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+    }
+    
+    return nextOffDays;
+  },
+  
   // 공휴일 처리
   hasHolidayInWeek,
   isHoliday,
