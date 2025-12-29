@@ -9,14 +9,43 @@ class HolidayManager {
         this.holidays = [];
         this.currentYear = new Date().getFullYear();
         this.modal = null;
+        this.isAdmin = false; // 관리자 여부
         this.init();
     }
     
     init() {
         this.initDOMElements();
+        this.checkAdminPermissions();
         this.attachEventListeners();
         this.initYearFilter();
         this.loadHolidays();
+    }
+    
+    checkAdminPermissions() {
+        // sj-template-loader에서 사용자 정보 가져오기
+        if (window.sjTemplateLoader && window.sjTemplateLoader.user) {
+            const userRole = window.sjTemplateLoader.user.role;
+            this.isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN'].includes(userRole);
+        }
+        
+        // 관리자 버튼 표시/숨김 처리
+        if (this.addHolidayBtn) {
+            this.addHolidayBtn.style.display = this.isAdmin ? 'inline-block' : 'none';
+        }
+        if (this.generateSubstituteBtn) {
+            this.generateSubstituteBtn.style.display = this.isAdmin ? 'inline-block' : 'none';
+        }
+        if (this.validateHolidaysBtn) {
+            this.validateHolidaysBtn.style.display = this.isAdmin ? 'inline-block' : 'none';
+        }
+        
+        // 관리자 컬럼 헤더 숨김 처리
+        const adminHeaders = document.querySelectorAll('#admin-column-header');
+        adminHeaders.forEach(header => {
+            if (header) {
+                header.style.display = this.isAdmin ? 'table-cell' : 'none';
+            }
+        });
     }
     
     initDOMElements() {
@@ -131,7 +160,8 @@ class HolidayManager {
         if (!tableBody) return;
         
         if (holidays.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted">공휴일이 없습니다.</td></tr>`;
+            const colspan = this.isAdmin ? 3 : 2;
+            tableBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-4 text-muted">공휴일이 없습니다.</td></tr>`;
             return;
         }
         
@@ -151,6 +181,15 @@ class HolidayManager {
             const day = String(date.getDate()).padStart(2, '0');
             const dateStr = `${month}/${day} (${dayNames[dayOfWeek]})`;
             
+            const adminButtons = this.isAdmin ? `
+                <button class="btn btn-xs btn-outline-primary me-1" onclick="holidayManager.editHoliday(${holiday.id})" title="수정" style="padding: 0.15rem 0.3rem; font-size: 0.75rem;">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-xs btn-outline-danger" onclick="holidayManager.deleteHoliday(${holiday.id})" title="삭제" style="padding: 0.15rem 0.3rem; font-size: 0.75rem;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            ` : '<span class="text-muted" style="font-size: 0.75rem;">-</span>';
+            
             return `
                 <tr>
                     <td style="font-size: 0.85rem;">
@@ -158,14 +197,7 @@ class HolidayManager {
                         ${dateBadges}
                     </td>
                     <td style="font-size: 0.85rem;">${holiday.name}</td>
-                    <td>
-                        <button class="btn btn-xs btn-outline-primary me-1" onclick="holidayManager.editHoliday(${holiday.id})" title="수정" style="padding: 0.15rem 0.3rem; font-size: 0.75rem;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-xs btn-outline-danger" onclick="holidayManager.deleteHoliday(${holiday.id})" title="삭제" style="padding: 0.15rem 0.3rem; font-size: 0.75rem;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
+                    ${this.isAdmin ? `<td>${adminButtons}</td>` : ''}
                 </tr>
             `;
         }).join('');
@@ -221,6 +253,17 @@ class HolidayManager {
             if (isWeekend) dateBadges += '<span class="badge bg-warning text-dark ms-1">주말</span>';
             if (isSubstitute) dateBadges += '<span class="badge bg-info ms-1">대체</span>';
             
+            const adminButtons = this.isAdmin ? `
+                <div class="mobile-card-row">
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="holidayManager.editHoliday(${holiday.id})">
+                        <i class="fas fa-edit"></i> 수정
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="holidayManager.deleteHoliday(${holiday.id})">
+                        <i class="fas fa-trash"></i> 삭제
+                    </button>
+                </div>
+            ` : '';
+            
             return `
                 <div class="mobile-card mb-2">
                     <div class="mobile-card-header">
@@ -237,14 +280,7 @@ class HolidayManager {
                                 ${dateBadges}
                             </span>
                         </div>
-                        <div class="mobile-card-row">
-                            <button class="btn btn-sm btn-outline-primary me-1" onclick="holidayManager.editHoliday(${holiday.id})">
-                                <i class="fas fa-edit"></i> 수정
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="holidayManager.deleteHoliday(${holiday.id})">
-                                <i class="fas fa-trash"></i> 삭제
-                            </button>
-                        </div>
+                        ${adminButtons}
                     </div>
                 </div>
             `;

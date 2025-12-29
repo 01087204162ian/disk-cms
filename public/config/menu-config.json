@@ -33,8 +33,7 @@
           "id": "holidays",
           "title": "공휴일 관리",
           "page": "staff/holidays",
-          "order": 3,
-          "roles": ["SUPER_ADMIN", "SYSTEM_ADMIN"]
+          "order": 3
         },
         {
           "id": "notices",

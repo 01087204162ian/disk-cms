@@ -109,7 +109,7 @@
                             <tr>
                               <th style="width: 40%;">날짜</th>
                               <th style="width: 40%;">공휴일명</th>
-                              <th style="width: 20%;">관리</th>
+                              <th id="admin-column-header" style="width: 20%;">관리</th>
                             </tr>
                           </thead>
                           <tbody id="holidays_table_body_2025">
@@ -136,7 +136,7 @@
                             <tr>
                               <th style="width: 40%;">날짜</th>
                               <th style="width: 40%;">공휴일명</th>
-                              <th style="width: 20%;">관리</th>
+                              <th id="admin-column-header" style="width: 20%;">관리</th>
                             </tr>
                           </thead>
                           <tbody id="holidays_table_body_2026">
@@ -163,7 +163,7 @@
                             <tr>
                               <th style="width: 40%;">날짜</th>
                               <th style="width: 40%;">공휴일명</th>
-                              <th style="width: 20%;">관리</th>
+                              <th id="admin-column-header" style="width: 20%;">관리</th>
                             </tr>
                           </thead>
                           <tbody id="holidays_table_body_2027">
@@ -279,9 +279,13 @@
       // holidays는 사이드바의 data-menu 값과 일치
       await window.sjTemplateLoader.initializePage('holidays');
       
-      // 공휴일 관리 초기화
+      // sj-template-loader 초기화 완료 후 사용자 정보가 준비될 때까지 대기
+      // 공휴일 관리 초기화 (사용자 권한 확인을 위해 sj-template-loader 초기화 후 실행)
       if (typeof HolidayManager !== 'undefined') {
-        window.holidayManager = new HolidayManager();
+        // 약간의 지연을 두어 사용자 정보가 로드되도록 함
+        setTimeout(() => {
+          window.holidayManager = new HolidayManager();
+        }, 100);
       }
     });
   </script>
