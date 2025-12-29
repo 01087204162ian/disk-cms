@@ -8,16 +8,18 @@
 
   const API_BASE = '/api/insurance';
   let currentSearchData = null; // 현재 검색 결과 데이터 저장
+  let certiList = []; // 증권번호 목록 저장
 
   // 검색 실행
   async function searchPolicy() {
-    const oldPolicyNum = document.getElementById('oldPolicyNum').value.trim();
+    const oldPolicyNumSelect = document.getElementById('oldPolicyNum');
+    const oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
     const oldStartyDay = document.getElementById('oldStartyDay').value;
 
     // 검증
     if (!oldPolicyNum) {
-      alert('증권번호를 입력하세요.');
-      document.getElementById('oldPolicyNum').focus();
+      alert('증권번호를 선택하세요.');
+      if (oldPolicyNumSelect) oldPolicyNumSelect.focus();
       return;
     }
 
@@ -127,7 +129,8 @@
     }
 
     // 변경 전 정보 설정 (검색한 값)
-    const oldPolicyNum = document.getElementById('oldPolicyNum').value.trim();
+    const oldPolicyNumSelect = document.getElementById('oldPolicyNum');
+    const oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
     const oldStartyDay = document.getElementById('oldStartyDay').value;
 
     document.getElementById('modalOldPolicyNum').value = oldPolicyNum;
@@ -146,7 +149,8 @@
 
   // 변경 실행
   async function executePolicyChange() {
-    const oldPolicyNum = document.getElementById('oldPolicyNum').value.trim();
+    const oldPolicyNumSelect = document.getElementById('oldPolicyNum');
+    const oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
     const oldStartyDay = document.getElementById('oldStartyDay').value;
     const newPolicyNum = document.getElementById('modalNewPolicyNum').value.trim();
     const newStartyDay = document.getElementById('modalNewStartyDay').value;
@@ -234,7 +238,8 @@
       return;
     }
 
-    const oldPolicyNum = document.getElementById('oldPolicyNum').value.trim();
+    const oldPolicyNumSelect = document.getElementById('oldPolicyNum');
+    const oldPolicyNum = oldPolicyNumSelect ? oldPolicyNumSelect.value.trim() : '';
     const oldStartyDay = document.getElementById('oldStartyDay').value;
 
     if (!oldPolicyNum || !oldStartyDay) {
@@ -370,8 +375,73 @@
     XLSX.writeFile(wb, fileName);
   }
 
+  // 증권번호 목록 로드
+  async function loadCertiList() {
+    try {
+      const response = await fetch(`${API_BASE}/kj-certi/list`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        console.error('증권번호 목록 조회 실패:', data.error);
+        return;
+      }
+      
+      certiList = data.data || [];
+      const select = document.getElementById('oldPolicyNum');
+      
+      if (!select) return;
+      
+      // 기존 옵션 제거 (첫 번째 "=선택=" 옵션 제외)
+      while (select.options.length > 1) {
+        select.remove(1);
+      }
+      
+      // 증권번호 목록 추가
+      certiList.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.certi || '';
+        option.textContent = item.certi || '';
+        option.dataset.sigi = item.sigi || ''; // sigi 값을 data 속성에 저장
+        select.appendChild(option);
+      });
+      
+    } catch (error) {
+      console.error('증권번호 목록 로드 오류:', error);
+    }
+  }
+
+  // 증권번호 선택 시 시작일 자동 설정
+  function onCertiSelectChange() {
+    const select = document.getElementById('oldPolicyNum');
+    const startyDayInput = document.getElementById('oldStartyDay');
+    
+    if (!select || !startyDayInput) return;
+    
+    const selectedOption = select.options[select.selectedIndex];
+    const sigi = selectedOption.dataset.sigi || '';
+    
+    if (sigi) {
+      startyDayInput.value = sigi;
+    } else {
+      startyDayInput.value = '';
+    }
+  }
+
   // 이벤트 리스너 설정
   function setupEventListeners() {
+    // 증권번호 select 변경 이벤트
+    const oldPolicyNumSelect = document.getElementById('oldPolicyNum');
+    if (oldPolicyNumSelect) {
+      oldPolicyNumSelect.addEventListener('change', onCertiSelectChange);
+    }
+    
     // 검색 버튼
     const searchPolicyBtn = document.getElementById('searchPolicyBtn');
     if (searchPolicyBtn) {
@@ -396,18 +466,9 @@
       executeChangeBtn.addEventListener('click', executePolicyChange);
     }
 
-    // 엔터키로 검색
-    const oldPolicyNumInput = document.getElementById('oldPolicyNum');
+    // 시작일 엔터키로 검색
     const oldStartyDayInput = document.getElementById('oldStartyDay');
     
-    if (oldPolicyNumInput) {
-      oldPolicyNumInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          searchPolicy();
-        }
-      });
-    }
-
     if (oldStartyDayInput) {
       oldStartyDayInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
@@ -418,8 +479,10 @@
   }
 
   // 초기화
-  function init() {
+  async function init() {
     setupEventListeners();
+    // 증권번호 목록 로드
+    await loadCertiList();
   }
 
   // DOM 로드 완료 시 초기화

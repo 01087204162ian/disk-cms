@@ -75,6 +75,25 @@ router.get('/kj-code/policy-search', async (req, res) => {
   }
 });
 
+// 증권번호 목록 조회 (최근 1년)
+router.get('/kj-certi/list', async (req, res) => {
+  try {
+    const apiUrl = `${PHP_API_BASE_URL}/kj-certi-list.php`;
+    const response = await axios.get(apiUrl, {
+      timeout: DEFAULT_TIMEOUT,
+      headers: policyHeaders(),
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('KJ certi list proxy error:', error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: '증권번호 목록 API 호출 오류',
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 // 증권 상세
 router.post('/kj-code/policy-num-detail', async (req, res) => {
   try {
