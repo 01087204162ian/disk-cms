@@ -28,7 +28,9 @@ class HolidayManager {
         this.generateSubstituteBtn = document.getElementById('generateSubstituteBtn');
         this.validateHolidaysBtn = document.getElementById('validateHolidaysBtn');
         this.refreshListBtn = document.getElementById('refreshListBtn');
-        this.tableBody = document.getElementById('holidays_table_body');
+        this.tableBody2025 = document.getElementById('holidays_table_body_2025');
+        this.tableBody2026 = document.getElementById('holidays_table_body_2026');
+        this.tableBody2027 = document.getElementById('holidays_table_body_2027');
         this.mobileCards = document.getElementById('holidays_mobile_cards');
         this.paginationInfo = document.getElementById('pagination_info');
         this.holidayModal = new bootstrap.Modal(document.getElementById('holidayModal'));
@@ -78,16 +80,10 @@ class HolidayManager {
         try {
             this.showLoading(true);
             
+            // 2025, 2026, 2027년 3년치 데이터를 한번에 조회
             const params = new URLSearchParams();
-            if (this.yearFilter.value) {
-                params.append('year', this.yearFilter.value);
-            }
-            if (this.startDateFilter.value) {
-                params.append('startDate', this.startDateFilter.value);
-            }
-            if (this.endDateFilter.value) {
-                params.append('endDate', this.endDateFilter.value);
-            }
+            params.append('startDate', '2025-01-01');
+            params.append('endDate', '2027-12-31');
             
             const response = await fetch(`/api/staff/holidays?${params.toString()}`, {
                 credentials: 'include'
@@ -120,39 +116,53 @@ class HolidayManager {
     }
     
     renderDesktopTable() {
-        if (this.holidays.length === 0) {
-            this.tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4">공휴일이 없습니다.</td></tr>';
+        // 연도별로 공휴일 분류
+        const holidays2025 = this.holidays.filter(h => h.year === 2025).sort((a, b) => new Date(a.date) - new Date(b.date));
+        const holidays2026 = this.holidays.filter(h => h.year === 2026).sort((a, b) => new Date(a.date) - new Date(b.date));
+        const holidays2027 = this.holidays.filter(h => h.year === 2027).sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // 각 연도별 테이블 렌더링
+        this.renderYearTable(2025, holidays2025, this.tableBody2025);
+        this.renderYearTable(2026, holidays2026, this.tableBody2026);
+        this.renderYearTable(2027, holidays2027, this.tableBody2027);
+    }
+    
+    renderYearTable(year, holidays, tableBody) {
+        if (!tableBody) return;
+        
+        if (holidays.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted">공휴일이 없습니다.</td></tr>`;
             return;
         }
         
-        this.tableBody.innerHTML = this.holidays.map(holiday => {
+        tableBody.innerHTML = holidays.map(holiday => {
             const date = new Date(holiday.date);
             const dayOfWeek = date.getDay();
             const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
             const isSubstitute = holiday.name.includes('대체공휴일');
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-            const statusBadge = holiday.isActive 
-                ? '<span class="badge bg-success">활성</span>' 
-                : '<span class="badge bg-secondary">비활성</span>';
             
             let dateBadges = '';
-            if (isWeekend) dateBadges += '<span class="badge bg-warning text-dark ms-1">주말</span>';
-            if (isSubstitute) dateBadges += '<span class="badge bg-info ms-1">대체</span>';
+            if (isWeekend) dateBadges += '<span class="badge bg-warning text-dark ms-1" style="font-size: 0.7rem;">주말</span>';
+            if (isSubstitute) dateBadges += '<span class="badge bg-info ms-1" style="font-size: 0.7rem;">대체</span>';
+            if (!holiday.isActive) dateBadges += '<span class="badge bg-secondary ms-1" style="font-size: 0.7rem;">비활성</span>';
+            
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${month}/${day} (${dayNames[dayOfWeek]})`;
             
             return `
                 <tr>
-                    <td class="col-date">
-                        ${this.formatFullDate(holiday.date)} (${dayNames[dayOfWeek]})
+                    <td style="font-size: 0.85rem;">
+                        ${dateStr}
                         ${dateBadges}
                     </td>
-                    <td class="col-company-name">${holiday.name}</td>
-                    <td class="col-manager">${holiday.year}</td>
-                    <td class="col-status">${statusBadge}</td>
-                    <td class="col-status">
-                        <button class="btn btn-sm btn-outline-primary me-1" onclick="holidayManager.editHoliday(${holiday.id})" title="수정">
+                    <td style="font-size: 0.85rem;">${holiday.name}</td>
+                    <td>
+                        <button class="btn btn-xs btn-outline-primary me-1" onclick="holidayManager.editHoliday(${holiday.id})" title="수정" style="padding: 0.15rem 0.3rem; font-size: 0.75rem;">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="holidayManager.deleteHoliday(${holiday.id})" title="삭제">
+                        <button class="btn btn-xs btn-outline-danger" onclick="holidayManager.deleteHoliday(${holiday.id})" title="삭제" style="padding: 0.15rem 0.3rem; font-size: 0.75rem;">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -167,7 +177,37 @@ class HolidayManager {
             return;
         }
         
-        this.mobileCards.innerHTML = this.holidays.map(holiday => {
+        // 연도별로 공휴일 분류
+        const holidays2025 = this.holidays.filter(h => h.year === 2025).sort((a, b) => new Date(a.date) - new Date(b.date));
+        const holidays2026 = this.holidays.filter(h => h.year === 2026).sort((a, b) => new Date(a.date) - new Date(b.date));
+        const holidays2027 = this.holidays.filter(h => h.year === 2027).sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        let html = '';
+        
+        // 2025년
+        html += '<div class="mb-4"><h5 class="text-primary mb-3"><i class="fas fa-calendar me-2"></i>2025년</h5>';
+        html += this.renderYearMobileCards(holidays2025);
+        html += '</div>';
+        
+        // 2026년
+        html += '<div class="mb-4"><h5 class="text-success mb-3"><i class="fas fa-calendar me-2"></i>2026년</h5>';
+        html += this.renderYearMobileCards(holidays2026);
+        html += '</div>';
+        
+        // 2027년
+        html += '<div class="mb-4"><h5 class="text-info mb-3"><i class="fas fa-calendar me-2"></i>2027년</h5>';
+        html += this.renderYearMobileCards(holidays2027);
+        html += '</div>';
+        
+        this.mobileCards.innerHTML = html;
+    }
+    
+    renderYearMobileCards(holidays) {
+        if (holidays.length === 0) {
+            return '<div class="text-center py-2 text-muted">공휴일이 없습니다.</div>';
+        }
+        
+        return holidays.map(holiday => {
             const date = new Date(holiday.date);
             const dayOfWeek = date.getDay();
             const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
@@ -182,7 +222,7 @@ class HolidayManager {
             if (isSubstitute) dateBadges += '<span class="badge bg-info ms-1">대체</span>';
             
             return `
-                <div class="mobile-card">
+                <div class="mobile-card mb-2">
                     <div class="mobile-card-header">
                         <div class="d-flex align-items-center">
                             <span class="mobile-card-title">${holiday.name}</span>
@@ -196,10 +236,6 @@ class HolidayManager {
                                 ${this.formatFullDate(holiday.date)} (${dayNames[dayOfWeek]})
                                 ${dateBadges}
                             </span>
-                        </div>
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">연도:</span>
-                            <span class="mobile-card-value">${holiday.year}년</span>
                         </div>
                         <div class="mobile-card-row">
                             <button class="btn btn-sm btn-outline-primary me-1" onclick="holidayManager.editHoliday(${holiday.id})">
@@ -217,7 +253,10 @@ class HolidayManager {
     
     updatePaginationInfo() {
         if (this.paginationInfo) {
-            this.paginationInfo.textContent = `총 ${this.holidays.length}개의 공휴일이 있습니다.`;
+            const count2025 = this.holidays.filter(h => h.year === 2025).length;
+            const count2026 = this.holidays.filter(h => h.year === 2026).length;
+            const count2027 = this.holidays.filter(h => h.year === 2027).length;
+            this.paginationInfo.textContent = `총 ${this.holidays.length}개 (2025: ${count2025}개, 2026: ${count2026}개, 2027: ${count2027}개)`;
         }
     }
     
@@ -357,33 +396,39 @@ class HolidayManager {
     }
     
     async generateSubstitute() {
-        const year = this.yearFilter.value || new Date().getFullYear();
-        
-        if (!confirm(`${year}년 주말 공휴일의 대체 공휴일을 자동 생성하시겠습니까?\n(1년 이내 날짜만 생성됩니다)`)) {
+        // 3년 모두에 대해 대체 공휴일 생성
+        if (!confirm('2025, 2026, 2027년 주말 공휴일의 대체 공휴일을 자동 생성하시겠습니까?\n(1년 이내 날짜만 생성됩니다)')) {
             return;
         }
         
         try {
             this.showLoading(true);
+            let totalGenerated = 0;
             
-            const response = await fetch('/api/staff/holidays/generate-substitute', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ year: parseInt(year) })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                const count = result.data.generated.length;
-                this.showSuccess(`${count}개의 대체 공휴일이 생성되었습니다.`);
-                this.loadHolidays();
-            } else {
-                throw new Error(result.message || '대체 공휴일 생성에 실패했습니다.');
+            // 각 연도별로 대체 공휴일 생성
+            for (const year of [2025, 2026, 2027]) {
+                try {
+                    const response = await fetch('/api/staff/holidays/generate-substitute', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ year: year })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        totalGenerated += result.data.generated.length;
+                    }
+                } catch (error) {
+                    console.error(`${year}년 대체 공휴일 생성 오류:`, error);
+                }
             }
+            
+            this.showSuccess(`총 ${totalGenerated}개의 대체 공휴일이 생성되었습니다.`);
+            this.loadHolidays();
         } catch (error) {
             console.error('대체 공휴일 생성 오류:', error);
             this.showError(error.message);
@@ -412,32 +457,88 @@ class HolidayManager {
     }
     
     async validateHolidays() {
-        const year = this.yearFilter.value || new Date().getFullYear();
-        
+        // 3년 모두 검증
         try {
             this.showLoading(true);
             
-            const response = await fetch(`/api/staff/holidays/validate?year=${year}`, {
-                credentials: 'include'
-            });
+            const validatePromises = [2025, 2026, 2027].map(year => 
+                fetch(`/api/staff/holidays/validate?year=${year}`, {
+                    credentials: 'include'
+                }).then(res => res.json())
+            );
             
-            if (!response.ok) {
-                throw new Error('공휴일 검증에 실패했습니다.');
-            }
+            const results = await Promise.all(validatePromises);
             
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showValidateResults(result.data);
-            } else {
-                throw new Error(result.message || '공휴일 검증에 실패했습니다.');
-            }
+            // 모든 연도의 검증 결과를 통합하여 표시
+            this.showValidateResultsAll(results);
         } catch (error) {
             console.error('공휴일 검증 오류:', error);
             this.showError(error.message);
         } finally {
             this.showLoading(false);
         }
+    }
+    
+    showValidateResultsAll(results) {
+        let html = '<div class="mb-3"><h6>검증 연도: 2025년, 2026년, 2027년</h6></div>';
+        
+        let allValid = true;
+        let totalErrors = [];
+        let totalWarnings = [];
+        
+        results.forEach((result, index) => {
+            const year = 2025 + index;
+            if (result.success && result.data) {
+                if (!result.data.isValid) {
+                    allValid = false;
+                    if (result.data.errors) totalErrors.push(...result.data.errors.map(e => ({...e, year})));
+                    if (result.data.warnings) totalWarnings.push(...result.data.warnings.map(w => ({...w, year})));
+                }
+            }
+        });
+        
+        if (allValid && totalErrors.length === 0 && totalWarnings.length === 0) {
+            html += `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    모든 연도의 공휴일 데이터가 정상입니다.
+                </div>
+            `;
+        } else {
+            if (totalErrors.length > 0) {
+                html += `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-circle me-2"></i>오류 (${totalErrors.length}개)</h6>
+                        <ul class="mb-0">
+                            ${totalErrors.map(error => `
+                                <li>
+                                    <strong>${error.year}년 ${error.date || error.name}</strong>: ${error.issue}
+                                    ${error.expected ? ` (예상: ${error.expected})` : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (totalWarnings.length > 0) {
+                html += `
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>경고 (${totalWarnings.length}개)</h6>
+                        <ul class="mb-0">
+                            ${totalWarnings.map(warning => `
+                                <li>
+                                    <strong>${warning.year}년 ${warning.date}</strong> - ${warning.name}: ${warning.issue}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+        
+        this.validateResults.innerHTML = html;
+        this.validateModal.show();
     }
     
     showValidateResults(data) {

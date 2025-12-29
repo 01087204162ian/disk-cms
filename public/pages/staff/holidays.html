@@ -67,8 +67,8 @@
               </div>
             </div>
 
-            <!-- 필터 영역 -->
-            <div class="search-filter-row">
+            <!-- 필터 영역 (3년간 자동 조회이므로 필터 숨김) -->
+            <div class="search-filter-row d-none">
               <div class="row align-items-end">
                 <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                   <label class="filter-label">연도</label>
@@ -93,25 +93,89 @@
               </div>
             </div>
 
-            <!-- 공휴일 목록 테이블 -->
+            <!-- 공휴일 목록 (3년간 3열 표시) -->
             <div class="desktop-table">
-              <div class="table-responsive">
-                <table class="table table-bordered table-hover table-sm">
-                  <thead class="thead-light">
-                    <tr>
-                      <th class="col-date">날짜</th>
-                      <th class="col-company-name">공휴일명</th>
-                      <th class="col-manager">연도</th>
-                      <th class="col-status">상태</th>
-                      <th class="col-status">관리</th>
-                    </tr>
-                  </thead>
-                  <tbody id="holidays_table_body">
-                    <tr>
-                      <td colspan="5" class="text-center py-4">데이터를 불러오는 중...</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="row">
+                <!-- 2025년 -->
+                <div class="col-md-4 mb-3">
+                  <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                      <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>2025년</h5>
+                    </div>
+                    <div class="card-body p-0">
+                      <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                        <table class="table table-sm table-hover mb-0">
+                          <thead class="table-light sticky-top">
+                            <tr>
+                              <th style="width: 40%;">날짜</th>
+                              <th style="width: 40%;">공휴일명</th>
+                              <th style="width: 20%;">관리</th>
+                            </tr>
+                          </thead>
+                          <tbody id="holidays_table_body_2025">
+                            <tr>
+                              <td colspan="3" class="text-center py-4">데이터를 불러오는 중...</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 2026년 -->
+                <div class="col-md-4 mb-3">
+                  <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                      <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>2026년</h5>
+                    </div>
+                    <div class="card-body p-0">
+                      <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                        <table class="table table-sm table-hover mb-0">
+                          <thead class="table-light sticky-top">
+                            <tr>
+                              <th style="width: 40%;">날짜</th>
+                              <th style="width: 40%;">공휴일명</th>
+                              <th style="width: 20%;">관리</th>
+                            </tr>
+                          </thead>
+                          <tbody id="holidays_table_body_2026">
+                            <tr>
+                              <td colspan="3" class="text-center py-4">데이터를 불러오는 중...</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 2027년 -->
+                <div class="col-md-4 mb-3">
+                  <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                      <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>2027년</h5>
+                    </div>
+                    <div class="card-body p-0">
+                      <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                        <table class="table table-sm table-hover mb-0">
+                          <thead class="table-light sticky-top">
+                            <tr>
+                              <th style="width: 40%;">날짜</th>
+                              <th style="width: 40%;">공휴일명</th>
+                              <th style="width: 20%;">관리</th>
+                            </tr>
+                          </thead>
+                          <tbody id="holidays_table_body_2027">
+                            <tr>
+                              <td colspan="3" class="text-center py-4">데이터를 불러오는 중...</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
