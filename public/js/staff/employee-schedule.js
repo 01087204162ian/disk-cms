@@ -55,6 +55,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // 스케줄 로드
     await loadSchedule();
+    
+    // 반차 목록 로드
+    await loadHalfDayList();
 });
 
 // ===========================
@@ -126,6 +129,14 @@ function setupEventListeners() {
     document.getElementById('submitHalfDayBtn').addEventListener('click', () => {
         submitHalfDay();
     });
+    
+    // 반차 목록 새로고침
+    const refreshHalfDayListBtn = document.getElementById('refreshHalfDayListBtn');
+    if (refreshHalfDayListBtn) {
+        refreshHalfDayListBtn.addEventListener('click', () => {
+            loadHalfDayList();
+        });
+    }
     
     // 일시적 변경 제출
     document.getElementById('submitTemporaryChangeBtn').addEventListener('click', () => {
@@ -699,5 +710,65 @@ function showLoading() {
 
 function hideLoading() {
     document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+// ===========================
+// 반차 신청 목록 조회
+// ===========================
+
+async function loadHalfDayList() {
+    const container = document.getElementById('halfDayListContainer');
+    if (!container) return;
+    
+    try {
+        const response = await fetch(`/api/staff/work-schedules/my-half-days?year=${currentYear}&month=${currentMonth}`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            throw new Error('반차 목록을 불러오는데 실패했습니다.');
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || '반차 목록을 불러오는데 실패했습니다.');
+        }
+        
+        const halfDays = result.data || [];
+        
+        if (halfDays.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted small py-3">반차 신청 내역이 없습니다.</div>';
+            return;
+        }
+        
+        container.innerHTML = halfDays.map(halfDay => {
+            const statusBadge = {
+                'PENDING': '<span class="badge bg-warning text-dark">대기</span>',
+                'APPROVED': '<span class="badge bg-success">승인</span>',
+                'REJECTED': '<span class="badge bg-danger">거부</span>'
+            }[halfDay.status] || '<span class="badge bg-secondary">-</span>';
+            
+            const date = new Date(halfDay.date);
+            const dayOfWeek = dayNames[date.getDay()];
+            const dateStr = `${halfDay.date} (${dayOfWeek})`;
+            
+            return `
+                <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                    <div class="flex-grow-1">
+                        <div class="small fw-semibold">${dateStr}</div>
+                        <div class="small text-muted">${halfDay.leave_type_name} - ${halfDay.reason || '(사유 없음)'}</div>
+                    </div>
+                    <div class="ms-2">
+                        ${statusBadge}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('반차 목록 조회 오류:', error);
+        container.innerHTML = `<div class="text-center text-danger small py-3">오류: ${error.message}</div>`;
+    }
 }
 

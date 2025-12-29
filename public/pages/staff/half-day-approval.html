@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | 반차 승인</title>
+  
+  <!-- 한글 폰트 (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/sj-styles.css" rel="stylesheet">
+</head>
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <div>페이지를 불러오는 중...</div>
+    </div>
+  </div>
+  
+  <!-- 헤더 컨테이너 -->
+  <div id="header-container">
+    <!-- sj-header.html 컴포넌트가 여기에 로드됩니다 -->
+  </div>
+  
+  <!-- 사이드바 오버레이 (모바일용) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container">
+    <!-- sj-sidebar.html 컴포넌트가 여기에 로드됩니다 -->
+  </div>
+  
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              
+              <!-- 헤더 -->
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                <h4 class="mb-0">
+                  <i class="fas fa-check-circle me-2 text-primary"></i>
+                  반차 승인 관리
+                </h4>
+                <button class="btn btn-secondary btn-sm" id="refreshBtn">
+                  <i class="fas fa-sync-alt me-2"></i>새로고침
+                </button>
+              </div>
+              
+              <!-- 반차 승인 대기 목록 -->
+              <div id="pendingHalfDaysContainer">
+                <div class="text-center py-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">로딩 중...</span>
+                  </div>
+                  <div class="mt-2 text-muted">데이터를 불러오는 중...</div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- 승인/거부 모달 -->
+  <div class="modal fade" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="approvalModalTitle">반차 승인/거부</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="approvalModalBody">
+            <!-- 내용이 동적으로 채워집니다 -->
+          </div>
+          <div class="mb-3" id="rejectionReasonDiv" style="display: none;">
+            <label class="form-label">거부 사유 <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="rejectionReason" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-danger" id="rejectBtn">거부</button>
+          <button type="button" class="btn btn-primary" id="approveBtn">승인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- SJ 템플릿 로더 -->
+  <script src="/js/sj-template-loader.js"></script>
+  
+  <!-- 반차 승인 스크립트 -->
+  <script src="/js/staff/half-day-approval.js"></script>
+  
+  <script>
+    // 페이지 로드 후 자동 초기화
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('반차 승인 페이지가 로드되었습니다.');
+      
+      await window.sjTemplateLoader.initializePage('half-day-approval');
+      
+      // 반차 승인 관리 초기화
+      if (typeof HalfDayApprovalManager !== 'undefined') {
+        window.halfDayApprovalManager = new HalfDayApprovalManager();
+      }
+    });
+  </script>
+</body>
+</html>
+

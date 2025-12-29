@@ -705,6 +705,200 @@ router.post('/apply-half-day', requireAuth, async (req, res) => {
     }
 });
 
+/**
+ * GET /api/staff/work-schedules/my-half-days
+ * 본인의 반차 신청 목록 조회
+ */
+router.get('/my-half-days', requireAuth, async (req, res) => {
+    try {
+        const userEmail = req.session.user.email;
+        const { year, month, status } = req.query;
+        
+        let query = `
+            SELECT id, leave_type, start_date, end_date, reason, status, created_at
+            FROM leaves
+            WHERE user_id = ? AND leave_type IN ('HALF_AM', 'HALF_PM')
+        `;
+        const params = [userEmail];
+        
+        if (year) {
+            query += ` AND YEAR(start_date) = ?`;
+            params.push(parseInt(year, 10));
+        }
+        
+        if (month) {
+            query += ` AND MONTH(start_date) = ?`;
+            params.push(parseInt(month, 10));
+        }
+        
+        if (status) {
+            query += ` AND status = ?`;
+            params.push(status);
+        }
+        
+        query += ` ORDER BY start_date DESC, created_at DESC`;
+        
+        const [rows] = await pool.execute(query, params);
+        
+        res.json({
+            success: true,
+            data: rows.map(row => ({
+                id: row.id,
+                date: formatDate(row.start_date),
+                leave_type: row.leave_type,
+                leave_type_name: row.leave_type === 'HALF_AM' ? '오전 반차' : '오후 반차',
+                reason: row.reason,
+                status: row.status,
+                created_at: row.created_at
+            }))
+        });
+        
+    } catch (error) {
+        console.error('반차 목록 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+/**
+ * GET /api/staff/work-schedules/pending-half-days
+ * 승인 대기 중인 반차 신청 목록 조회 (관리자용)
+ */
+router.get('/pending-half-days', requireAuth, requireManager, async (req, res) => {
+    try {
+        const userRole = req.session.user.role;
+        const userDepartmentId = req.session.user.department_id;
+        
+        let query = `
+            SELECT l.id, l.user_id, u.name as user_name, u.department_id,
+                   l.leave_type, l.start_date, l.reason, l.status, l.created_at
+            FROM leaves l
+            INNER JOIN users u ON l.user_id = u.email
+            WHERE l.leave_type IN ('HALF_AM', 'HALF_PM') AND l.status = 'PENDING'
+        `;
+        const params = [];
+        
+        // 부서장의 경우 본인 부서만 조회
+        if (userRole === 'DEPT_MANAGER' && userDepartmentId) {
+            query += ` AND u.department_id = ?`;
+            params.push(userDepartmentId);
+        }
+        
+        query += ` ORDER BY l.created_at ASC`;
+        
+        const [rows] = await pool.execute(query, params);
+        
+        res.json({
+            success: true,
+            data: rows.map(row => ({
+                id: row.id,
+                user_id: row.user_id,
+                user_name: row.user_name,
+                date: formatDate(row.start_date),
+                leave_type: row.leave_type,
+                leave_type_name: row.leave_type === 'HALF_AM' ? '오전 반차' : '오후 반차',
+                reason: row.reason,
+                status: row.status,
+                requested_at: row.created_at
+            }))
+        });
+        
+    } catch (error) {
+        console.error('승인 대기 반차 목록 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+/**
+ * POST /api/staff/work-schedules/approve-half-day/:leaveId
+ * 반차 신청 승인/거부 (관리자용)
+ */
+router.post('/approve-half-day/:leaveId', requireAuth, requireManager, async (req, res) => {
+    try {
+        const leaveId = parseInt(req.params.leaveId, 10);
+        const { action, rejection_reason } = req.body;
+        const approverEmail = req.session.user.email;
+        
+        if (!action || !['approve', 'reject'].includes(action)) {
+            return res.status(400).json({
+                success: false,
+                message: '유효하지 않은 action입니다. (approve 또는 reject)',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        if (action === 'reject' && !rejection_reason) {
+            return res.status(400).json({
+                success: false,
+                message: '거부 사유를 입력해주세요.',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        // 반차 신청 조회
+        const [leaveRows] = await pool.execute(`
+            SELECT id, user_id, leave_type, start_date, status
+            FROM leaves
+            WHERE id = ? AND leave_type IN ('HALF_AM', 'HALF_PM')
+        `, [leaveId]);
+        
+        if (leaveRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: '반차 신청을 찾을 수 없습니다.',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        const leave = leaveRows[0];
+        
+        if (leave.status !== 'PENDING') {
+            return res.status(400).json({
+                success: false,
+                message: '이미 처리된 반차 신청입니다.',
+                code: 'ALREADY_PROCESSED'
+            });
+        }
+        
+        // 승인/거부 처리
+        const newStatus = action === 'approve' ? 'APPROVED' : 'REJECTED';
+        const updateReason = action === 'reject' ? rejection_reason : null;
+        
+        await pool.execute(`
+            UPDATE leaves
+            SET status = ?, 
+                approved_by = ?,
+                approved_at = NOW(),
+                rejection_reason = ?
+            WHERE id = ?
+        `, [newStatus, approverEmail, updateReason, leaveId]);
+        
+        res.json({
+            success: true,
+            message: action === 'approve' ? '반차 신청이 승인되었습니다.' : '반차 신청이 거부되었습니다.',
+            data: {
+                id: leaveId,
+                status: newStatus
+            }
+        });
+        
+    } catch (error) {
+        console.error('반차 승인/거부 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
 // ===========================
 // 4. 일시적 휴무일 변경
 // ===========================

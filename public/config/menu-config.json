@@ -36,6 +36,13 @@
           "order": 3
         },
         {
+          "id": "half-day-approval",
+          "title": "반차 승인",
+          "page": "staff/half-day-approval",
+          "order": 4,
+          "roles": ["SUPER_ADMIN", "SYSTEM_ADMIN", "DEPT_MANAGER"]
+        },
+        {
           "id": "notices",
           "title": "공지사항",
           "page": "staff/notices",
