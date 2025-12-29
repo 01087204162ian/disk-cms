@@ -800,10 +800,11 @@
         for (let i = 1; i <= 7; i += 1) {
           const endEl = document.getElementById(`po_${i}_2`);
           if (endEl) endEl.addEventListener('input', () => autoFillNextRow(i));
-          const a3 = document.getElementById(`po_${i}_3`);
-          const a4 = document.getElementById(`po_${i}_4`);
-          if (a3) a3.addEventListener('input', () => autoSum(i, 3, 4, 5));
-          if (a4) a4.addEventListener('input', () => autoSum(i, 3, 4, 5));
+          const a3 = document.getElementById(`po_${i}_3`); // 년기본
+          const a4 = document.getElementById(`po_${i}_4`); // 년특약
+          // 년기본 입력 시: 년기본 × 10 = 년계 계산
+          if (a3) a3.addEventListener('input', () => calculateYearTotal(i));
+          // 년특약 입력 시에는 계산하지 않음 (년계는 년기본 × 10만 사용)
           ['1', '2', '3', '4', '5'].forEach((col) => addCommaListener(`po_${i}_${col}`));
         }
         const btn = document.getElementById('saveInsurancePremiumButton');
@@ -838,6 +839,21 @@
     }
   };
 
+  // 년기본 × 10 = 년계 계산 함수
+  const calculateYearTotal = (row) => {
+    const yearBasicStr = document.getElementById(`po_${row}_3`)?.value.replace(/,/g, '').trim() || '';
+    const yearBasic = yearBasicStr ? parseInt(yearBasicStr, 10) : 0;
+    const el = document.getElementById(`po_${row}_5`); // 년계 필드
+    if (el) {
+      if (!yearBasicStr || yearBasic === 0) {
+        el.value = '';
+      } else {
+        const yearTotal = yearBasic * 10;
+        el.value = addComma(yearTotal);
+      }
+    }
+  };
+
   const saveInsurancePremiumData = async (certi) => {
     const premiumData = [];
     
@@ -861,13 +877,15 @@
       
       // 하나라도 입력되어 있으면 저장 대상에 포함
       if (startMonth || endMonth || payment10Premium1 || payment10Premium2) {
+        // 년계 값 가져오기 (년기본 × 10으로 계산된 값)
+        const payment10PremiumTotal = document.getElementById(`po_${i}_5`)?.value.replace(/,/g, '').trim() || '';
         premiumData.push({
           rowNum: i,
           start_month: startMonth || null,
           end_month: endMonth || null,
           payment10_premium1: payment10Premium1 || null,
           payment10_premium2: payment10Premium2 || null,
-          payment10_premium_total: null, // 서버에서 자동 계산
+          payment10_premium_total: payment10PremiumTotal || null, // 년기본 × 10으로 계산된 값
         });
       }
     }
@@ -936,10 +954,11 @@
             for (let i = 1; i <= 7; i += 1) {
               const endEl = document.getElementById(`po_${i}_2`);
               if (endEl) endEl.addEventListener('input', () => autoFillNextRow(i));
-              const a3 = document.getElementById(`po_${i}_3`);
-              const a4 = document.getElementById(`po_${i}_4`);
-              if (a3) a3.addEventListener('input', () => autoSum(i, 3, 4, 5));
-              if (a4) a4.addEventListener('input', () => autoSum(i, 3, 4, 5));
+              const a3 = document.getElementById(`po_${i}_3`); // 년기본
+              const a4 = document.getElementById(`po_${i}_4`); // 년특약
+              // 년기본 입력 시: 년기본 × 10 = 년계 계산
+              if (a3) a3.addEventListener('input', () => calculateYearTotal(i));
+              // 년특약 입력 시에는 계산하지 않음 (년계는 년기본 × 10만 사용)
               ['1', '2', '3', '4', '5'].forEach((col) => addCommaListener(`po_${i}_${col}`));
             }
           }, 50);
