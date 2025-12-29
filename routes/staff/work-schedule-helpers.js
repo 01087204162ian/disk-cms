@@ -535,37 +535,48 @@ function validateHalfDay(applyDate, userWorkDays, holidays) {
     holidays
   );
   
-  // 3. 휴무일인지 확인
-  // getDay(): 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
-  // offDay: 1=월, 2=화, 3=수, 4=목, 5=금
-  // 일요일(0)과 토요일(6)은 offDay 범위에 없으므로 체크 불필요
+  // 3. 휴무일 확인 (휴무일에 반차 사용 허용)
+  // 휴무일에 반차를 사용하는 것은 허용됩니다.
+  // 예: 화요일 휴무자가 화요일에 반차 사용 = 화요일 4시간 근무
+  // 같은 주 다른 날에도 반차를 사용하여 총 32시간을 맞춥니다.
   const applyDayOfWeek = apply.getDay();
-  if (applyDayOfWeek >= 1 && applyDayOfWeek <= 5 && applyDayOfWeek === offDay) {
-    return {
-      valid: false,
-      message: '휴무일에는 반차를 사용할 수 없습니다.',
-      code: 'OFF_DAY_NOT_ALLOWED'
-    };
-  }
+  const isOffDay = applyDayOfWeek >= 1 && applyDayOfWeek <= 5 && applyDayOfWeek === offDay;
   
-  // 4. 공휴일 포함 주인지 확인
-  if (hasHolidayInWeek(weekStart, holidays)) {
-    return {
-      valid: false,
-      message: '공휴일이 포함된 주에는 반차를 사용할 수 없습니다.',
-      code: 'HOLIDAY_WEEK_NOT_ALLOWED'
-    };
-  }
+  // 4. 공휴일 포함 주 확인 (공휴일 포함 주에도 반차 사용 허용)
+  // 공휴일 포함 주는 주 4일 근무가 해제되지만, 반차 사용은 가능합니다.
+  const isHolidayWeek = hasHolidayInWeek(weekStart, holidays);
   
   // 5. 같은 주인지 확인 (휴무일과 같은 주에만 사용 가능)
   // 휴무일과 같은 주에만 반차 사용 가능
   // apply는 이미 weekStart와 같은 주에 있으므로, 추가 체크 불필요
   // 단, 반차는 휴무일을 분할 사용하는 개념이므로 같은 주 내에서만 사용 가능
   
+  // 안내 메시지 생성
+  let message = '검증 통과';
+  const messages = [];
+  
+  if (isOffDay) {
+    messages.push('휴무일에 반차를 사용합니다.');
+  }
+  
+  if (isHolidayWeek) {
+    messages.push('공휴일 포함 주입니다. 주 4일 근무가 해제되지만 반차 사용은 가능합니다.');
+  }
+  
+  if (isOffDay && !isHolidayWeek) {
+    messages.push('같은 주 다른 날에도 반차를 사용하여 총 32시간을 맞춰주세요.');
+  }
+  
+  if (messages.length > 0) {
+    message = messages.join(' ');
+  }
+  
   return {
     valid: true,
-    message: '검증 통과',
-    code: 'VALID'
+    message: message,
+    code: 'VALID',
+    isOffDay: isOffDay, // 휴무일 반차 사용 여부
+    isHolidayWeek: isHolidayWeek // 공휴일 포함 주 여부
   };
 }
 
