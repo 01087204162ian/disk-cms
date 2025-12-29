@@ -260,9 +260,26 @@
 
     showLoading();
     try {
+      // 증권번호 가져오기 (select 또는 input에서)
+      const policyNumSelect = document.getElementById('policyNumSelect');
+      const policyNumInput = document.getElementById('policyNumInput');
+      
+      let certi = '';
+      if (policyNumSelect && policyNumSelect.value === '__DIRECT_INPUT__') {
+        // 직접 입력 모드
+        certi = policyNumInput ? policyNumInput.value.trim() : '';
+      } else if (policyNumSelect && policyNumSelect.value) {
+        // select에서 선택
+        certi = policyNumSelect.value.trim();
+      }
+      
       // fromDate, toDate는 백엔드에서 기본값 설정 (최근 1년)
       const url = new URL(`${API_BASE}/kj-code/policy-search`, window.location.origin);
       url.searchParams.set('sj', sj);
+      // 증권번호가 있으면 필터 파라미터 추가
+      if (certi) {
+        url.searchParams.set('certi', certi);
+      }
       // 날짜 파라미터는 백엔드에서 자동 설정되므로 전송하지 않음
       const res = await fetch(url.toString(), { credentials: 'include' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
