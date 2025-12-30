@@ -127,13 +127,15 @@ class MistakeCaseForm {
 
             // 파일이 있으면 FormData 사용, 없으면 JSON 사용
             let response;
-            if (this.files.length > 0 && this.files.some(f => f instanceof File)) {
+            const hasNewFiles = this.files.length > 0 && this.files.some(f => f instanceof File);
+            
+            if (hasNewFiles) {
                 const formDataObj = new FormData();
                 formDataObj.append('data', JSON.stringify(formData));
                 
-                this.files.forEach((file, index) => {
+                this.files.forEach((file) => {
                     if (file instanceof File) {
-                        formDataObj.append(`files`, file);
+                        formDataObj.append('files', file);
                     }
                 });
 

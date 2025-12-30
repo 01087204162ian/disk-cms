@@ -3,8 +3,51 @@
 // ==============================
 
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { pool } = require('../../config/database');
 const router = express.Router();
+
+// 파일 업로드 설정
+const uploadDir = path.join(__dirname, '../../public/uploads/manual');
+// 디렉토리 생성 (비동기로 처리)
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (error) {
+  console.error('업로드 디렉토리 생성 오류:', error);
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('지원하지 않는 파일 형식입니다.'));
+    }
+  }
+});
 
 // 권한 확인 미들웨어
 const requireAuth = (req, res, next) => {
@@ -215,17 +258,49 @@ router.post('/', requireAuth, async (req, res) => {
       ]
     );
 
+    const caseId = result.insertId;
+
+    // 파일 저장
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        await connection.execute(
+          `INSERT INTO mistake_case_files 
+           (case_id, file_name, file_path, file_size, file_type, uploaded_by)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            caseId,
+            file.originalname,
+            `/uploads/manual/${file.filename}`,
+            file.size,
+            file.mimetype,
+            authorId
+          ]
+        );
+      }
+    }
+
     await connection.commit();
 
     res.json({
       success: true,
       message: '실수 사례가 등록되었습니다.',
       data: {
-        id: result.insertId
+        id: caseId
       }
     });
   } catch (error) {
     await connection.rollback();
+    
+    // 업로드된 파일 삭제
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        const filePath = path.join(uploadDir, file.filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    }
+    
     console.error('실수 사례 등록 오류:', error);
     res.status(500).json({
       success: false,
@@ -236,8 +311,8 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
-// 실수 사례 수정
-router.put('/:id', requireAuth, async (req, res) => {
+// 실수 사례 수정 (파일 업로드 지원)
+router.put('/:id', requireAuth, upload.array('files', 10), async (req, res) => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -269,20 +344,28 @@ router.put('/:id', requireAuth, async (req, res) => {
     // 수정 전 데이터 저장 (이력)
     const oldData = { ...existing[0] };
     
+    // JSON 데이터 파싱 (FormData로 전송된 경우)
+    let data;
+    if (req.body.data) {
+      data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data;
+    } else {
+      data = req.body;
+    }
+    
     // 수정 데이터
     const updateFields = {
-      title: req.body.title,
-      category: req.body.category,
-      severity: req.body.severity,
-      tags: JSON.stringify(req.body.tags || []),
-      work_content: req.body.work_content,
-      mistake_description: req.body.mistake_description,
-      result_description: req.body.result_description,
-      surface_causes: req.body.surface_causes,
-      root_causes: req.body.root_causes,
-      structural_issues: req.body.structural_issues,
-      improvement_measures: req.body.improvement_measures,
-      checklist_items: JSON.stringify(req.body.checklist_items || [])
+      title: data.title,
+      category: data.category,
+      severity: data.severity,
+      tags: JSON.stringify(data.tags || []),
+      work_content: data.work_content,
+      mistake_description: data.mistake_description,
+      result_description: data.result_description,
+      surface_causes: data.surface_causes,
+      root_causes: data.root_causes,
+      structural_issues: data.structural_issues,
+      improvement_measures: data.improvement_measures,
+      checklist_items: JSON.stringify(data.checklist_items || [])
     };
 
     // 수정 이력 저장
@@ -313,6 +396,25 @@ router.put('/:id', requireAuth, async (req, res) => {
       ]
     );
 
+    // 새 파일 저장
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        await connection.execute(
+          `INSERT INTO mistake_case_files 
+           (case_id, file_name, file_path, file_size, file_type, uploaded_by)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            id,
+            file.originalname,
+            `/uploads/manual/${file.filename}`,
+            file.size,
+            file.mimetype,
+            userId
+          ]
+        );
+      }
+    }
+
     await connection.commit();
 
     res.json({
@@ -321,6 +423,17 @@ router.put('/:id', requireAuth, async (req, res) => {
     });
   } catch (error) {
     await connection.rollback();
+    
+    // 업로드된 파일 삭제
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        const filePath = path.join(uploadDir, file.filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    }
+    
     console.error('실수 사례 수정 오류:', error);
     res.status(500).json({
       success: false,
@@ -550,6 +663,43 @@ router.delete('/:id/comments/:commentId', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       error: '댓글 삭제 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// 파일 다운로드
+router.get('/:id/files/:fileId/download', requireAuth, async (req, res) => {
+  try {
+    const { id, fileId } = req.params;
+
+    const [files] = await pool.execute(
+      'SELECT * FROM mistake_case_files WHERE id = ? AND case_id = ?',
+      [fileId, id]
+    );
+
+    if (files.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: '파일을 찾을 수 없습니다.'
+      });
+    }
+
+    const file = files[0];
+    const filePath = path.join(__dirname, '../../public', file.file_path);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        error: '파일이 존재하지 않습니다.'
+      });
+    }
+
+    res.download(filePath, file.file_name);
+  } catch (error) {
+    console.error('파일 다운로드 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '파일 다운로드 중 오류가 발생했습니다.'
     });
   }
 });

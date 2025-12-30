@@ -31,8 +31,10 @@ class MistakeCaseDetail {
             await this.loadCaseDetail();
             await this.loadComments();
             
-            // 권한 체크
-            this.checkPermissions();
+            // 권한 체크 (약간의 지연 후 실행 - 세션 정보 로드 대기)
+            setTimeout(() => {
+                this.checkPermissions();
+            }, 500);
             
             console.log('실수 사례 상세 페이지 초기화 완료');
         } catch (error) {
@@ -280,23 +282,39 @@ class MistakeCaseDetail {
             return;
         }
 
-        const commentsHTML = this.comments.map(comment => {
+        // 현재 사용자 정보 (권한 체크용)
+        const currentUser = window.sjTemplateLoader?.user || null;
+        const currentUserId = currentUser?.id || null;
+        const currentUserRole = currentUser?.role || null;
+
+        const commentsHTML = this.comments.map((comment, index) => {
             const createdAt = this.formatDateTime(comment.created_at);
+            const isAuthor = comment.author_id === currentUserId;
+            const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(currentUserRole);
+            const canEdit = isAuthor || isAdmin;
+            
             return `
-                <div class="card mb-3">
+                <div class="card mb-3" id="comment-${comment.id}">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <strong>${this.escapeHtml(comment.author_name || '익명')}</strong>
                                 <small class="text-muted ms-2">${createdAt}</small>
                             </div>
-                            <div>
-                                <button class="btn btn-sm btn-link text-muted" onclick="mistakeCaseDetail.likeComment(${comment.id})">
-                                    <i class="fas fa-thumbs-up"></i> ${comment.like_count || 0}
-                                </button>
+                            <div class="btn-group btn-group-sm">
+                                ${canEdit ? `
+                                    <button class="btn btn-link text-primary p-0 me-2" onclick="mistakeCaseDetail.editComment(${comment.id}, ${index})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-link text-danger p-0 me-2" onclick="mistakeCaseDetail.deleteComment(${comment.id})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                ` : ''}
                             </div>
                         </div>
-                        <div class="comment-content">${this.escapeHtml(comment.content).replace(/\n/g, '<br>')}</div>
+                        <div class="comment-content" id="comment-content-${comment.id}">
+                            ${this.escapeHtml(comment.content).replace(/\n/g, '<br>')}
+                        </div>
                     </div>
                 </div>
             `;
@@ -305,6 +323,64 @@ class MistakeCaseDetail {
         this.commentsContainer.innerHTML = commentsHTML;
         this.commentCountHeader.textContent = this.comments.length;
     }
+
+    async editComment(commentId, index) {
+        const comment = this.comments[index];
+        if (!comment) return;
+
+        const newContent = prompt('댓글을 수정하세요:', comment.content);
+        if (newContent === null || newContent.trim() === comment.content) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/manual/mistake-cases/${this.caseId}/comments/${commentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ content: newContent.trim() })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await this.loadComments();
+            } else {
+                alert(result.error || '댓글 수정에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('댓글 수정 오류:', error);
+            alert('댓글 수정 중 오류가 발생했습니다.');
+        }
+    }
+
+    async deleteComment(commentId) {
+        if (!confirm('정말 이 댓글을 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/manual/mistake-cases/${this.caseId}/comments/${commentId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await this.loadComments();
+                await this.loadCaseDetail(); // 댓글 수 업데이트
+            } else {
+                alert(result.error || '댓글 삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('댓글 삭제 오류:', error);
+            alert('댓글 삭제 중 오류가 발생했습니다.');
+        }
+    }
+
 
     async submitComment() {
         const content = this.commentInput.value.trim();
@@ -361,14 +437,26 @@ class MistakeCaseDetail {
         }
     }
 
-    checkPermissions() {
-        // 세션에서 사용자 정보 가져오기 (실제 구현 시)
-        // 현재는 작성자만 수정/삭제 가능하도록 설정
-        // TODO: 실제 세션 정보와 비교
-        if (this.caseData && this.caseData.author_id) {
+    async checkPermissions() {
+        try {
+            // 세션 정보 가져오기 (sj-template-loader에서 로드된 경우)
+            const user = window.sjTemplateLoader?.user || null;
+            
+            if (!user || !this.caseData) {
+                return;
+            }
+
+            const userId = user.id;
+            const userRole = user.role;
+            const authorId = this.caseData.author_id;
+
             // 작성자이거나 관리자인 경우 버튼 표시
-            this.editBtn.style.display = 'inline-block';
-            this.deleteBtn.style.display = 'inline-block';
+            if (authorId === userId || ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole)) {
+                this.editBtn.style.display = 'inline-block';
+                this.deleteBtn.style.display = 'inline-block';
+            }
+        } catch (error) {
+            console.error('권한 확인 오류:', error);
         }
     }
 
@@ -437,4 +525,5 @@ document.addEventListener('DOMContentLoaded', () => {
     mistakeCaseDetail = new MistakeCaseDetail();
     window.mistakeCaseDetail = mistakeCaseDetail;
 });
+
 
