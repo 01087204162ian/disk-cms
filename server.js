@@ -38,6 +38,9 @@ const workersCompConsultationsRoutes = require('./routes/workers-comp/consultati
 const kjDriverSearchRoutes = require('./routes/insurance/kj-driver-search');
 const kjDriverCompanyRoutes = require('./routes/insurance/kj-driver-company');
 
+// 지식 공유 (실수 사례 공유 시스템)
+const mistakeCasesRoutes = require('./routes/manual/mistake-cases');
+
 const fieldPracticeRoutes = require('./routes/field-practice/applications'); // 현장실습보험 신청
 const fieldPracticeClaimsRoutes = require('./routes/field-practice/claims'); // 현장실습보험 클레임리스트
 const fieldPracticeAccountsRoutes = require('./routes/field-practice/accounts'); // 현장실습보험 id리스트
@@ -108,6 +111,9 @@ app.use('/api/workers-comp/consultations', workersCompConsultationsRoutes); // �
 app.use('/api/field-practice', fieldPracticeRoutes);
 app.use('/api/field-practice/claims', fieldPracticeClaimsRoutes); // ⭐ 추가
 app.use('/api/field-practice/accounts', fieldPracticeAccountsRoutes);
+
+// 지식 공유 (실수 사례 공유 시스템)
+app.use('/api/manual/mistake-cases', mistakeCasesRoutes);
 // ========== 정적 파일 라우팅 ==========
 /*app.get('/', (req, res) => {
     res.redirect('/login.html');

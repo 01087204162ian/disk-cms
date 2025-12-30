@@ -70,6 +70,48 @@ class ModernTemplateLoader {
         path: '/pages/insurance/kj-driver-policy-search.html',
         category: 'insurance'
       },
+      'knowledge': {
+        title: '지식 공유',
+        parent: null,
+        path: '/pages/manual/mistake-cases.html',
+        category: 'knowledge'
+      },
+      'mistake-cases': {
+        title: '실수 사례',
+        parent: '지식 공유',
+        path: '/pages/manual/mistake-cases.html',
+        category: 'knowledge'
+      },
+      'mistake-cases-list': {
+        title: '전체 목록',
+        parent: '실수 사례',
+        path: '/pages/manual/mistake-cases.html',
+        category: 'knowledge'
+      },
+      'mistake-case-form': {
+        title: '사례 등록',
+        parent: '실수 사례',
+        path: '/pages/manual/mistake-case-form.html',
+        category: 'knowledge'
+      },
+      'checklists': {
+        title: '체크리스트 관리',
+        parent: '실수 사례',
+        path: '/pages/manual/checklists.html',
+        category: 'knowledge'
+      },
+      'work-guide': {
+        title: '업무 가이드',
+        parent: '지식 공유',
+        path: '/pages/manual/work-guide.html',
+        category: 'knowledge'
+      },
+      'process-docs': {
+        title: '프로세스 문서',
+        parent: '지식 공유',
+        path: '/pages/manual/process-docs.html',
+        category: 'knowledge'
+      },
       'travel-insurance': { 
         title: '여행자보험', 
         parent: '보험 업무 관리',
