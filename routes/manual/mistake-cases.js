@@ -72,9 +72,13 @@ router.get('/', async (req, res) => {
       sort = 'created_at'
     } = req.query;
 
-    const offset = (page - 1) * limit;
-    let whereConditions = ["status = 'active'"];
-    let params = [];
+    // 페이지 및 제한 값 정수 변환
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    const offsetNum = (pageNum - 1) * limitNum;
+    
+    let whereConditions = ["status = ?"];
+    let params = ['active']; // status 파라미터 추가
 
     if (category) {
       whereConditions.push('category = ?');
@@ -117,15 +121,15 @@ router.get('/', async (req, res) => {
        ${whereClause}
        ORDER BY ${sortField} ${sortOrder}
        LIMIT ? OFFSET ?`,
-      [...params, parseInt(limit), offset]
+      [...params, limitNum, offsetNum]
     );
 
     res.json({
       success: true,
       data: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: pageNum,
+        limit: limitNum,
         items: rows
       }
     });
