@@ -65,7 +65,7 @@ class ModernTemplateLoader {
         category: 'insurance'
       },
       'kj-driver-policy-search': { 
-        title: '증권번호찾기', 
+        title: '갱신', 
         parent: '대리운전',
         path: '/pages/insurance/kj-driver-policy-search.html',
         category: 'insurance'
