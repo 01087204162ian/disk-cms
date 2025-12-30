@@ -899,7 +899,7 @@
       
       // 하나라도 입력되어 있으면 저장 대상에 포함
       if (startMonth || endMonth || payment10Premium1 || payment10Premium2) {
-        // 년계 값 가져오기 (년기본 × 10으로 계산된 값)
+        // 년계 값 가져오기 ((년기본 + 년특약) × 10으로 계산된 값)
         const payment10PremiumTotal = document.getElementById(`po_${i}_5`)?.value.replace(/,/g, '').trim() || '';
         premiumData.push({
           rowNum: i,
