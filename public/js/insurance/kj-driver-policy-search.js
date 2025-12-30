@@ -436,7 +436,7 @@
       
       if (!select) return;
       
-      // 기존 옵션 제거 (첫 번째 "=선택=" 옵션 제외)
+      // 기존 옵션 제거 (첫 번째 "증권번호" 옵션 제외)
       while (select.options.length > 1) {
         select.remove(1);
       }
