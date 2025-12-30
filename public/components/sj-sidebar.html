@@ -142,6 +142,44 @@
       </div>
     </div>
 
+    <!-- 지식 공유 메뉴 -->
+    <div class="menu-item">
+      <div class="menu-title" data-target="knowledge-menu" data-menu="knowledge">
+        <div>
+          <i class="fas fa-book menu-icon"></i>
+          지식 공유
+        </div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </div>
+      <div class="submenu" id="knowledge-menu">
+        <!-- 실수 사례 -->
+        <div class="menu-item">
+          <div class="menu-title" data-target="mistake-cases-menu" data-menu="mistake-cases" style="padding-left: 2rem; font-size: 0.8rem;">
+            <div>
+              <i class="fas fa-exclamation-triangle menu-icon"></i>
+              실수 사례
+            </div>
+            <i class="fas fa-chevron-right menu-arrow"></i>
+          </div>
+          <div class="submenu" id="mistake-cases-menu">
+            <a href="/pages/manual/mistake-cases.html" class="submenu-item" data-menu="mistake-cases-list" style="padding-left: 4rem;">전체 목록</a>
+            <a href="/pages/manual/mistake-case-form.html" class="submenu-item" data-menu="mistake-case-form" style="padding-left: 4rem;">사례 등록</a>
+            <a href="/pages/manual/checklists.html" class="submenu-item" data-menu="checklists" style="padding-left: 4rem;">체크리스트 관리</a>
+          </div>
+        </div>
+        <!-- 업무 가이드 -->
+        <a href="/pages/manual/work-guide.html" class="submenu-item" data-menu="work-guide" style="padding-left: 2rem;">
+          <i class="fas fa-book-open menu-icon"></i>
+          업무 가이드
+        </a>
+        <!-- 프로세스 문서 -->
+        <a href="/pages/manual/process-docs.html" class="submenu-item" data-menu="process-docs" style="padding-left: 2rem;">
+          <i class="fas fa-file-alt menu-icon"></i>
+          프로세스 문서
+        </a>
+      </div>
+    </div>
+
     <!-- 관리자 전용 -->
     <div class="menu-item admin-only">
       <a href="/admin/dashboard.html" class="menu-title" data-menu="admin" style="text-decoration: none;">
