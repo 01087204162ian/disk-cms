@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | 실수 사례 상세</title>
+  <!-- 한글 폰트 (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/sj-styles.css" rel="stylesheet">
+  
+  <!-- 마크다운 에디터 CSS (선택사항) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+</head>
+
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <div>페이지를 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 헤더 컨테이너 -->
+  <div id="header-container"></div>
+
+  <!-- 사이드바 오버레이 (모바일용) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container"></div>
+
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            
+            <!-- 헤더 영역 -->
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div>
+                <a href="/pages/manual/mistake-cases.html" class="btn btn-sm btn-outline-secondary mb-2">
+                  <i class="fas fa-arrow-left"></i> 목록으로
+                </a>
+                <h4 class="mb-2" id="caseTitle">실수 사례 상세</h4>
+                <div class="text-muted small">
+                  <span id="caseMeta">등록자: - | 등록일: -</span>
+                  <span class="ms-3">조회: <span id="viewCount">0</span> | 댓글: <span id="commentCount">0</span></span>
+                </div>
+              </div>
+              <div id="actionButtons">
+                <button class="btn btn-sm btn-primary" id="editBtn" style="display: none;">
+                  <i class="fas fa-edit"></i> 수정
+                </button>
+                <button class="btn btn-sm btn-danger" id="deleteBtn" style="display: none;">
+                  <i class="fas fa-trash"></i> 삭제
+                </button>
+              </div>
+            </div>
+
+            <!-- 태그 및 분류 -->
+            <div class="mb-3">
+              <span id="categoryBadge" class="badge bg-primary me-2"></span>
+              <span id="severityBadge" class="badge me-2"></span>
+              <div id="tagsContainer" class="d-inline-block mt-2"></div>
+            </div>
+
+            <!-- 탭 메뉴 -->
+            <ul class="nav nav-tabs mb-4" id="detailTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                  개요
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="causes-tab" data-bs-toggle="tab" data-bs-target="#causes" type="button" role="tab">
+                  원인 분석
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="improvements-tab" data-bs-toggle="tab" data-bs-target="#improvements" type="button" role="tab">
+                  개선 방안
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="files-tab" data-bs-toggle="tab" data-bs-target="#files" type="button" role="tab">
+                  첨부파일 <span id="fileCountBadge" class="badge bg-secondary">0</span>
+                </button>
+              </li>
+            </ul>
+
+            <!-- 탭 콘텐츠 -->
+            <div class="tab-content" id="detailTabContent">
+              
+              <!-- 개요 탭 -->
+              <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <div class="row">
+                  <div class="col-12">
+                    <h5 class="mb-3">1. 실수 사례 개요</h5>
+                    
+                    <div class="mb-4">
+                      <h6 class="text-muted">업무 내용</h6>
+                      <div class="border rounded p-3 bg-light" id="workContent">
+                        <div class="text-muted">내용이 없습니다.</div>
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <h6 class="text-muted">발생한 실수</h6>
+                      <div class="border rounded p-3 bg-light" id="mistakeDescription">
+                        <div class="text-muted">내용이 없습니다.</div>
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <h6 class="text-muted">결과 및 영향</h6>
+                      <div class="border rounded p-3 bg-light" id="resultDescription">
+                        <div class="text-muted">내용이 없습니다.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 원인 분석 탭 -->
+              <div class="tab-pane fade" id="causes" role="tabpanel">
+                <div class="row">
+                  <div class="col-12">
+                    <h5 class="mb-3">2. 원인 분석</h5>
+                    
+                    <div class="mb-4">
+                      <h6 class="text-muted">표면적 원인</h6>
+                      <div class="border rounded p-3 bg-light" id="surfaceCauses">
+                        <div class="text-muted">내용이 없습니다.</div>
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <h6 class="text-muted">근본 원인</h6>
+                      <div class="border rounded p-3 bg-light" id="rootCauses">
+                        <div class="text-muted">내용이 없습니다.</div>
+                      </div>
+                    </div>
+
+                    <div class="mb-4">
+                      <h6 class="text-muted">구조적 문제</h6>
+                      <div class="border rounded p-3 bg-light" id="structuralIssues">
+                        <div class="text-muted">내용이 없습니다.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 개선 방안 탭 -->
+              <div class="tab-pane fade" id="improvements" role="tabpanel">
+                <div class="row">
+                  <div class="col-12">
+                    <h5 class="mb-3">3. 개선 방안</h5>
+                    
+                    <div class="mb-4">
+                      <h6 class="text-muted">개선 방안</h6>
+                      <div class="border rounded p-3 bg-light" id="improvementMeasures">
+                        <div class="text-muted">내용이 없습니다.</div>
+                      </div>
+                    </div>
+
+                    <div class="mb-4" id="checklistSection" style="display: none;">
+                      <h6 class="text-muted">체크리스트</h6>
+                      <div class="border rounded p-3 bg-light" id="checklistContainer">
+                        <!-- 체크리스트 항목이 여기에 표시됩니다 -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 첨부파일 탭 -->
+              <div class="tab-pane fade" id="files" role="tabpanel">
+                <div class="row">
+                  <div class="col-12">
+                    <h5 class="mb-3">첨부 파일</h5>
+                    <div id="filesContainer">
+                      <div class="text-muted">첨부된 파일이 없습니다.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 댓글 영역 -->
+            <div class="mt-5 border-top pt-4">
+              <h5 class="mb-3">댓글 <span id="commentCountHeader" class="badge bg-info">0</span></h5>
+              
+              <!-- 댓글 작성 영역 -->
+              <div class="mb-4">
+                <div class="mb-2">
+                  <textarea class="form-control" id="commentInput" rows="3" placeholder="댓글을 입력하세요..."></textarea>
+                </div>
+                <div class="text-end">
+                  <button class="btn btn-primary" id="submitCommentBtn">
+                    <i class="fas fa-paper-plane"></i> 댓글 작성
+                  </button>
+                </div>
+              </div>
+
+              <!-- 댓글 목록 -->
+              <div id="commentsContainer">
+                <div class="text-center text-muted py-4">
+                  <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- SJ 템플릿 로더 -->
+  <script src="/js/sj-template-loader.js"></script>
+  
+  <!-- 마크다운 파서 (선택사항) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  
+  <script>
+    // 페이지 로드 후 자동 초기화
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('실수 사례 상세 페이지가 로드되었습니다.');
+      
+      await window.sjTemplateLoader.initializePage('mistake-case-detail');
+    });
+  </script>
+  <script src="/js/manual/mistake-case-detail.js"></script>
+</body>
+</html>
+

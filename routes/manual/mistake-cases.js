@@ -377,5 +377,182 @@ router.delete('/:id', requireAuth, async (req, res) => {
   }
 });
 
+// ========== 댓글 관련 API ==========
+
+// 댓글 목록 조회
+router.get('/:id/comments', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [rows] = await pool.execute(
+      `SELECT * FROM mistake_case_comments 
+       WHERE case_id = ? AND deleted_at IS NULL
+       ORDER BY created_at ASC`,
+      [id]
+    );
+
+    res.json({
+      success: true,
+      data: rows
+    });
+  } catch (error) {
+    console.error('댓글 목록 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '댓글 목록 조회 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// 댓글 작성
+router.post('/:id/comments', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content, parent_id } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: '댓글 내용을 입력하세요.'
+      });
+    }
+
+    const authorId = req.session.user?.id || null;
+    const authorName = req.session.user?.name || '익명';
+
+    const [result] = await pool.execute(
+      `INSERT INTO mistake_case_comments 
+       (case_id, parent_id, content, author_id, author_name)
+       VALUES (?, ?, ?, ?, ?)`,
+      [id, parent_id || null, content.trim(), authorId, authorName]
+    );
+
+    // 댓글 수 업데이트
+    await pool.execute(
+      'UPDATE mistake_cases SET comment_count = comment_count + 1 WHERE id = ?',
+      [id]
+    );
+
+    res.json({
+      success: true,
+      message: '댓글이 작성되었습니다.',
+      data: {
+        id: result.insertId
+      }
+    });
+  } catch (error) {
+    console.error('댓글 작성 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '댓글 작성 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// 댓글 수정
+router.put('/:id/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    const { id, commentId } = req.params;
+    const { content } = req.body;
+    const userId = req.session.user?.id;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: '댓글 내용을 입력하세요.'
+      });
+    }
+
+    // 기존 댓글 확인
+    const [existing] = await pool.execute(
+      'SELECT * FROM mistake_case_comments WHERE id = ? AND case_id = ?',
+      [commentId, id]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: '댓글을 찾을 수 없습니다.'
+      });
+    }
+
+    // 권한 체크
+    if (existing[0].author_id !== userId && !['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(req.session.user?.role)) {
+      return res.status(403).json({
+        success: false,
+        error: '수정 권한이 없습니다.'
+      });
+    }
+
+    await pool.execute(
+      'UPDATE mistake_case_comments SET content = ? WHERE id = ?',
+      [content.trim(), commentId]
+    );
+
+    res.json({
+      success: true,
+      message: '댓글이 수정되었습니다.'
+    });
+  } catch (error) {
+    console.error('댓글 수정 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '댓글 수정 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// 댓글 삭제
+router.delete('/:id/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    const { id, commentId } = req.params;
+    const userId = req.session.user?.id;
+
+    // 기존 댓글 확인
+    const [existing] = await pool.execute(
+      'SELECT * FROM mistake_case_comments WHERE id = ? AND case_id = ?',
+      [commentId, id]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: '댓글을 찾을 수 없습니다.'
+      });
+    }
+
+    // 권한 체크
+    if (existing[0].author_id !== userId && !['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(req.session.user?.role)) {
+      return res.status(403).json({
+        success: false,
+        error: '삭제 권한이 없습니다.'
+      });
+    }
+
+    // Soft delete
+    await pool.execute(
+      'UPDATE mistake_case_comments SET deleted_at = NOW() WHERE id = ?',
+      [commentId]
+    );
+
+    // 댓글 수 업데이트
+    await pool.execute(
+      'UPDATE mistake_cases SET comment_count = GREATEST(comment_count - 1, 0) WHERE id = ?',
+      [id]
+    );
+
+    res.json({
+      success: true,
+      message: '댓글이 삭제되었습니다.'
+    });
+  } catch (error) {
+    console.error('댓글 삭제 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '댓글 삭제 중 오류가 발생했습니다.'
+    });
+  }
+});
+
 module.exports = router;
 
