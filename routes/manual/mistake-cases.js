@@ -112,6 +112,8 @@ router.get('/', async (req, res) => {
     const sortField = validSortFields.includes(sort) ? sort : 'created_at';
     const sortOrder = 'DESC';
 
+    // LIMIT와 OFFSET을 SQL에 직접 삽입 (파라미터 바인딩 대신)
+    // MySQL에서 LIMIT/OFFSET은 바인딩 변수보다 문자열 삽입이 더 안전함
     const [rows] = await pool.execute(
       `SELECT 
         id, title, category, severity, author_name, 
@@ -120,8 +122,8 @@ router.get('/', async (req, res) => {
        FROM mistake_cases 
        ${whereClause}
        ORDER BY ${sortField} ${sortOrder}
-       LIMIT ? OFFSET ?`,
-      [...params, limitNum, offsetNum]
+       LIMIT ${limitNum} OFFSET ${offsetNum}`,
+      params
     );
 
     res.json({
