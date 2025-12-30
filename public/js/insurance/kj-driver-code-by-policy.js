@@ -820,9 +820,10 @@
           if (endEl) endEl.addEventListener('input', () => autoFillNextRow(i));
           const a3 = document.getElementById(`po_${i}_3`); // 년기본
           const a4 = document.getElementById(`po_${i}_4`); // 년특약
-          // 년기본 입력 시: 년기본 × 10 = 년계 계산
+          // 년기본 입력 시: (년기본 + 년특약) × 10 = 년계 계산
           if (a3) a3.addEventListener('input', () => calculateYearTotal(i));
-          // 년특약 입력 시에는 계산하지 않음 (년계는 년기본 × 10만 사용)
+          // 년특약 입력 시: (년기본 + 년특약) × 10 = 년계 계산
+          if (a4) a4.addEventListener('input', () => calculateYearTotal(i));
           ['1', '2', '3', '4', '5'].forEach((col) => addCommaListener(`po_${i}_${col}`));
         }
         const btn = document.getElementById('saveInsurancePremiumButton');
@@ -857,16 +858,19 @@
     }
   };
 
-  // 년기본 × 10 = 년계 계산 함수
+  // (년기본 + 년특약) × 10 = 년계 계산 함수
   const calculateYearTotal = (row) => {
     const yearBasicStr = document.getElementById(`po_${row}_3`)?.value.replace(/,/g, '').trim() || '';
+    const yearSpecialStr = document.getElementById(`po_${row}_4`)?.value.replace(/,/g, '').trim() || '';
     const yearBasic = yearBasicStr ? parseInt(yearBasicStr, 10) : 0;
+    const yearSpecial = yearSpecialStr ? parseInt(yearSpecialStr, 10) : 0;
     const el = document.getElementById(`po_${row}_5`); // 년계 필드
     if (el) {
-      if (!yearBasicStr || yearBasic === 0) {
+      const sum = yearBasic + yearSpecial;
+      if (sum === 0) {
         el.value = '';
       } else {
-        const yearTotal = yearBasic * 10;
+        const yearTotal = sum * 10;
         el.value = addComma(yearTotal);
       }
     }
@@ -974,9 +978,10 @@
               if (endEl) endEl.addEventListener('input', () => autoFillNextRow(i));
               const a3 = document.getElementById(`po_${i}_3`); // 년기본
               const a4 = document.getElementById(`po_${i}_4`); // 년특약
-              // 년기본 입력 시: 년기본 × 10 = 년계 계산
+              // 년기본 입력 시: (년기본 + 년특약) × 10 = 년계 계산
               if (a3) a3.addEventListener('input', () => calculateYearTotal(i));
-              // 년특약 입력 시에는 계산하지 않음 (년계는 년기본 × 10만 사용)
+              // 년특약 입력 시: (년기본 + 년특약) × 10 = 년계 계산
+              if (a4) a4.addEventListener('input', () => calculateYearTotal(i));
               ['1', '2', '3', '4', '5'].forEach((col) => addCommaListener(`po_${i}_${col}`));
             }
           }, 50);
