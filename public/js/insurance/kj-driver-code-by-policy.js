@@ -198,9 +198,8 @@
       <div class="search-filter-row mb-3">
         <div class="row align-items-end">
           <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
-            <label for="policyNumSelect" class="form-label">증권번호</label>
             <select id="policyNumSelect" class="form-select">
-              <option value="">=선택=</option>
+              <option value="">증권번호</option>
             </select>
             <input type="text" id="policyNumInput" class="form-control mt-2" placeholder="직접 입력: 예: 2025-S331191" style="display: none;" />
           </div>
@@ -1077,7 +1076,7 @@
       
       if (!select) return;
       
-      // 기존 옵션 제거 (첫 번째 "=선택=" 옵션 제외)
+      // 기존 옵션 제거 (첫 번째 "증권번호" 옵션 제외)
       while (select.options.length > 1) {
         select.remove(1);
       }
@@ -1130,7 +1129,7 @@
       state.currentPage = 1;
       fetchList();
     } else {
-      // "=선택=" 선택 시 input 필드 숨김
+      // "증권번호" 선택 시 input 필드 숨김
       if (input) {
         input.style.display = 'none';
         input.value = '';
