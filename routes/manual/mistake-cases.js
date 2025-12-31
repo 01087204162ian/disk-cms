@@ -466,7 +466,10 @@ router.put('/:id', requireAuth, upload.array('files', 10), async (req, res) => {
 
     res.json({
       success: true,
-      message: '실수 사례가 수정되었습니다.'
+      message: '실수 사례가 수정되었습니다.',
+      data: {
+        id: parseInt(id)
+      }
     });
   } catch (error) {
     await connection.rollback();
