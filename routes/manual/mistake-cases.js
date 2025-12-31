@@ -417,14 +417,15 @@ router.put('/:id', requireAuth, upload.array('files', 10), async (req, res) => {
     // 수정 이력 저장
     await connection.execute(
       `INSERT INTO mistake_case_history 
-       (case_id, changed_fields, old_value, new_value, changed_by)
-       VALUES (?, ?, ?, ?, ?)`,
+       (case_id, changed_fields, old_value, new_value, changed_by, changed_by_name)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
         id,
         JSON.stringify(Object.keys(updateFields)),
         JSON.stringify(oldData),
         JSON.stringify(updateFields),
-        userId
+        null, // changed_by는 정수형이므로 NULL 처리 (email은 저장 불가)
+        userName || req.session.user?.name || '알 수 없음' // changed_by_name에 사용자 이름 저장
       ]
     );
 
