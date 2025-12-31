@@ -151,25 +151,61 @@ cafe24 FTP에서 파일 권한 설정:
 - 폴더: `755`
 - PHP 파일: `644`
 
-### 5단계: API_BASE_URL 확인
+### 5단계: API_BASE_URL 수정 (404 오류 해결)
 
-**현재 설정이 올바릅니다** ✅
+**문제**: `https://geunjae.kr/api/consultations/list.php` 접근 시 404 오류 발생
 
-실제 파일 위치: `/geungae0327/www/geunjae.kr/api/consultations/list.php`
-웹 접근 URL: `https://geunjae.kr/api/consultations/list.php`
+**원인**: cafe24 도메인 설정이 `/geungae0327/www/geunjae.kr/` 디렉토리를 가리키지 않을 수 있음
 
-**현재 코드**:
-```javascript
-// routes/workers-comp/consultations.js
-const API_BASE_URL = process.env.CONSULTATION_API_URL || 'https://geunjae.kr/api';
+**해결 방법**:
+
+#### 방법 1: 환경변수로 전체 경로 사용 (권장)
+
+`.env` 파일에 추가:
+```env
+CONSULTATION_API_URL=https://geunjae.kr/geungae0327/www/geunjae.kr/api
 ```
 
-**설명**: 
-- cafe24 도메인 설정에 따라 `geunjae.kr`이 `/geungae0327/www/geunjae.kr/`를 가리키므로
-- `https://geunjae.kr/api/consultations/list.php`로 접근하면
-- 자동으로 `/geungae0327/www/geunjae.kr/api/consultations/list.php` 파일이 실행됩니다.
+또는 다른 가능한 경로들 시도:
+```env
+# 옵션 A: 전체 경로
+CONSULTATION_API_URL=https://geunjae.kr/geungae0327/www/geunjae.kr/api
 
-**수정 불필요**: 현재 설정이 올바르게 되어 있습니다.
+# 옵션 B: www 경로
+CONSULTATION_API_URL=https://geunjae.kr/www/geunjae.kr/api
+
+# 옵션 C: geungae0327 직접 경로
+CONSULTATION_API_URL=https://geunjae.kr/geungae0327/api
+```
+
+#### 방법 2: 코드 직접 수정
+
+`routes/workers-comp/consultations.js` 파일 수정:
+```javascript
+// 전체 경로 사용
+const API_BASE_URL = process.env.CONSULTATION_API_URL || 'https://geunjae.kr/geungae0327/www/geunjae.kr/api';
+```
+
+#### 방법 3: cafe24 도메인 설정 확인
+
+1. cafe24 관리자 페이지 접속
+2. **도메인 관리** → **geunjae.kr** 확인
+3. 어떤 디렉토리를 가리키는지 확인
+   - `/geungae0327/www/geunjae.kr/`를 가리키면 → `https://geunjae.kr/api` 사용
+   - 다른 디렉토리를 가리키면 → 해당 경로에 맞게 수정
+
+#### 테스트 방법
+
+브라우저에서 다음 URL들을 순서대로 테스트:
+
+```
+https://geunjae.kr/geungae0327/www/geunjae.kr/api/consultations/list.php?page=1&limit=20
+https://geunjae.kr/www/geunjae.kr/api/consultations/list.php?page=1&limit=20
+https://geunjae.kr/geungae0327/api/consultations/list.php?page=1&limit=20
+https://geunjae.kr/api/consultations/list.php?page=1&limit=20
+```
+
+작동하는 URL을 찾으면 그 경로를 `API_BASE_URL`에 설정하세요.
 
 ### 6단계: 테스트
 
