@@ -569,10 +569,11 @@ router.get('/:id/comments', async (req, res) => {
   try {
     const { id } = req.params;
 
+    // 댓글 목록 조회 (부모 댓글 먼저, 그 다음 대댓글)
     const [rows] = await pool.execute(
       `SELECT * FROM mistake_case_comments 
        WHERE case_id = ? AND deleted_at IS NULL
-       ORDER BY created_at ASC`,
+       ORDER BY COALESCE(parent_id, id), created_at ASC`,
       [id]
     );
 

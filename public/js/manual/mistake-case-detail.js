@@ -283,17 +283,58 @@ class MistakeCaseDetail {
 
         // 현재 사용자 정보 (권한 체크용)
         const currentUser = window.sjTemplateLoader?.user || null;
-        const currentUserId = currentUser?.id || null;
+        const currentUserId = currentUser?.id || currentUser?.email || null;
+        const currentUserName = currentUser?.name || null;
         const currentUserRole = currentUser?.role || null;
 
-        const commentsHTML = this.comments.map((comment, index) => {
+        // 댓글을 부모/자식으로 그룹화
+        const parentComments = this.comments.filter(c => !c.parent_id);
+        const childCommentsMap = {};
+        this.comments.filter(c => c.parent_id).forEach(child => {
+            if (!childCommentsMap[child.parent_id]) {
+                childCommentsMap[child.parent_id] = [];
+            }
+            childCommentsMap[child.parent_id].push(child);
+        });
+
+        const renderComment = (comment, index, isReply = false) => {
             const createdAt = this.formatDateTime(comment.created_at);
-            const isAuthor = comment.author_id === currentUserId;
+            // 권한 체크: author_id 또는 author_name으로 비교
+            let isAuthor = false;
+            
+            // 방법 1: author_id와 currentUserId (email) 비교
+            if (comment.author_id !== null && comment.author_id !== undefined && currentUserId) {
+                const authorIdStr = String(comment.author_id).trim();
+                const userIdStr = String(currentUserId).trim();
+                isAuthor = authorIdStr === userIdStr || authorIdStr === currentUser?.email;
+            }
+            
+            // 방법 2: author_id가 null인 경우 author_name으로 비교 (기존 데이터 호환성)
+            if (!isAuthor && (comment.author_id === null || comment.author_id === undefined) && comment.author_name && currentUserName) {
+                isAuthor = comment.author_name.trim() === currentUserName.trim();
+            }
+            
             const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(currentUserRole);
             const canEdit = isAuthor || isAdmin;
             
+            // 디버깅 로그 (개발용)
+            if (comment.id) {
+                console.log(`댓글 ${comment.id} 권한 체크:`, {
+                    author_id: comment.author_id,
+                    author_name: comment.author_name,
+                    currentUserId: currentUserId,
+                    currentUserName: currentUserName,
+                    isAuthor: isAuthor,
+                    isAdmin: isAdmin,
+                    canEdit: canEdit
+                });
+            }
+            
+            const replies = childCommentsMap[comment.id] || [];
+            const marginClass = isReply ? 'ms-4' : '';
+            
             return `
-                <div class="card mb-3" id="comment-${comment.id}">
+                <div class="card mb-3 ${marginClass}" id="comment-${comment.id}">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
@@ -301,11 +342,14 @@ class MistakeCaseDetail {
                                 <small class="text-muted ms-2">${createdAt}</small>
                             </div>
                             <div class="btn-group btn-group-sm">
+                                <button class="btn btn-link text-secondary p-0 me-2" onclick="mistakeCaseDetail.showReplyForm(${comment.id})" title="답글">
+                                    <i class="fas fa-reply"></i>
+                                </button>
                                 ${canEdit ? `
-                                    <button class="btn btn-link text-primary p-0 me-2" onclick="mistakeCaseDetail.editComment(${comment.id}, ${index})">
+                                    <button class="btn btn-link text-primary p-0 me-2" onclick="mistakeCaseDetail.editComment(${comment.id})" title="수정">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="btn btn-link text-danger p-0 me-2" onclick="mistakeCaseDetail.deleteComment(${comment.id})">
+                                    <button class="btn btn-link text-danger p-0 me-2" onclick="mistakeCaseDetail.deleteComment(${comment.id})" title="삭제">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 ` : ''}
@@ -314,18 +358,45 @@ class MistakeCaseDetail {
                         <div class="comment-content" id="comment-content-${comment.id}">
                             ${this.escapeHtml(comment.content).replace(/\n/g, '<br>')}
                         </div>
+                        <!-- 답글 작성 폼 (숨김) -->
+                        <div id="reply-form-${comment.id}" class="mt-3" style="display: none;">
+                            <textarea class="form-control form-control-sm mb-2" id="reply-input-${comment.id}" rows="2" placeholder="답글을 입력하세요..."></textarea>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-primary" onclick="mistakeCaseDetail.submitReply(${comment.id})">답글 작성</button>
+                                <button class="btn btn-sm btn-secondary" onclick="mistakeCaseDetail.hideReplyForm(${comment.id})">취소</button>
+                            </div>
+                        </div>
+                        <!-- 대댓글 목록 -->
+                        ${replies.length > 0 ? `
+                            <div class="mt-3">
+                                ${replies.map((reply) => {
+                                    const replyIndex = this.comments.findIndex(c => c.id === reply.id);
+                                    return renderComment(reply, replyIndex >= 0 ? replyIndex : 0, true);
+                                }).join('')}
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
+        };
+
+        const commentsHTML = parentComments.map((comment, index) => {
+            const commentIndex = this.comments.findIndex(c => c.id === comment.id);
+            return renderComment(comment, commentIndex >= 0 ? commentIndex : index);
         }).join('');
 
         this.commentsContainer.innerHTML = commentsHTML;
         this.commentCountHeader.textContent = this.comments.length;
     }
 
-    async editComment(commentId, index) {
-        const comment = this.comments[index];
-        if (!comment) return;
+    async editComment(commentId) {
+        // commentId로 직접 찾기
+        const comment = this.comments.find(c => c.id === commentId);
+        if (!comment) {
+            console.error('댓글을 찾을 수 없습니다:', commentId);
+            alert('댓글을 찾을 수 없습니다.');
+            return;
+        }
 
         const newContent = prompt('댓글을 수정하세요:', comment.content);
         if (newContent === null || newContent.trim() === comment.content) {
@@ -381,8 +452,19 @@ class MistakeCaseDetail {
     }
 
 
-    async submitComment() {
-        const content = this.commentInput.value.trim();
+    async submitComment(parentId = null) {
+        let content;
+        let inputElement;
+        
+        if (parentId) {
+            // 대댓글 작성
+            inputElement = document.getElementById(`reply-input-${parentId}`);
+            content = inputElement ? inputElement.value.trim() : '';
+        } else {
+            // 일반 댓글 작성
+            content = this.commentInput.value.trim();
+            inputElement = this.commentInput;
+        }
 
         if (!content) {
             alert('댓글 내용을 입력하세요.');
@@ -396,13 +478,18 @@ class MistakeCaseDetail {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({ content })
+                body: JSON.stringify({ content, parent_id: parentId || null })
             });
 
             const result = await response.json();
 
             if (result.success) {
-                this.commentInput.value = '';
+                if (inputElement) {
+                    inputElement.value = '';
+                }
+                if (parentId) {
+                    this.hideReplyForm(parentId);
+                }
                 await this.loadComments();
                 // 댓글 수 업데이트
                 await this.loadCaseDetail();
@@ -413,6 +500,32 @@ class MistakeCaseDetail {
             console.error('댓글 작성 오류:', error);
             alert('댓글 작성 중 오류가 발생했습니다.');
         }
+    }
+
+    showReplyForm(parentId) {
+        const replyForm = document.getElementById(`reply-form-${parentId}`);
+        if (replyForm) {
+            replyForm.style.display = 'block';
+            const textarea = document.getElementById(`reply-input-${parentId}`);
+            if (textarea) {
+                textarea.focus();
+            }
+        }
+    }
+
+    hideReplyForm(parentId) {
+        const replyForm = document.getElementById(`reply-form-${parentId}`);
+        if (replyForm) {
+            replyForm.style.display = 'none';
+            const textarea = document.getElementById(`reply-input-${parentId}`);
+            if (textarea) {
+                textarea.value = '';
+            }
+        }
+    }
+
+    async submitReply(parentId) {
+        await this.submitComment(parentId);
     }
 
     async deleteCase() {
