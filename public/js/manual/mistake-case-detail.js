@@ -32,9 +32,8 @@ class MistakeCaseDetail {
             await this.loadComments();
             
             // 권한 체크 (약간의 지연 후 실행 - 세션 정보 로드 대기)
-            setTimeout(() => {
-                this.checkPermissions();
-            }, 500);
+            // 여러 번 시도하여 사용자 정보가 로드될 때까지 대기
+            this.checkPermissionsWithRetry();
             
             console.log('실수 사례 상세 페이지 초기화 완료');
         } catch (error) {
@@ -437,12 +436,28 @@ class MistakeCaseDetail {
         }
     }
 
-    async checkPermissions() {
+    checkPermissionsWithRetry(retryCount = 0) {
+        const maxRetries = 10; // 최대 5초 대기 (500ms * 10)
+        
         try {
             // 세션 정보 가져오기 (sj-template-loader에서 로드된 경우)
             const user = window.sjTemplateLoader?.user || null;
             
-            if (!user || !this.caseData) {
+            if (!this.caseData) {
+                console.log('권한 체크: caseData가 아직 로드되지 않음');
+                if (retryCount < maxRetries) {
+                    setTimeout(() => this.checkPermissionsWithRetry(retryCount + 1), 500);
+                }
+                return;
+            }
+
+            if (!user) {
+                console.log('권한 체크: 사용자 정보가 아직 로드되지 않음, 재시도:', retryCount);
+                if (retryCount < maxRetries) {
+                    setTimeout(() => this.checkPermissionsWithRetry(retryCount + 1), 500);
+                } else {
+                    console.warn('권한 체크: 사용자 정보를 불러올 수 없음');
+                }
                 return;
             }
 
@@ -450,14 +465,41 @@ class MistakeCaseDetail {
             const userRole = user.role;
             const authorId = this.caseData.author_id;
 
+            console.log('권한 체크:', {
+                userId: userId,
+                authorId: authorId,
+                userRole: userRole,
+                userIdType: typeof userId,
+                authorIdType: typeof authorId
+            });
+
+            // 타입 변환하여 비교 (문자열/숫자 모두 처리)
+            const userIdStr = String(userId);
+            const authorIdStr = String(authorId);
+            const isAuthor = userIdStr === authorIdStr;
+            const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole);
+
             // 작성자이거나 관리자인 경우 버튼 표시
-            if (authorId === userId || ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole)) {
+            if (isAuthor || isAdmin) {
+                console.log('권한 확인됨 - 버튼 표시:', { isAuthor, isAdmin });
                 this.editBtn.style.display = 'inline-block';
                 this.deleteBtn.style.display = 'inline-block';
+            } else {
+                console.log('권한 없음 - 버튼 숨김');
+                this.editBtn.style.display = 'none';
+                this.deleteBtn.style.display = 'none';
             }
         } catch (error) {
             console.error('권한 확인 오류:', error);
+            if (retryCount < maxRetries) {
+                setTimeout(() => this.checkPermissionsWithRetry(retryCount + 1), 500);
+            }
         }
+    }
+
+    async checkPermissions() {
+        // 기존 함수는 호환성을 위해 유지하되, 새로운 함수로 리다이렉트
+        this.checkPermissionsWithRetry();
     }
 
     getSeverityBadgeClass(severity) {
