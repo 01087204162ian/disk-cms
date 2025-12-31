@@ -465,13 +465,13 @@ class MistakeCaseDetail {
             const userRole = user.role;
             const authorId = this.caseData.author_id;
 
-            console.log('권한 체크:', {
-                userId: userId,
-                authorId: authorId,
-                userRole: userRole,
-                userIdType: typeof userId,
-                authorIdType: typeof authorId
-            });
+            // 상세 로그 출력
+            console.log('=== 권한 체크 상세 정보 ===');
+            console.log('사용자 정보:', JSON.stringify(user, null, 2));
+            console.log('사례 데이터:', JSON.stringify(this.caseData, null, 2));
+            console.log('userId:', userId, '(타입:', typeof userId, ')');
+            console.log('authorId:', authorId, '(타입:', typeof authorId, ')');
+            console.log('userRole:', userRole);
 
             // 타입 변환하여 비교 (문자열/숫자 모두 처리)
             const userIdStr = String(userId);
@@ -479,16 +479,25 @@ class MistakeCaseDetail {
             const isAuthor = userIdStr === authorIdStr;
             const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole);
 
+            console.log('비교 결과:');
+            console.log('  userIdStr:', userIdStr);
+            console.log('  authorIdStr:', authorIdStr);
+            console.log('  isAuthor:', isAuthor);
+            console.log('  isAdmin:', isAdmin);
+
             // 작성자이거나 관리자인 경우 버튼 표시
             if (isAuthor || isAdmin) {
-                console.log('권한 확인됨 - 버튼 표시:', { isAuthor, isAdmin });
+                console.log('✅ 권한 확인됨 - 버튼 표시');
                 this.editBtn.style.display = 'inline-block';
                 this.deleteBtn.style.display = 'inline-block';
             } else {
-                console.log('권한 없음 - 버튼 숨김');
+                console.log('❌ 권한 없음 - 버튼 숨김');
+                console.log('  - 작성자 일치:', isAuthor, `(${userIdStr} === ${authorIdStr})`);
+                console.log('  - 관리자 여부:', isAdmin, `(role: ${userRole})`);
                 this.editBtn.style.display = 'none';
                 this.deleteBtn.style.display = 'none';
             }
+            console.log('=== 권한 체크 완료 ===');
         } catch (error) {
             console.error('권한 확인 오류:', error);
             if (retryCount < maxRetries) {
