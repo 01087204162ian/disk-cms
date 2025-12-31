@@ -122,7 +122,14 @@ cafe24 관리자 페이지에서:
 https://geunjae.kr/api/consultations/list.php
 ```
 
-**설명**: cafe24 도메인 설정에 따라 `geunjae.kr` 도메인이 `/geungae0327/www/geunjae.kr/` 디렉토리를 가리키므로, 웹 URL은 `/api/consultations/list.php`로 접근 가능합니다.
+**설명**: 
+- cafe24 도메인 설정에 따라 `geunjae.kr` 도메인이 `/geungae0327/www/geunjae.kr/` 디렉토리를 가리킴
+- `.htaccess` 리라이트 규칙: `geunjae.kr` → `geunjae.kr/sj/2/`
+- 따라서 `https://geunjae.kr/api/consultations/list.php`로 접근하면
+- 내부적으로 `geunjae.kr/sj/2/api/consultations/list.php`로 리라이트됨
+- **중요**: 실제 파일이 `/geungae0327/www/geunjae.kr/api/consultations/`에 있다면
+- `.htaccess` 규칙에 따라 `sj/2/` 폴더에도 파일이 있어야 하거나
+- 또는 `.htaccess` 규칙을 수정해야 함
 
 ### 2단계: 디렉토리 생성 (없는 경우)
 
@@ -159,24 +166,33 @@ cafe24 FTP에서 파일 권한 설정:
 
 **해결 방법**:
 
-#### 방법 1: 환경변수로 전체 경로 사용 (권장)
+#### 방법 1: .htaccess 리라이트 규칙 확인
 
-`.env` 파일에 추가:
-```env
-CONSULTATION_API_URL=https://geunjae.kr/geungae0327/www/geunjae.kr/api
+**.htaccess 규칙**:
+```
+RewriteCond %{HTTP_HOST} ^(www\.)?geunjae\.kr$ [NC]
+RewriteRule ^(.*)$ geunjae.kr/sj/2/$1 [L]
 ```
 
-또는 다른 가능한 경로들 시도:
-```env
-# 옵션 A: 전체 경로
-CONSULTATION_API_URL=https://geunjae.kr/geungae0327/www/geunjae.kr/api
+이 규칙에 따라:
+- `https://geunjae.kr/api/consultations/list.php` 접근 시
+- 내부적으로 `geunjae.kr/sj/2/api/consultations/list.php`로 리라이트됨
 
-# 옵션 B: www 경로
-CONSULTATION_API_URL=https://geunjae.kr/www/geunjae.kr/api
+**해결 방법**:
 
-# 옵션 C: geungae0327 직접 경로
-CONSULTATION_API_URL=https://geunjae.kr/geungae0327/api
+**옵션 A: sj/2 폴더에 파일 복사** (권장)
 ```
+FTP 경로: /geungae0327/www/geunjae.kr/sj/2/api/consultations/list.php
+```
+또는 심볼릭 링크 생성
+
+**옵션 B: 환경변수로 sj/2 경로 직접 사용**
+```env
+CONSULTATION_API_URL=https://geunjae.kr/sj/2/api
+```
+
+**옵션 C: .htaccess 규칙 수정** (서버 관리자 권한 필요)
+리라이트 규칙을 수정하여 `/geungae0327/www/geunjae.kr/` 경로를 직접 가리키도록 변경
 
 #### 방법 2: 코드 직접 수정
 
@@ -198,14 +214,27 @@ const API_BASE_URL = process.env.CONSULTATION_API_URL || 'https://geunjae.kr/geu
 
 브라우저에서 다음 URL들을 순서대로 테스트:
 
+**옵션 1: .htaccess 리라이트 후 경로** (가장 가능성 높음)
+```
+https://geunjae.kr/api/consultations/list.php?page=1&limit=20
+(내부적으로 geunjae.kr/sj/2/api/consultations/list.php로 리라이트)
+```
+
+**옵션 2: sj/2 경로 직접 접근**
+```
+https://geunjae.kr/sj/2/api/consultations/list.php?page=1&limit=20
+```
+
+**옵션 3: 전체 경로들**
 ```
 https://geunjae.kr/geungae0327/www/geunjae.kr/api/consultations/list.php?page=1&limit=20
 https://geunjae.kr/www/geunjae.kr/api/consultations/list.php?page=1&limit=20
 https://geunjae.kr/geungae0327/api/consultations/list.php?page=1&limit=20
-https://geunjae.kr/api/consultations/list.php?page=1&limit=20
 ```
 
-작동하는 URL을 찾으면 그 경로를 `API_BASE_URL`에 설정하세요.
+**작동하는 URL을 찾으면**:
+- `.env` 파일에 `CONSULTATION_API_URL` 설정
+- 또는 `routes/workers-comp/consultations.js`에서 `API_BASE_URL` 수정
 
 ### 6단계: 테스트
 

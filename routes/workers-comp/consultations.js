@@ -19,9 +19,10 @@ const router = express.Router();
 // 기본 설정
 // cafe24 서버 구조: /geungae0327/www/geunjae.kr/api/consultations/
 // 실제 파일 위치: /geungae0327/www/geunjae.kr/api/consultations/list.php
-// cafe24 도메인 설정에 따라 경로가 다를 수 있으므로 환경변수로 설정 가능
-// 기본값: https://geunjae.kr/api (도메인이 /geungae0327/www/geunjae.kr/를 가리키는 경우)
-// 대안: https://geunjae.kr/geungae0327/www/geunjae.kr/api (전체 경로 사용)
+// .htaccess 리라이트 규칙: geunjae.kr → geunjae.kr/sj/2/
+// 따라서 웹 접근 URL: https://geunjae.kr/api/consultations/list.php
+// (내부적으로 geunjae.kr/sj/2/api/consultations/list.php로 리라이트됨)
+// 만약 sj/2 폴더에 파일이 있다면: https://geunjae.kr/sj/2/api/consultations/list.php
 const API_BASE_URL = process.env.CONSULTATION_API_URL || 'https://geunjae.kr/api';
 const DEFAULT_TIMEOUT = 30000;
 
