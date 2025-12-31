@@ -461,27 +461,47 @@ class MistakeCaseDetail {
                 return;
             }
 
-            const userId = user.id;
+            const userId = user.id || user.email; // email이 Primary Key이므로 id로 사용
+            const userEmail = user.email;
+            const userName = user.name;
             const userRole = user.role;
             const authorId = this.caseData.author_id;
+            const authorName = this.caseData.author_name;
 
             // 상세 로그 출력
             console.log('=== 권한 체크 상세 정보 ===');
             console.log('사용자 정보:', JSON.stringify(user, null, 2));
             console.log('사례 데이터:', JSON.stringify(this.caseData, null, 2));
-            console.log('userId:', userId, '(타입:', typeof userId, ')');
+            console.log('userId (email):', userId);
+            console.log('userEmail:', userEmail);
+            console.log('userName:', userName);
             console.log('authorId:', authorId, '(타입:', typeof authorId, ')');
+            console.log('authorName:', authorName);
             console.log('userRole:', userRole);
 
-            // 타입 변환하여 비교 (문자열/숫자 모두 처리)
-            const userIdStr = String(userId);
-            const authorIdStr = String(authorId);
-            const isAuthor = userIdStr === authorIdStr;
+            // 권한 체크: 우선순위에 따라 비교
+            let isAuthor = false;
+            
+            // 방법 1: author_id와 user.id (email) 비교 (가장 정확한 방법)
+            // author_id는 email을 저장하므로 직접 비교
+            if (authorId !== null && authorId !== undefined && userId) {
+                const authorIdStr = String(authorId).trim();
+                const userIdStr = String(userId).trim();
+                isAuthor = authorIdStr === userIdStr || authorIdStr === userEmail;
+                console.log('방법 1 (ID/Email 비교):', isAuthor, `("${authorIdStr}" === "${userIdStr}" 또는 "${userEmail}")`);
+            }
+            
+            // 방법 2: author_id가 null인 경우 author_name으로 비교 (기존 데이터 호환성)
+            // 주의: 이름은 중복될 수 있으므로 보조 방법으로만 사용
+            if (!isAuthor && (authorId === null || authorId === undefined) && authorName && userName) {
+                isAuthor = authorName.trim() === userName.trim();
+                console.log('방법 2 (이름 비교 - 기존 데이터 호환):', isAuthor, `("${authorName}" === "${userName}")`);
+                console.warn('⚠️ 이름으로 비교 중 - 데이터 정확도가 낮을 수 있습니다. author_id를 업데이트하는 것을 권장합니다.');
+            }
+
             const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole);
 
-            console.log('비교 결과:');
-            console.log('  userIdStr:', userIdStr);
-            console.log('  authorIdStr:', authorIdStr);
+            console.log('최종 비교 결과:');
             console.log('  isAuthor:', isAuthor);
             console.log('  isAdmin:', isAdmin);
 
@@ -492,8 +512,6 @@ class MistakeCaseDetail {
                 this.deleteBtn.style.display = 'inline-block';
             } else {
                 console.log('❌ 권한 없음 - 버튼 숨김');
-                console.log('  - 작성자 일치:', isAuthor, `(${userIdStr} === ${authorIdStr})`);
-                console.log('  - 관리자 여부:', isAdmin, `(role: ${userRole})`);
                 this.editBtn.style.display = 'none';
                 this.deleteBtn.style.display = 'none';
             }

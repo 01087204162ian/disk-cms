@@ -213,6 +213,7 @@ router.post('/login', async (req, res) => {
 
         // 세션에 사용자 정보 저장
         req.session.user = {
+            id: user.email, // email이 Primary Key이므로 id로 사용
             email: user.email,
             name: user.name,
             phone: user.phone,
