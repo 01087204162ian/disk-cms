@@ -672,6 +672,14 @@ createDynamicModal() {
 			  title: '근무일정',
 			  description: '주 4일 근무제 스케줄 조회 및 관리'
 			},
+			'holidays': {
+			  title: '직원 관리',
+			  description: '공휴일 관리'
+			},
+			'half-day-approval': {
+			  title: '직원 관리',
+			  description: '반차 승인'
+			},
 			'staff-reports': {
 			  title: '고지사항',
 			  description: '직원 고지사항'
@@ -716,6 +724,27 @@ createDynamicModal() {
 			  title: 'KJ 대리운전',
 			  description: '대리운전 보험 관리'
 			},
+			// KJ 대리운전 하위 메뉴
+			'kj-driver-search': {
+			  title: 'KJ 대리운전',
+			  description: '기사찾기'
+			},
+			'kj-driver-company': {
+			  title: 'KJ 대리운전',
+			  description: '대리업체'
+			},
+			'kj-driver-endorse-list': {
+			  title: 'KJ 대리운전',
+			  description: '배서리스트'
+			},
+			'kj-driver-code-by-policy': {
+			  title: 'KJ 대리운전',
+			  description: '증권별코드'
+			},
+			'kj-driver-policy-search': {
+			  title: 'KJ 대리운전',
+			  description: '갱신'
+			},
 			'proxy-das': {
 			  title: 'daS 대리운전',
 			  description: '대리운전 보험 관리'
@@ -739,6 +768,28 @@ createDynamicModal() {
 			'travel': {
 			  title: '여행자보험',
 			  description: '여행자보험 관리'
+			},
+			
+			// 지식 공유 - 실수 사례
+			'mistake-cases-list': {
+			  title: '실수 사례',
+			  description: '전체 목록'
+			},
+			'mistake-case-form': {
+			  title: '실수 사례',
+			  description: '사례 등록'
+			},
+			'checklists': {
+			  title: '실수 사례',
+			  description: '체크리스트 관리'
+			},
+			'work-guide': {
+			  title: '지식 공유',
+			  description: '업무 가이드'
+			},
+			'process-docs': {
+			  title: '지식 공유',
+			  description: '프로세스 문서'
 			},
 			
 			// 관리자
