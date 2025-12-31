@@ -137,6 +137,20 @@ createDynamicModal() {
       });
     });
 
+    // 메뉴 링크 클릭 이벤트 (헤더 업데이트를 위해)
+    document.querySelectorAll('.submenu-item[data-menu], .menu-title[data-menu]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const menuId = link.getAttribute('data-menu');
+        if (menuId) {
+          // 페이지 이동 전에 헤더 업데이트
+          // 약간의 지연을 두어 페이지 로드 후에도 업데이트되도록 함
+          setTimeout(() => {
+            this.updatePageInfo(menuId);
+          }, 100);
+        }
+      });
+    });
+
     // 로그아웃 이벤트
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
@@ -241,6 +255,7 @@ createDynamicModal() {
     // 모든 메뉴 링크 검사 (a 태그와 data-menu 속성 모두 확인)
     const allLinks = document.querySelectorAll('a[href], [data-menu]');
     let activeFound = false;
+    let activeMenuId = null;
     
     allLinks.forEach(link => {
       const href = link.getAttribute('href');
@@ -249,6 +264,7 @@ createDynamicModal() {
       // href가 현재 경로와 정확히 일치하는 경우
       if (href && href === currentPath) {
         this.activateMenuItem(link);
+        activeMenuId = menu || this.extractPageIdFromPath();
         activeFound = true;
         console.log('활성 메뉴 찾음 (href):', href);
         return;
@@ -257,6 +273,7 @@ createDynamicModal() {
       // 경로 기반 매칭 (더 정확한 매칭을 위해)
       if (href && this.isPathMatch(currentPath, href)) {
         this.activateMenuItem(link);
+        activeMenuId = menu || this.extractPageIdFromPath();
         activeFound = true;
         console.log('활성 메뉴 찾음 (경로 매칭):', href);
         return;
@@ -269,7 +286,13 @@ createDynamicModal() {
       const dashboardLink = document.querySelector('[data-menu="dashboard"], a[href="/dashboard.html"]');
       if (dashboardLink) {
         this.activateMenuItem(dashboardLink);
+        activeMenuId = 'dashboard';
       }
+    }
+    
+    // 헤더 페이지 정보 업데이트
+    if (activeMenuId) {
+      this.updatePageInfo(activeMenuId);
     }
   }
 
@@ -577,9 +600,13 @@ createDynamicModal() {
       // 5단계: 시간 업데이트 시작
       this.startTimeUpdate();
 
-
-		// 6단계: 페이지 정보 업데이트 (새로 추가)
-	   this.updatePageInfo(pageId);
+      // 6단계: 메뉴 상태 관리 (활성 메뉴 찾기 및 헤더 업데이트)
+      this.handleMenuState();
+      
+      // 7단계: 페이지 정보 업데이트 (pageId가 제공된 경우)
+      if (pageId) {
+        this.updatePageInfo(pageId);
+      }
 	   
       // 7단계: 로딩 숨김
       this.hidePageLoading();
