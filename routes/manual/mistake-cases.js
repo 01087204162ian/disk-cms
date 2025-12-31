@@ -253,7 +253,7 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     // 세션에서 사용자 정보 가져오기
-    const authorId = req.session.user?.id || null;
+    // author_id는 정수형이므로 email 저장 불가 - NULL 처리
     const authorName = req.session.user?.name || '익명';
 
     // 실수 사례 등록
@@ -278,7 +278,7 @@ router.post('/', requireAuth, async (req, res) => {
         structural_issues || null,
         improvement_measures || null,
         JSON.stringify(checklist_items || []),
-        authorId, 
+        null, // author_id는 정수형이므로 NULL 처리 (email 저장 불가)
         authorName
       ]
     );
@@ -602,14 +602,14 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
       });
     }
 
-    const authorId = req.session.user?.id || null;
+    // author_id는 정수형이므로 email 저장 불가 - NULL 처리
     const authorName = req.session.user?.name || '익명';
 
     const [result] = await pool.execute(
       `INSERT INTO mistake_case_comments 
        (case_id, parent_id, content, author_id, author_name)
        VALUES (?, ?, ?, ?, ?)`,
-      [id, parent_id || null, content.trim(), authorId, authorName]
+      [id, parent_id || null, content.trim(), null, authorName] // author_id는 NULL, author_name에 이름 저장
     );
 
     // 댓글 수 업데이트
