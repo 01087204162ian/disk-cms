@@ -430,38 +430,19 @@ router.put('/:id', requireAuth, upload.array('files', 10), async (req, res) => {
     );
 
     // 데이터 업데이트
-    // author_id가 null인 경우 자동으로 업데이트 (기존 데이터 개선)
-    const updateAuthorId = existing[0].author_id === null && userId ? userId : null;
-    
-    if (updateAuthorId) {
-      await connection.execute(
-        `UPDATE mistake_cases SET
-          title = ?, category = ?, severity = ?, tags = ?,
-          work_content = ?, mistake_description = ?, result_description = ?,
-          surface_causes = ?, root_causes = ?, structural_issues = ?,
-          improvement_measures = ?, checklist_items = ?,
-          author_id = ?
-         WHERE id = ?`,
-        [
-          ...Object.values(updateFields),
-          updateAuthorId,
-          id
-        ]
-      );
-    } else {
-      await connection.execute(
-        `UPDATE mistake_cases SET
-          title = ?, category = ?, severity = ?, tags = ?,
-          work_content = ?, mistake_description = ?, result_description = ?,
-          surface_causes = ?, root_causes = ?, structural_issues = ?,
-          improvement_measures = ?, checklist_items = ?
-         WHERE id = ?`,
-        [
-          ...Object.values(updateFields),
-          id
-        ]
-      );
-    }
+    // author_id는 정수형이므로 email 저장 불가 - 자동 업데이트 제거
+    await connection.execute(
+      `UPDATE mistake_cases SET
+        title = ?, category = ?, severity = ?, tags = ?,
+        work_content = ?, mistake_description = ?, result_description = ?,
+        surface_causes = ?, root_causes = ?, structural_issues = ?,
+        improvement_measures = ?, checklist_items = ?
+       WHERE id = ?`,
+      [
+        ...Object.values(updateFields),
+        id
+      ]
+    );
 
     // 새 파일 저장
     if (req.files && req.files.length > 0) {
