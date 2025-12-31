@@ -496,7 +496,10 @@ class MistakeCaseDetail {
             if (!isAuthor && (authorId === null || authorId === undefined) && authorName && userName) {
                 isAuthor = authorName.trim() === userName.trim();
                 console.log('방법 2 (이름 비교 - 기존 데이터 호환):', isAuthor, `("${authorName}" === "${userName}")`);
-                console.warn('⚠️ 이름으로 비교 중 - 데이터 정확도가 낮을 수 있습니다. author_id를 업데이트하는 것을 권장합니다.');
+                // 경고 메시지 제거 (개발 환경에서만 표시)
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('ℹ️ 이름으로 비교 중 - author_id가 null인 기존 데이터입니다.');
+                }
             }
 
             const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole);
