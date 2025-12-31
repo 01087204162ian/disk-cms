@@ -343,7 +343,9 @@ router.put('/:id', requireAuth, upload.array('files', 10), async (req, res) => {
     await connection.beginTransaction();
 
     const { id } = req.params;
-    const userId = req.session.user?.id;
+    const userId = req.session.user?.id || req.session.user?.email; // email이 Primary Key
+    const userName = req.session.user?.name;
+    const userRole = req.session.user?.role;
 
     // 기존 데이터 조회
     const [existing] = await connection.execute(
@@ -359,7 +361,26 @@ router.put('/:id', requireAuth, upload.array('files', 10), async (req, res) => {
     }
 
     // 권한 체크 (작성자 또는 관리자)
-    if (existing[0].author_id !== userId && !['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(req.session.user?.role)) {
+    const authorId = existing[0].author_id;
+    const authorName = existing[0].author_name;
+    
+    let isAuthor = false;
+    
+    // 방법 1: author_id와 userId (email) 비교
+    if (authorId !== null && authorId !== undefined && userId) {
+      const authorIdStr = String(authorId).trim();
+      const userIdStr = String(userId).trim();
+      isAuthor = authorIdStr === userIdStr || authorIdStr === req.session.user?.email;
+    }
+    
+    // 방법 2: author_id가 null인 경우 author_name으로 비교 (기존 데이터 호환성)
+    if (!isAuthor && (authorId === null || authorId === undefined) && authorName && userName) {
+      isAuthor = authorName.trim() === userName.trim();
+    }
+    
+    const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole);
+    
+    if (!isAuthor && !isAdmin) {
       return res.status(403).json({
         success: false,
         error: '수정 권한이 없습니다.'
@@ -473,7 +494,9 @@ router.put('/:id', requireAuth, upload.array('files', 10), async (req, res) => {
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.session.user?.id;
+    const userId = req.session.user?.id || req.session.user?.email; // email이 Primary Key
+    const userName = req.session.user?.name;
+    const userRole = req.session.user?.role;
 
     // 기존 데이터 조회
     const [existing] = await pool.execute(
@@ -488,8 +511,27 @@ router.delete('/:id', requireAuth, async (req, res) => {
       });
     }
 
-    // 권한 체크
-    if (existing[0].author_id !== userId && !['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(req.session.user?.role)) {
+    // 권한 체크 (작성자 또는 관리자)
+    const authorId = existing[0].author_id;
+    const authorName = existing[0].author_name;
+    
+    let isAuthor = false;
+    
+    // 방법 1: author_id와 userId (email) 비교
+    if (authorId !== null && authorId !== undefined && userId) {
+      const authorIdStr = String(authorId).trim();
+      const userIdStr = String(userId).trim();
+      isAuthor = authorIdStr === userIdStr || authorIdStr === req.session.user?.email;
+    }
+    
+    // 방법 2: author_id가 null인 경우 author_name으로 비교 (기존 데이터 호환성)
+    if (!isAuthor && (authorId === null || authorId === undefined) && authorName && userName) {
+      isAuthor = authorName.trim() === userName.trim();
+    }
+    
+    const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole);
+    
+    if (!isAuthor && !isAdmin) {
       return res.status(403).json({
         success: false,
         error: '삭제 권한이 없습니다.'
@@ -592,7 +634,9 @@ router.put('/:id/comments/:commentId', requireAuth, async (req, res) => {
   try {
     const { id, commentId } = req.params;
     const { content } = req.body;
-    const userId = req.session.user?.id;
+    const userId = req.session.user?.id || req.session.user?.email; // email이 Primary Key
+    const userName = req.session.user?.name;
+    const userRole = req.session.user?.role;
 
     if (!content || !content.trim()) {
       return res.status(400).json({
@@ -614,8 +658,27 @@ router.put('/:id/comments/:commentId', requireAuth, async (req, res) => {
       });
     }
 
-    // 권한 체크
-    if (existing[0].author_id !== userId && !['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(req.session.user?.role)) {
+    // 권한 체크 (작성자 또는 관리자)
+    const authorId = existing[0].author_id;
+    const authorName = existing[0].author_name;
+    
+    let isAuthor = false;
+    
+    // 방법 1: author_id와 userId (email) 비교
+    if (authorId !== null && authorId !== undefined && userId) {
+      const authorIdStr = String(authorId).trim();
+      const userIdStr = String(userId).trim();
+      isAuthor = authorIdStr === userIdStr || authorIdStr === req.session.user?.email;
+    }
+    
+    // 방법 2: author_id가 null인 경우 author_name으로 비교 (기존 데이터 호환성)
+    if (!isAuthor && (authorId === null || authorId === undefined) && authorName && userName) {
+      isAuthor = authorName.trim() === userName.trim();
+    }
+    
+    const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole);
+    
+    if (!isAuthor && !isAdmin) {
       return res.status(403).json({
         success: false,
         error: '수정 권한이 없습니다.'
@@ -644,7 +707,9 @@ router.put('/:id/comments/:commentId', requireAuth, async (req, res) => {
 router.delete('/:id/comments/:commentId', requireAuth, async (req, res) => {
   try {
     const { id, commentId } = req.params;
-    const userId = req.session.user?.id;
+    const userId = req.session.user?.id || req.session.user?.email; // email이 Primary Key
+    const userName = req.session.user?.name;
+    const userRole = req.session.user?.role;
 
     // 기존 댓글 확인
     const [existing] = await pool.execute(
@@ -659,8 +724,27 @@ router.delete('/:id/comments/:commentId', requireAuth, async (req, res) => {
       });
     }
 
-    // 권한 체크
-    if (existing[0].author_id !== userId && !['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(req.session.user?.role)) {
+    // 권한 체크 (작성자 또는 관리자)
+    const authorId = existing[0].author_id;
+    const authorName = existing[0].author_name;
+    
+    let isAuthor = false;
+    
+    // 방법 1: author_id와 userId (email) 비교
+    if (authorId !== null && authorId !== undefined && userId) {
+      const authorIdStr = String(authorId).trim();
+      const userIdStr = String(userId).trim();
+      isAuthor = authorIdStr === userIdStr || authorIdStr === req.session.user?.email;
+    }
+    
+    // 방법 2: author_id가 null인 경우 author_name으로 비교 (기존 데이터 호환성)
+    if (!isAuthor && (authorId === null || authorId === undefined) && authorName && userName) {
+      isAuthor = authorName.trim() === userName.trim();
+    }
+    
+    const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole);
+    
+    if (!isAuthor && !isAdmin) {
       return res.status(403).json({
         success: false,
         error: '삭제 권한이 없습니다.'
