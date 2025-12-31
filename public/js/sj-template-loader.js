@@ -659,6 +659,48 @@ createDynamicModal() {
 			  description: '보험 계약 현황을 관리합니다'
 			},
 			
+			// 1차 메뉴
+			'staff': {
+			  title: '직원전용',
+			  description: '직원 관리 시스템'
+			},
+			'insurance': {
+			  title: '보험상품',
+			  description: '보험 상품 관리'
+			},
+			'knowledge': {
+			  title: '지식 공유',
+			  description: '지식 공유 시스템'
+			},
+			
+			// 2차 메뉴 - 보험상품 하위
+			'proxy-driving': {
+			  title: '보험상품',
+			  description: '대리운전'
+			},
+			'workers-comp': {
+			  title: '보험상품',
+			  description: '근재보험'
+			},
+			'internship': {
+			  title: '보험상품',
+			  description: '현장실습보험'
+			},
+			'pharmacy': {
+			  title: '보험상품',
+			  description: '약국배상책임보험'
+			},
+			'golf': {
+			  title: '보험상품',
+			  description: '홀인원보험'
+			},
+			
+			// 2차 메뉴 - 지식 공유 하위
+			'mistake-cases': {
+			  title: '지식 공유',
+			  description: '실수 사례'
+			},
+			
 			// 직원 메뉴
 			'staff-employees': {
 			  title: '직원 관리',
@@ -719,10 +761,10 @@ createDynamicModal() {
 			  description: '클레임 리스트'
 			},
 			
-			// 대리운전
+			// 3차 메뉴 - 대리운전 하위
 			'proxy-kj': {
-			  title: 'KJ 대리운전',
-			  description: '대리운전 보험 관리'
+			  title: '보험상품',
+			  description: 'KJ 대리운전'
 			},
 			// KJ 대리운전 하위 메뉴
 			'kj-driver-search': {
