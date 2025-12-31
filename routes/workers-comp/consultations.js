@@ -17,6 +17,9 @@ const axios = require('axios');
 const router = express.Router();
 
 // 기본 설정
+// cafe24 서버 구조: /geungae0327/www/geunjae.kr/api/consultations/
+// geunjae.kr 도메인이 /geungae0327/www/geunjae.kr/ 디렉토리를 가리키므로
+// https://geunjae.kr/api/consultations/list.php로 접근 가능
 const API_BASE_URL = process.env.CONSULTATION_API_URL || 'https://geunjae.kr/api';
 const DEFAULT_TIMEOUT = 30000;
 
