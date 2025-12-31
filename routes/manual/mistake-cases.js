@@ -183,12 +183,29 @@ router.get('/:id', async (req, res) => {
       [id]
     );
 
+    // JSON 파싱 헬퍼 함수
+    const safeJsonParse = (value, defaultValue = []) => {
+      if (!value) return defaultValue;
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          console.warn('JSON 파싱 오류:', e.message, '값:', value);
+          return defaultValue;
+        }
+      }
+      if (Array.isArray(value) || typeof value === 'object') {
+        return value;
+      }
+      return defaultValue;
+    };
+
     const result = {
       ...rows[0],
       files,
       comment_count: commentCount[0].count,
-      checklist_items: rows[0].checklist_items ? JSON.parse(rows[0].checklist_items) : [],
-      tags: rows[0].tags ? JSON.parse(rows[0].tags) : []
+      checklist_items: safeJsonParse(rows[0].checklist_items, []),
+      tags: safeJsonParse(rows[0].tags, [])
     };
 
     res.json({
@@ -197,9 +214,11 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('실수 사례 상세 조회 오류:', error);
+    console.error('오류 스택:', error.stack);
     res.status(500).json({
       success: false,
-      error: '실수 사례 상세 조회 중 오류가 발생했습니다.'
+      error: '실수 사례 상세 조회 중 오류가 발생했습니다.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
