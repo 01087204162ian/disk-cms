@@ -44,6 +44,7 @@ class TicketsManager {
         
         // 테이블 요소들
         this.tableBody = document.getElementById('ticketsTableBody');
+        this.cardView = document.getElementById('ticketsCardView');
         this.paginationInfo = document.getElementById('paginationInfo');
         this.paginationControls = document.getElementById('paginationControls');
     }
@@ -105,50 +106,120 @@ class TicketsManager {
     }
 
     renderTable() {
+        const emptyState = `
+            <tr>
+                <td colspan="9" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <div class="mt-2">등록된 티켓이 없습니다.</div>
+                    </div>
+                </td>
+            </tr>
+        `;
+        
         if (this.tickets.length === 0) {
-            this.tableBody.innerHTML = `
-                <tr>
-                    <td colspan="9" class="text-center py-4">
-                        <div class="text-muted">
-                            <i class="fas fa-inbox fa-2x mb-2"></i>
-                            <div>등록된 티켓이 없습니다.</div>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            if (this.tableBody) {
+                this.tableBody.innerHTML = emptyState;
+            }
+            if (this.cardView) {
+                this.cardView.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <div class="mt-2">등록된 티켓이 없습니다.</div>
+                    </div>
+                `;
+            }
             return;
         }
 
-        this.tableBody.innerHTML = this.tickets.map((ticket, index) => {
-            const rowNum = (this.currentPage - 1) * this.currentLimit + index + 1;
-            const statusBadge = this.getStatusBadge(ticket.status);
-            const typeBadge = this.getTypeBadge(ticket.ticket_type_code);
-            const priorityBadge = this.getPriorityBadge(ticket.priority);
-            const createdAt = this.formatDate(ticket.created_at);
-            const description = ticket.description ? 
-                (ticket.description.length > 50 ? ticket.description.substring(0, 50) + '...' : ticket.description) : '';
+        // 데스크톱 테이블 뷰
+        if (this.tableBody) {
+            this.tableBody.innerHTML = this.tickets.map((ticket, index) => {
+                const rowNum = (this.currentPage - 1) * this.currentLimit + index + 1;
+                const statusBadge = this.getStatusBadge(ticket.status);
+                const typeBadge = this.getTypeBadge(ticket.ticket_type_code);
+                const priorityBadge = this.getPriorityBadge(ticket.priority);
+                const createdAt = this.formatDate(ticket.created_at);
+                const description = ticket.description ? 
+                    (ticket.description.length > 50 ? ticket.description.substring(0, 50) + '...' : ticket.description) : '';
 
-            return `
-                <tr style="cursor: pointer;" onclick="window.location.href='/pages/tickets/detail.html?id=${ticket.id}'">
-                    <td>${rowNum}</td>
-                    <td><code>${this.escapeHtml(ticket.ticket_number)}</code></td>
-                    <td>${typeBadge}</td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        <div class="fw-bold">${this.escapeHtml(ticket.title)}</div>
-                        ${description ? `<small class="text-muted">${this.escapeHtml(description)}</small>` : ''}
-                    </td>
-                    <td>${this.escapeHtml(ticket.owner_name || ticket.creator_name || '-')}</td>
-                    <td>${priorityBadge}</td>
-                    <td>${createdAt}</td>
-                    <td>
-                        <a href="/pages/tickets/detail.html?id=${ticket.id}" class="btn btn-sm btn-primary" onclick="event.stopPropagation();">
-                            <i class="fas fa-eye"></i> 보기
-                        </a>
-                    </td>
-                </tr>
-            `;
-        }).join('');
+                return `
+                    <tr style="cursor: pointer;" onclick="window.location.href='/pages/tickets/detail.html?id=${ticket.id}'">
+                        <td class="text-center">${rowNum}</td>
+                        <td><code class="text-primary">${this.escapeHtml(ticket.ticket_number)}</code></td>
+                        <td>${typeBadge}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <div class="fw-semibold">${this.escapeHtml(ticket.title)}</div>
+                            ${description ? `<small class="text-muted d-block mt-1">${this.escapeHtml(description)}</small>` : ''}
+                        </td>
+                        <td><small>${this.escapeHtml(ticket.owner_name || ticket.creator_name || '-')}</small></td>
+                        <td class="text-center">${priorityBadge}</td>
+                        <td><small class="text-muted">${createdAt}</small></td>
+                        <td class="text-center">
+                            <a href="/pages/tickets/detail.html?id=${ticket.id}" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // 모바일 카드 뷰
+        if (this.cardView) {
+            this.cardView.innerHTML = this.tickets.map((ticket, index) => {
+                const rowNum = (this.currentPage - 1) * this.currentLimit + index + 1;
+                const statusBadge = this.getStatusBadge(ticket.status);
+                const typeBadge = this.getTypeBadge(ticket.ticket_type_code);
+                const priorityBadge = this.getPriorityBadge(ticket.priority);
+                const createdAt = this.formatDate(ticket.created_at);
+                const description = ticket.description ? 
+                    (ticket.description.length > 80 ? ticket.description.substring(0, 80) + '...' : ticket.description) : '';
+
+                return `
+                    <div class="ticket-card" onclick="window.location.href='/pages/tickets/detail.html?id=${ticket.id}'">
+                        <div class="ticket-card-header">
+                            <h6 class="ticket-card-title">${this.escapeHtml(ticket.title)}</h6>
+                            <div class="ticket-card-badges">
+                                ${statusBadge}
+                                ${priorityBadge}
+                            </div>
+                        </div>
+                        <div class="ticket-card-body">
+                            <div class="ticket-card-row">
+                                <div class="ticket-card-label">티켓 번호</div>
+                                <div class="ticket-card-value"><code class="text-primary">${this.escapeHtml(ticket.ticket_number)}</code></div>
+                            </div>
+                            <div class="ticket-card-row">
+                                <div class="ticket-card-label">유형</div>
+                                <div class="ticket-card-value">${typeBadge}</div>
+                            </div>
+                            <div class="ticket-card-row">
+                                <div class="ticket-card-label">담당자</div>
+                                <div class="ticket-card-value">${this.escapeHtml(ticket.owner_name || ticket.creator_name || '-')}</div>
+                            </div>
+                            <div class="ticket-card-row">
+                                <div class="ticket-card-label">생성일</div>
+                                <div class="ticket-card-value">${createdAt}</div>
+                            </div>
+                            ${description ? `
+                            <div class="ticket-card-row full-width">
+                                <div class="ticket-card-label">설명</div>
+                                <div class="ticket-card-value text-muted">${this.escapeHtml(description)}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="ticket-card-footer">
+                            <span class="text-muted small">#${rowNum}</span>
+                            <a href="/pages/tickets/detail.html?id=${ticket.id}" class="btn btn-sm btn-primary" onclick="event.stopPropagation();">
+                                <i class="fas fa-eye"></i> 보기
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
     }
 
     getStatusBadge(status) {
@@ -319,6 +390,13 @@ class TicketsManager {
                     </tr>
                 `;
             }
+            if (this.cardView) {
+                this.cardView.innerHTML = `
+                    <div class="spinner-border text-primary d-block mx-auto my-4" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                `;
+            }
         }
     }
 
@@ -332,6 +410,13 @@ class TicketsManager {
                         </div>
                     </td>
                 </tr>
+            `;
+        }
+        if (this.cardView) {
+            this.cardView.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> ${this.escapeHtml(message)}
+                </div>
             `;
         }
     }
