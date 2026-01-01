@@ -280,6 +280,22 @@ router.get('/me', (req, res) => {
     }
 });
 
+// 세션 정보 조회 API (me와 동일, 호환성을 위해 추가)
+router.get('/session', (req, res) => {
+    if (req.session && req.session.user) {
+        res.json({
+            success: true,
+            user: req.session.user,
+            data: req.session.user // 호환성을 위해 둘 다 제공
+        });
+    } else {
+        res.status(401).json({
+            success: false,
+            message: '로그인이 필요합니다.'
+        });
+    }
+});
+
 // 이메일 중복 확인 API
 router.get('/check-email/:email', async (req, res) => {
     try {
