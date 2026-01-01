@@ -838,6 +838,24 @@ createDynamicModal() {
 			'admin': {
 			  title: '관리자',
 			  description: '시스템 관리'
+			},
+			
+			// 보험 운영 플랫폼 - 티켓 시스템
+			'tickets-list': {
+			  title: '보험 운영 플랫폼',
+			  description: '티켓 목록'
+			},
+			'tickets-detail': {
+			  title: '보험 운영 플랫폼',
+			  description: '티켓 상세'
+			},
+			'tickets-form': {
+			  title: '보험 운영 플랫폼',
+			  description: '티켓 생성/수정'
+			},
+			'tickets-approvals': {
+			  title: '보험 운영 플랫폼',
+			  description: '승인 대기'
 			}
 		  };
 
