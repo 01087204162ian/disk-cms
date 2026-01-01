@@ -223,7 +223,6 @@
                 <div class="row align-items-end g-2">
                   <!-- 검색 영역 (상단 우선) -->
                   <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <label class="filter-label fw-semibold">검색</label>
                     <div class="input-group">
                       <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="티켓 번호, 제목으로 검색">
                       <button class="btn btn-primary btn-sm" type="button" id="searchBtn">
@@ -234,7 +233,6 @@
                   
                   <!-- 상태 필터 -->
                   <div class="col-6 col-md-2 col-lg-2 mb-2 mb-md-0">
-                    <label class="filter-label fw-semibold">상태</label>
                     <select id="statusFilter" class="form-control form-control-sm filter-select">
                       <option value="">전체</option>
                       <option value="NEW">신규</option>
@@ -248,7 +246,6 @@
                   
                   <!-- 티켓 유형 필터 -->
                   <div class="col-6 col-md-2 col-lg-2 mb-2 mb-md-0">
-                    <label class="filter-label fw-semibold">유형</label>
                     <select id="ticketTypeFilter" class="form-control form-control-sm filter-select">
                       <option value="">전체</option>
                       <option value="RESEARCH">리서치</option>
@@ -269,7 +266,6 @@
                   
                   <!-- 우선순위 필터 -->
                   <div class="col-6 col-md-2 col-lg-1 mb-2 mb-md-0">
-                    <label class="filter-label fw-semibold">우선순위</label>
                     <select id="priorityFilter" class="form-control form-control-sm filter-select">
                       <option value="">전체</option>
                       <option value="low">낮음</option>
@@ -281,7 +277,6 @@
                   
                   <!-- 페이지 크기 -->
                   <div class="col-6 col-md-2 col-lg-1 mb-2 mb-md-0">
-                    <label class="filter-label fw-semibold">페이지</label>
                     <select id="pageSizeFilter" class="form-control form-control-sm filter-select">
                       <option value="10">10</option>
                       <option value="20" selected>20</option>
@@ -289,25 +284,17 @@
                       <option value="100">100</option>
                     </select>
                   </div>
+                  
+                  <!-- 새 티켓 생성 버튼 -->
+                  <div class="col-12 col-md-2 col-lg-auto mb-2 mb-md-0">
+                    <a href="/pages/tickets/form.html" class="btn btn-success btn-sm w-100">
+                      <i class="fas fa-plus"></i> 새 티켓 생성
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
             <!-- 통합 검색/필터 영역 끝 -->
-
-            <!-- 버튼 영역 -->
-            <div class="row mb-3">
-              <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 class="mb-0">업무 티켓 목록</h5>
-                    <small class="text-muted" id="totalInfo">전체 0건</small>
-                  </div>
-                  <a href="/pages/tickets/form.html" class="btn btn-success">
-                    <i class="fas fa-plus"></i> 새 티켓 생성
-                  </a>
-                </div>
-              </div>
-            </div>
             
             <!-- 데스크톱 테이블 뷰 -->
             <div class="table-responsive d-none d-md-block">
