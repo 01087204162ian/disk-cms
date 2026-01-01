@@ -144,15 +144,20 @@
 
     <!-- 보험 운영 플랫폼 메뉴 -->
     <div class="menu-item">
-      <a href="/pages/tickets/guide.html" class="menu-title" data-menu="tickets-guide" style="text-decoration: none;">
+      <div class="menu-title" data-target="tickets-menu" data-menu="tickets">
         <div>
           <i class="fas fa-ticket-alt menu-icon"></i>
           보험 운영 플랫폼
         </div>
-      </a>
-      <div class="submenu" id="tickets-menu" style="display: none;">
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </div>
+      <div class="submenu" id="tickets-menu">
+        <!-- 가이드 -->
+        <a href="/pages/tickets/guide.html" class="submenu-item" data-menu="tickets-guide" style="padding-left: 2rem;">
+          <i class="fas fa-book-open menu-icon"></i> 티켓 시스템 가이드
+        </a>
         <!-- 주요 기능 -->
-        <div style="padding: 0.5rem 2rem; font-size: 0.75rem; color: #6c757d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+        <div style="padding: 1rem 2rem 0.5rem 2rem; font-size: 0.75rem; color: #6c757d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #e9ecef; margin-top: 0.5rem;">
           주요 기능
         </div>
         <a href="/pages/tickets/list.html" class="submenu-item" data-menu="tickets-list" style="padding-left: 2rem;">
