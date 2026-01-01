@@ -196,9 +196,13 @@
     
     .quick-guide-table th,
     .quick-guide-table td {
-      padding: 1rem;
+      padding: 0.75rem 1rem;
       text-align: left;
       border-bottom: 1px solid #dee2e6;
+    }
+    
+    .quick-guide-table tbody tr:last-child td {
+      border-bottom: none;
     }
     
     .quick-guide-table th {
@@ -742,8 +746,8 @@
           <h3><i class="fas fa-bolt"></i> 빠른 판단 가이드 (직원용)</h3>
           <p class="mb-3"><strong>"이 일을 왜 시작했는가?"</strong></p>
           
-          <div class="table-responsive mb-0">
-            <table class="quick-guide-table">
+          <div class="table-responsive mb-0" style="margin-bottom: 0 !important;">
+            <table class="quick-guide-table" style="margin-bottom: 0 !important;">
               <thead>
                 <tr>
                   <th>시작 목적</th>
