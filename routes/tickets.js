@@ -118,6 +118,153 @@ router.get('/:id', async (req, res) => {
 });
 
 /**
+ * PUT /tickets/:id - 티켓 수정
+ */
+router.put('/:id', async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const ticketId = parseInt(req.params.id);
+        const userId = req.session.user.email;
+        const userRole = req.session.user.role;
+
+        // 현재 티켓 조회
+        const [tickets] = await connection.execute(
+            'SELECT * FROM tickets WHERE id = ?',
+            [ticketId]
+        );
+
+        if (tickets.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({
+                success: false,
+                message: '티켓을 찾을 수 없습니다.'
+            });
+        }
+
+        const ticket = tickets[0];
+
+        // 권한 확인: 작성자, 담당자, 관리자만 수정 가능
+        const isCreator = ticket.creator_id === userId;
+        const isOwner = ticket.owner_id === userId;
+        const isAdmin = ['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole);
+
+        if (!isCreator && !isOwner && !isAdmin) {
+            await connection.rollback();
+            return res.status(403).json({
+                success: false,
+                message: '티켓을 수정할 권한이 없습니다.'
+            });
+        }
+
+        // 수정 가능한 필드들
+        const updateFields = [];
+        const updateValues = [];
+
+        if (req.body.title !== undefined) {
+            updateFields.push('title = ?');
+            updateValues.push(req.body.title);
+        }
+
+        if (req.body.description !== undefined) {
+            updateFields.push('description = ?');
+            updateValues.push(req.body.description || null);
+        }
+
+        if (req.body.owner_id !== undefined) {
+            updateFields.push('owner_id = ?');
+            updateValues.push(req.body.owner_id || null);
+        }
+
+        if (req.body.priority !== undefined) {
+            updateFields.push('priority = ?');
+            updateValues.push(req.body.priority);
+        }
+
+        if (req.body.due_date !== undefined) {
+            updateFields.push('due_date = ?');
+            updateValues.push(req.body.due_date || null);
+        }
+
+        if (req.body.amount !== undefined) {
+            updateFields.push('amount = ?');
+            updateValues.push(req.body.amount || null);
+        }
+
+        if (req.body.severity !== undefined) {
+            updateFields.push('severity = ?');
+            updateValues.push(req.body.severity);
+        }
+
+        if (req.body.sensitivity_level !== undefined) {
+            updateFields.push('sensitivity_level = ?');
+            updateValues.push(req.body.sensitivity_level);
+        }
+
+        if (updateFields.length === 0) {
+            await connection.rollback();
+            return res.status(400).json({
+                success: false,
+                message: '수정할 필드가 없습니다.'
+            });
+        }
+
+        // 업데이트 실행
+        updateFields.push('updated_at = NOW()');
+        updateValues.push(ticketId);
+
+        await connection.execute(
+            `UPDATE tickets SET ${updateFields.join(', ')} WHERE id = ?`,
+            updateValues
+        );
+
+        // 활동 로그 기록
+        await TicketService.logActivity(connection, {
+            ticket_id: ticketId,
+            activity_type: 'UPDATE',
+            user_id: userId,
+            description: '티켓 정보 수정됨'
+        });
+
+        // 협업자 업데이트 (제공된 경우)
+        if (req.body.collaborators && Array.isArray(req.body.collaborators)) {
+            // 기존 협업자 삭제
+            await connection.execute(
+                'DELETE FROM ticket_collaborators WHERE ticket_id = ?',
+                [ticketId]
+            );
+
+            // 새 협업자 추가
+            for (const collaboratorId of req.body.collaborators) {
+                await connection.execute(
+                    'INSERT INTO ticket_collaborators (ticket_id, collaborator_id) VALUES (?, ?)',
+                    [ticketId, collaboratorId]
+                );
+            }
+        }
+
+        await connection.commit();
+
+        const updatedTicket = await TicketService.getTicketById(ticketId);
+        res.json({
+            success: true,
+            data: updatedTicket
+        });
+    } catch (error) {
+        await connection.rollback();
+        console.error('티켓 수정 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '티켓 수정 중 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    } finally {
+        connection.release();
+    }
+});
+
+/**
  * PATCH /tickets/:id/status - 티켓 상태 변경
  */
 router.patch('/:id/status', async (req, res) => {

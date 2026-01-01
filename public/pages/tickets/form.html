@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | 업무 티켓 - 생성/수정</title>
+  
+  <!-- 한글 폰트 (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/sj-styles.css" rel="stylesheet">
+  
+  <style>
+    .form-section {
+      background: #f8f9fa;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-section h5 {
+      color: #495057;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #dee2e6;
+    }
+    
+    .required-field::after {
+      content: " *";
+      color: #dc3545;
+    }
+    
+    .collaborator-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #e7f3ff;
+      border: 1px solid #b3d9ff;
+      border-radius: 0.375rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .collaborator-tag .remove-btn {
+      cursor: pointer;
+      color: #dc3545;
+      font-size: 0.875rem;
+    }
+    
+    .collaborator-tag .remove-btn:hover {
+      color: #a00;
+    }
+  </style>
+</head>
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <div>페이지를 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 헤더 컨테이너 -->
+  <div id="header-container"></div>
+
+  <!-- 사이드바 오버레이 (모바일용) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container"></div>
+
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            
+            <!-- 헤더 영역 -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+              <div>
+                <a href="/pages/tickets/list.html" class="btn btn-sm btn-outline-secondary mb-2">
+                  <i class="fas fa-arrow-left"></i> 목록으로
+                </a>
+                <h4 id="formTitle">티켓 생성</h4>
+              </div>
+            </div>
+
+            <!-- 폼 -->
+            <form id="ticketForm">
+              
+              <!-- 기본 정보 -->
+              <div class="form-section">
+                <h5>기본 정보</h5>
+                
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="ticketType" class="form-label required-field">티켓 유형</label>
+                    <select class="form-select" id="ticketType" name="ticket_type_code" required>
+                      <option value="">선택하세요</option>
+                      <option value="SETTLE">정산</option>
+                      <option value="CLAIM">클레임</option>
+                      <option value="ACCIDENT">사고</option>
+                      <option value="PARTNER">파트너</option>
+                      <option value="DEV">개발</option>
+                      <option value="PLAN">기획</option>
+                      <option value="OTHER">기타</option>
+                    </select>
+                  </div>
+                  
+                  <div class="col-md-6 mb-3">
+                    <label for="priority" class="form-label">우선순위</label>
+                    <select class="form-select" id="priority" name="priority">
+                      <option value="medium" selected>보통</option>
+                      <option value="low">낮음</option>
+                      <option value="high">높음</option>
+                      <option value="urgent">긴급</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-12 mb-3">
+                    <label for="title" class="form-label required-field">제목</label>
+                    <input type="text" class="form-control" id="title" name="title" required placeholder="티켓 제목을 입력하세요">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="ownerId" class="form-label">담당자</label>
+                    <input type="email" class="form-control" id="ownerId" name="owner_id" placeholder="담당자 이메일 (예: user@example.com)">
+                    <small class="form-text text-muted">티켓을 배정할 담당자의 이메일을 입력하세요</small>
+                  </div>
+                  
+                  <div class="col-md-6 mb-3">
+                    <label for="dueDate" class="form-label">마감일</label>
+                    <input type="datetime-local" class="form-control" id="dueDate" name="due_date">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 상세 정보 -->
+              <div class="form-section">
+                <h5>상세 정보</h5>
+                
+                <div class="mb-3">
+                  <label for="description" class="form-label">설명</label>
+                  <textarea class="form-control" id="description" name="description" rows="5" placeholder="티켓에 대한 상세 설명을 입력하세요"></textarea>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label for="amount" class="form-label">금액</label>
+                    <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" placeholder="0.00">
+                    <small class="form-text text-muted">금액이 있는 경우 입력하세요</small>
+                  </div>
+                  
+                  <div class="col-md-4 mb-3">
+                    <label for="severity" class="form-label">심각도</label>
+                    <select class="form-select" id="severity" name="severity">
+                      <option value="P2" selected>P2 - 보통</option>
+                      <option value="P3">P3 - 낮음</option>
+                      <option value="P1">P1 - 높음</option>
+                      <option value="P0">P0 - 긴급</option>
+                    </select>
+                  </div>
+                  
+                  <div class="col-md-4 mb-3">
+                    <label for="sensitivityLevel" class="form-label">민감도</label>
+                    <select class="form-select" id="sensitivityLevel" name="sensitivity_level">
+                      <option value="NORMAL" selected>일반</option>
+                      <option value="SENSITIVE">민감</option>
+                      <option value="CONFIDENTIAL">기밀</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 협업자 -->
+              <div class="form-section">
+                <h5>협업자</h5>
+                
+                <div class="mb-3">
+                  <div class="input-group">
+                    <input type="email" class="form-control" id="collaboratorInput" placeholder="협업자 이메일을 입력하세요">
+                    <button type="button" class="btn btn-outline-primary" id="addCollaboratorBtn">
+                      <i class="fas fa-plus"></i> 추가
+                    </button>
+                  </div>
+                  <small class="form-text text-muted">티켓에 참여할 협업자를 추가할 수 있습니다</small>
+                </div>
+                
+                <div id="collaboratorsList" class="mb-3">
+                  <!-- 협업자 태그가 여기에 표시됩니다 -->
+                </div>
+              </div>
+
+              <!-- 버튼 영역 -->
+              <div class="d-flex justify-content-end gap-2 flex-wrap">
+                <a href="/pages/tickets/list.html" class="btn btn-secondary">
+                  <i class="fas fa-times"></i> 취소
+                </a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                  <i class="fas fa-check"></i> 저장
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- SJ 템플릿 로더 -->
+  <script src="/js/sj-template-loader.js"></script>
+  
+  <script>
+    // 페이지 로드 후 자동 초기화
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('티켓 생성/수정 페이지가 로드되었습니다.');
+      
+      await window.sjTemplateLoader.initializePage('tickets-form');
+    });
+  </script>
+  <script src="/js/tickets/tickets-form.js"></script>
+</body>
+</html>
+
