@@ -856,6 +856,10 @@ createDynamicModal() {
 			'tickets-approvals': {
 			  title: '보험 운영 플랫폼',
 			  description: '승인 대기'
+			},
+			'tickets-about': {
+			  title: '보험 운영 플랫폼',
+			  description: '티켓 시스템이란?'
 			}
 		  };
 
