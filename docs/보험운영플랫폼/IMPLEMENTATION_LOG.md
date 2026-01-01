@@ -285,7 +285,7 @@ SELECT * FROM ticket_counters ORDER BY date_key DESC, current_seq DESC;
 ```bash
 # 로그인 후 세션 쿠키 확보
 # 티켓 생성
-curl -X POST http://localhost:3000/api/tickets \
+curl -X POST https://disk-cms.simg.kr/api/tickets \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{"ticket_type_code": "SETTLE", "title": "테스트"}'

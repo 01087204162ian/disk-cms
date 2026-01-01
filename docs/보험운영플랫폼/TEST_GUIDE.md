@@ -8,7 +8,7 @@ cd disk-cms
 npm run dev
 ```
 
-서버가 `http://localhost:3000`에서 실행됩니다.
+서버가 `https://disk-cms.simg.kr`에서 실행됩니다.
 
 ### 환경 변수 확인
 `.env` 파일에 데이터베이스 설정이 있는지 확인:
@@ -28,14 +28,14 @@ DB_PORT=3306
 
 ### 방법 1: 브라우저에서 로그인
 
-1. 브라우저에서 `http://localhost:3000/login.html` 접속
+1. 브라우저에서 `https://disk-cms.simg.kr/login.html` 접속
 2. 로그인 후 브라우저 개발자 도구 (F12) → Application → Cookies에서 `connect.sid` 확인
 
 ### 방법 2: API로 로그인
 
 ```bash
 # 로그인
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST https://disk-cms.simg.kr/api/auth/login \
   -H "Content-Type: application/json" \
   -c cookies.txt \
   -d '{
@@ -59,7 +59,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 ### 3.1 티켓 생성
 
 ```bash
-curl -X POST http://localhost:3000/api/tickets \
+curl -X POST https://disk-cms.simg.kr/api/tickets \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{
@@ -99,15 +99,15 @@ curl -X POST http://localhost:3000/api/tickets \
 
 ```bash
 # 전체 목록
-curl http://localhost:3000/api/tickets \
+curl https://disk-cms.simg.kr/api/tickets \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 
 # 필터링 (NEW 상태만)
-curl "http://localhost:3000/api/tickets?status=NEW" \
+curl "https://disk-cms.simg.kr/api/tickets?status=NEW" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 
 # 티켓 유형 필터
-curl "http://localhost:3000/api/tickets?ticket_type=SETTLE&limit=10" \
+curl "https://disk-cms.simg.kr/api/tickets?ticket_type=SETTLE&limit=10" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 ```
 
@@ -116,7 +116,7 @@ curl "http://localhost:3000/api/tickets?ticket_type=SETTLE&limit=10" \
 ### 3.3 티켓 상세 조회
 
 ```bash
-curl http://localhost:3000/api/tickets/1 \
+curl https://disk-cms.simg.kr/api/tickets/1 \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 ```
 
@@ -128,7 +128,7 @@ curl http://localhost:3000/api/tickets/1 \
 ### 3.4 티켓 상태 변경 (NEW → IN_PROGRESS)
 
 ```bash
-curl -X PATCH http://localhost:3000/api/tickets/1/status \
+curl -X PATCH https://disk-cms.simg.kr/api/tickets/1/status \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{
@@ -145,7 +145,7 @@ curl -X PATCH http://localhost:3000/api/tickets/1/status \
 ### 3.5 체크리스트 초기화
 
 ```bash
-curl -X POST http://localhost:3000/api/tickets/1/checklists/init \
+curl -X POST https://disk-cms.simg.kr/api/tickets/1/checklists/init \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 ```
 
@@ -171,7 +171,7 @@ VALUES (
 ### 3.6 체크리스트 체크
 
 ```bash
-curl -X PATCH http://localhost:3000/api/tickets/1/checklists/1 \
+curl -X PATCH https://disk-cms.simg.kr/api/tickets/1/checklists/1 \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{
@@ -189,7 +189,7 @@ curl -X PATCH http://localhost:3000/api/tickets/1/checklists/1 \
 ### 3.7 협업자 추가
 
 ```bash
-curl -X POST http://localhost:3000/api/tickets/1/collaborators \
+curl -X POST https://disk-cms.simg.kr/api/tickets/1/collaborators \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{
@@ -206,7 +206,7 @@ curl -X POST http://localhost:3000/api/tickets/1/collaborators \
 ### 3.8 상태 변경 (IN_PROGRESS → REVIEW)
 
 ```bash
-curl -X PATCH http://localhost:3000/api/tickets/1/status \
+curl -X PATCH https://disk-cms.simg.kr/api/tickets/1/status \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{
@@ -217,7 +217,7 @@ curl -X PATCH http://localhost:3000/api/tickets/1/status \
 **자동 처리 확인:**
 - 승인 인스턴스가 자동 생성되었는지 확인:
 ```bash
-curl http://localhost:3000/api/tickets/1 \
+curl https://disk-cms.simg.kr/api/tickets/1 \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" | jq '.data.approvals'
 ```
 
@@ -227,13 +227,13 @@ curl http://localhost:3000/api/tickets/1 \
 
 먼저 대기 중인 승인 목록 확인:
 ```bash
-curl http://localhost:3000/api/approvals/pending \
+curl https://disk-cms.simg.kr/api/approvals/pending \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 ```
 
 승인 인스턴스 ID 확인 후:
 ```bash
-curl -X PATCH http://localhost:3000/api/approvals/1 \
+curl -X PATCH https://disk-cms.simg.kr/api/approvals/1 \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{
@@ -262,7 +262,7 @@ WHERE id = 1;
 
 **상태 변경:**
 ```bash
-curl -X PATCH http://localhost:3000/api/tickets/1/status \
+curl -X PATCH https://disk-cms.simg.kr/api/tickets/1/status \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{
@@ -283,7 +283,7 @@ curl -X PATCH http://localhost:3000/api/tickets/1/status \
 
 ```bash
 # 1. 티켓 생성
-TICKET_ID=$(curl -s -X POST http://localhost:3000/api/tickets \
+TICKET_ID=$(curl -s -X POST https://disk-cms.simg.kr/api/tickets \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{
@@ -295,33 +295,33 @@ TICKET_ID=$(curl -s -X POST http://localhost:3000/api/tickets \
 echo "생성된 티켓 ID: $TICKET_ID"
 
 # 2. 체크리스트 초기화
-curl -X POST http://localhost:3000/api/tickets/$TICKET_ID/checklists/init \
+curl -X POST https://disk-cms.simg.kr/api/tickets/$TICKET_ID/checklists/init \
   -H "Cookie: connect.sid=YOUR_SESSION_ID"
 
 # 3. 체크리스트 체크
-curl -X PATCH http://localhost:3000/api/tickets/$TICKET_ID/checklists/1 \
+curl -X PATCH https://disk-cms.simg.kr/api/tickets/$TICKET_ID/checklists/1 \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{"is_checked": true}'
 
 # 4. 상태 변경: NEW → IN_PROGRESS
-curl -X PATCH http://localhost:3000/api/tickets/$TICKET_ID/status \
+curl -X PATCH https://disk-cms.simg.kr/api/tickets/$TICKET_ID/status \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{"status": "IN_PROGRESS"}'
 
 # 5. 상태 변경: IN_PROGRESS → REVIEW
-curl -X PATCH http://localhost:3000/api/tickets/$TICKET_ID/status \
+curl -X PATCH https://disk-cms.simg.kr/api/tickets/$TICKET_ID/status \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" \
   -d '{"status": "REVIEW"}'
 
 # 6. 승인 인스턴스 확인
-curl http://localhost:3000/api/tickets/$TICKET_ID \
+curl https://disk-cms.simg.kr/api/tickets/$TICKET_ID \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" | jq '.data.approvals'
 
 # 7. Activity Log 확인
-curl http://localhost:3000/api/tickets/$TICKET_ID \
+curl https://disk-cms.simg.kr/api/tickets/$TICKET_ID \
   -H "Cookie: connect.sid=YOUR_SESSION_ID" | jq '.data.activity_logs'
 ```
 
@@ -333,7 +333,7 @@ curl http://localhost:3000/api/tickets/$TICKET_ID \
 
 1. Postman 실행
 2. 환경 변수 설정:
-   - `base_url`: `http://localhost:3000`
+   - `base_url`: `https://disk-cms.simg.kr`
    - `session_id`: (로그인 후 설정)
 
 ### 5.2 요청 예시

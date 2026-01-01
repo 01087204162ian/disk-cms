@@ -462,7 +462,7 @@ ARCHIVED
 ### 티켓 생성 테스트
 
 ```bash
-curl -X POST http://localhost:3000/api/tickets \
+curl -X POST https://disk-cms.simg.kr/api/tickets \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=..." \
   -d '{
@@ -475,7 +475,7 @@ curl -X POST http://localhost:3000/api/tickets \
 ### 티켓 목록 조회
 
 ```bash
-curl http://localhost:3000/api/tickets?status=NEW
+curl https://disk-cms.simg.kr/api/tickets?status=NEW
 ```
 
 ---
