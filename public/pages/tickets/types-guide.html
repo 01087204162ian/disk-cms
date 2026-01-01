@@ -156,27 +156,36 @@
     .flow-diagram {
       background: #f8f9fa;
       border-radius: 0.5rem;
-      padding: 2rem;
-      margin: 2rem 0;
+      padding: 1rem;
+      margin: 1rem 0;
       text-align: center;
     }
     
     .flow-item {
       display: inline-block;
-      padding: 1rem 1.5rem;
+      padding: 0.5rem 1rem;
       background: white;
       border: 2px solid #667eea;
       border-radius: 0.5rem;
-      margin: 0.5rem;
+      margin: 0.25rem;
       font-weight: 500;
       color: #667eea;
+      font-size: 0.9rem;
+    }
+    
+    .flow-item small {
+      display: block;
+      font-size: 0.75rem;
+      color: #6c757d;
+      margin-top: 0.25rem;
     }
     
     .flow-arrow {
       display: inline-block;
       color: #667eea;
-      font-size: 1.5rem;
-      margin: 0 0.5rem;
+      font-size: 1.2rem;
+      margin: 0 0.25rem;
+      vertical-align: middle;
     }
     
     .quick-guide-table {
@@ -300,13 +309,6 @@
     <div class="row">
       <div class="col-12">
         
-        <!-- 페이지 헤더 -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <h4 class="mb-2">티켓 유형 정의</h4>
-            <small class="text-muted">(주)에스아이엠지 티켓 시스템 분류 가이드</small>
-          </div>
-        </div>
 
         <!-- 기본 원칙 -->
         <div class="card mb-4">
@@ -709,28 +711,30 @@
         </div>
 
         <!-- 티켓 유형 간 흐름 -->
-        <div class="type-card">
-          <h3><i class="fas fa-route"></i> 티켓 유형 간 자연스러운 흐름</h3>
-          <div class="flow-diagram">
-            <div class="flow-item">리서치<br><small>(시장/고객 탐색)</small></div>
-            <div class="flow-arrow">↓</div>
-            <div class="flow-item">프로젝트<br><small>(목표 기반 추진)</small></div>
-            <div class="flow-arrow">↓</div>
-            <div class="flow-item">기획<br><small>(상세 설계)</small></div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-item">개발<br><small>(시스템 구현)</small></div>
-            <div class="flow-arrow">↓</div>
-            <div class="flow-item">계약<br><small>(보험 체결)</small></div>
-            <div class="flow-arrow">↓</div>
-            <div class="flow-item">정산<br><small>(금액 정산)</small></div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-item">실적<br><small>(결과 검증)</small></div>
-            <div class="flow-arrow">↓</div>
-            <div class="flow-item">클레임<br><small>(사후 처리, 필요 시)</small></div>
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="mb-3"><i class="fas fa-route text-primary"></i> 티켓 유형 간 자연스러운 흐름</h5>
+            <div class="flow-diagram">
+              <div class="flow-item">리서치<small>(시장/고객 탐색)</small></div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-item">프로젝트<small>(목표 기반 추진)</small></div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-item">기획<small>(상세 설계)</small></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-item">개발<small>(시스템 구현)</small></div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-item">계약<small>(보험 체결)</small></div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-item">정산<small>(금액 정산)</small></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-item">실적<small>(결과 검증)</small></div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-item">클레임<small>(사후 처리)</small></div>
+            </div>
+            <p class="text-center text-muted mt-2 mb-0 small">
+              <i class="fas fa-info-circle"></i> 티켓 유형은 고립된 분류가 아니라 흐름입니다
+            </p>
           </div>
-          <p class="text-center text-muted mt-3">
-            <i class="fas fa-info-circle"></i> 티켓 유형은 고립된 분류가 아니라 흐름입니다
-          </p>
         </div>
 
         <!-- 빠른 판단 가이드 -->
