@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | 티켓 시스템 가이드</title>
+  
+  <!-- 한글 폰트 (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/sj-styles.css" rel="stylesheet">
+  
+  <style>
+    /* 네비게이션 스타일 */
+    .guide-nav {
+      position: sticky;
+      top: 70px;
+      z-index: 100;
+      background: white;
+      border-bottom: 2px solid #e9ecef;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .guide-nav .nav-link {
+      color: #495057;
+      font-weight: 500;
+      padding: 1rem 1.5rem;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .guide-nav .nav-link:hover {
+      color: #667eea;
+      background-color: #f8f9fa;
+    }
+    
+    .guide-nav .nav-link.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+      background-color: #f8f9fa;
+    }
+    
+    /* 섹션 스타일 */
+    .guide-section {
+      scroll-margin-top: 120px;
+      padding: 2rem 0;
+    }
+    
+    .section-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 3rem 2rem;
+      border-radius: 0.5rem;
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+    
+    .section-header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    
+    .section-header.sec2 {
+      background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    }
+    
+    .section-header.sec3 {
+      background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    }
+    
+    .concept-card {
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      background: #fff;
+      transition: all 0.3s ease;
+    }
+    
+    .concept-card:hover {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      transform: translateY(-4px);
+    }
+    
+    .concept-card h3 {
+      color: #667eea;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    
+    .highlight-box {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-left: 4px solid #667eea;
+      padding: 1.5rem;
+      border-radius: 0.375rem;
+      margin: 1.5rem 0;
+    }
+    
+    .principle-card {
+      background: #fff;
+      border: 2px solid #667eea;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .principle-card .principle-title {
+      color: #667eea;
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .summary-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      margin: 2rem 0;
+      text-align: center;
+    }
+    
+    .type-card {
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      background: #fff;
+      transition: all 0.3s ease;
+      height: 100%;
+    }
+    
+    .type-card:hover {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      transform: translateY(-4px);
+      border-color: #ffc107;
+    }
+    
+    .type-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-right: 1rem;
+    }
+    
+    .type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: #ffc107;
+      color: white;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-left: 0.5rem;
+    }
+    
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    
+    .comparison-table th,
+    .comparison-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .comparison-table th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+    }
+    
+    .comparison-table tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    @media (max-width: 768px) {
+      .guide-nav {
+        top: 60px;
+      }
+      
+      .guide-nav .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+      }
+      
+      .section-header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .guide-section {
+        scroll-margin-top: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <div>페이지를 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 헤더 컨테이너 -->
+  <div id="header-container"></div>
+
+  <!-- 사이드바 오버레이 (모바일용) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container"></div>
+
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <div class="row">
+      <div class="col-12">
+        
+        <!-- 페이지 헤더 -->
+        <div class="text-center mb-4">
+          <h1 style="font-size: 2.5rem; font-weight: 700; color: #495057; margin-bottom: 1rem;">
+            <i class="fas fa-book-open text-primary"></i> 티켓 시스템 가이드
+          </h1>
+          <p class="lead text-muted">SIMG의 일하는 방법과 티켓 시스템 이해하기</p>
+        </div>
+
+        <!-- 네비게이션 메뉴 -->
+        <nav class="guide-nav">
+          <ul class="nav nav-pills justify-content-center">
+            <li class="nav-item">
+              <a class="nav-link active" href="#section1" data-section="section1">
+                <i class="fas fa-building"></i> SIMG의 일하는 방법
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#section2" data-section="section2">
+                <i class="fas fa-ticket-alt"></i> 티켓 시스템 상세 설명
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#section3" data-section="section3">
+                <i class="fas fa-tags"></i> 티켓 유형 가이드
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- 섹션 1: SIMG의 일하는 방법 -->
+        <section id="section1" class="guide-section">
+          <div class="section-header">
+            <div class="d-flex align-items-center justify-content-center mb-3">
+              <div class="feature-icon" style="width: 80px; height: 80px; font-size: 2rem; margin-right: 1rem;">
+                <i class="fas fa-building"></i>
+              </div>
+              <div>
+                <h1 style="font-size: 2.5rem; font-weight: 700; margin: 0;">에스아이엠지(SIMG)의 일하는 방법</h1>
+                <p class="lead mb-0" style="font-size: 1.1rem; opacity: 0.95;">Part 1: 우리는 어떻게 일하는가?</p>
+              </div>
+            </div>
+            <div class="alert alert-light" style="max-width: 800px; margin: 1.5rem auto 0; text-align: left;">
+              <p class="mb-2"><strong>에스아이엠지는</strong></p>
+              <p class="mb-0" style="font-size: 1.1rem; font-weight: 500;">일을 사람에게 맡기지 않고,<br>
+              판단과 책임이 남는 구조로 일합니다.</p>
+            </div>
+          </div>
+
+          <!-- 1. 이 문서를 만드는 이유 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-question-circle"></i> 1️⃣ 우리가 이 문서를 만드는 이유</h3>
+            <div class="highlight-box">
+              <p class="mb-3">이 문서는</p>
+              <ul class="mb-3">
+                <li>사람을 평가하기 위한 기준 ❌</li>
+                <li>통제하기 위한 규칙 ❌</li>
+                <li><strong>👉 같은 기준으로 일하기 위한 약속입니다.</strong></li>
+              </ul>
+              <p class="mb-0" style="font-size: 1.1rem; font-weight: 500;">
+                "어떻게 일하는가"가 맞으면<br>
+                "누가 일하는가"는 문제가 되지 않습니다.
+              </p>
+            </div>
+          </div>
+
+          <!-- 2. SIMG에서 '일'이란 무엇인가 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-briefcase"></i> 2️⃣ SIMG에서 '일'이란 무엇인가</h3>
+            <div class="highlight-box">
+              <p class="mb-3">SIMG에서 일은</p>
+              <p class="mb-3"><strong>개인의 감각이 아니라<br>
+              조직의 흐름 속에서 정의됩니다.</strong></p>
+              <p class="mb-3">그래서 우리는 모든 일을<br>
+              '업무'가 아니라 <strong>'티켓'</strong>으로 시작합니다.</p>
+              <p class="mb-0" style="font-size: 1.1rem; font-weight: 500;">
+                티켓은 책임·결정·이력을 함께 봉인한 단위입니다.
+              </p>
+            </div>
+          </div>
+
+          <!-- 3. SIMG의 일하는 방식 5가지 원칙 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-list-ol"></i> 3️⃣ SIMG의 일하는 방식 5가지 원칙</h3>
+            
+            <div class="row mb-3">
+              <div class="col-md-12 mb-3">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-sitemap"></i> ① 우리는 구조를 먼저 이해한다
+                  </div>
+                  <ul class="mb-0">
+                    <li>지금 하는 일이 앞·뒤 업무와 어떻게 연결되는지 본다</li>
+                    <li>부분이 아니라 전체 흐름 속 위치를 인식한다</li>
+                    <li>"왜 이 일을 하는가"를 설명할 수 있어야 한다</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="col-md-12 mb-3">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-file-alt"></i> ② 우리는 말보다 기록으로 일한다
+                  </div>
+                  <ul class="mb-0">
+                    <li>구두 지시는 남지 않는다</li>
+                    <li>기억은 증거가 아니다</li>
+                    <li>티켓과 기록만이 사실이다</li>
+                    <li>기록은 옵션이 아니라 책임이다</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="col-md-12 mb-3">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-user-check"></i> ③ 우리는 책임을 명확히 가진다
+                  </div>
+                  <ul class="mb-0">
+                    <li>모든 티켓에는 Owner가 있다</li>
+                    <li>Owner는 끝까지 닫는다</li>
+                    <li>책임은 떠넘기지 않고, 구조로 관리한다</li>
+                    <li>완료(DONE)는 결과가 아니라 태도다</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="col-md-12 mb-3">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-exchange-alt"></i> ④ 우리는 경계를 넘나들며 일한다
+                  </div>
+                  <ul class="mb-0">
+                    <li>영업 / 운영 / 개발 / 정산 / 기획을 나누지 않는다</li>
+                    <li>모두를 잘할 필요는 없지만 모두를 이해하려는 태도를 가진다</li>
+                    <li>SIMG는 한 포지션의 전문가보다 판을 읽을 수 있는 사람을 신뢰한다</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="col-md-12 mb-3">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-balance-scale"></i> ⑤ 우리는 판단 근거를 남긴다
+                  </div>
+                  <ul class="mb-0">
+                    <li>"그냥 그렇게 했어요"는 허용되지 않는다</li>
+                    <li>왜 그렇게 판단했는지를 기록으로 남긴다</li>
+                    <li>판단은 개인의 것이지만, 근거는 조직의 자산이다</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. 우리가 피하는 일하는 방식 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-exclamation-triangle"></i> 4️⃣ 우리가 피하는 일하는 방식</h3>
+            <div class="alert alert-danger">
+              <p class="mb-3">SIMG에서는 아래 방식이 반복되면 문제가 됩니다.</p>
+              <ul class="mb-3">
+                <li>❌ 말로만 전달하는 업무</li>
+                <li>❌ 책임이 흐려지는 표현</li>
+                <li>❌ "예전에는 이렇게 했어요"라는 근거 없는 주장</li>
+                <li>❌ 티켓을 귀찮은 절차로 여기는 태도</li>
+              </ul>
+              <p class="mb-0"><strong>이건 성과 문제가 아니라 일하는 방식의 문제입니다.</strong></p>
+            </div>
+          </div>
+
+          <!-- 5. SIMG에서 말하는 '성장' -->
+          <div class="concept-card">
+            <h3><i class="fas fa-chart-line"></i> 5️⃣ SIMG에서 말하는 '성장'</h3>
+            <div class="highlight-box">
+              <p class="mb-3"><strong>성장은 직급이 아닙니다.</strong></p>
+              <p class="mb-3">더 넓은 범위를 이해하고<br>
+              더 중요한 판단을 맡을 수 있게 되는 것</p>
+              <div class="row">
+                <div class="col-md-4 text-center mb-2">
+                  <strong>실행자</strong><br>
+                  <i class="fas fa-arrow-down"></i><br>
+                  <strong>흐름 이해자</strong>
+                </div>
+                <div class="col-md-4 text-center mb-2">
+                  <strong>흐름 이해자</strong><br>
+                  <i class="fas fa-arrow-down"></i><br>
+                  <strong>판단 보조자</strong>
+                </div>
+                <div class="col-md-4 text-center mb-2">
+                  <strong>판단 보조자</strong><br>
+                  <i class="fas fa-arrow-down"></i><br>
+                  <strong>구조 설계자</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. SIMG는 실수를 이렇게 다룬다 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-shield-alt"></i> 6️⃣ SIMG는 실수를 이렇게 다룬다</h3>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="principle-card" style="border-color: #198754;">
+                  <div class="principle-title" style="color: #198754;">
+                    <i class="fas fa-check-circle"></i> 실수는 숨기지 않아도 된다
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="principle-card" style="border-color: #198754;">
+                  <div class="principle-title" style="color: #198754;">
+                    <i class="fas fa-file-alt"></i> 실수는 기록으로 남긴다
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="principle-card" style="border-color: #198754;">
+                  <div class="principle-title" style="color: #198754;">
+                    <i class="fas fa-sync-alt"></i> 같은 실수가 반복되면 구조를 고친다
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="principle-card" style="border-color: #198754;">
+                  <div class="principle-title" style="color: #198754;">
+                    <i class="fas fa-tools"></i> 사람을 고치지 않고 구조를 고친다
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. 우리가 지향하는 최종 상태 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-bullseye"></i> 7️⃣ 우리가 지향하는 최종 상태</h3>
+            <div class="highlight-box" style="border-left-color: #198754;">
+              <p class="mb-3" style="font-size: 1.1rem; font-weight: 500;">
+                "대표가 모든 걸 보지 않아도<br>
+                조직이 같은 기준으로 판단하는 상태"
+              </p>
+              <ul class="mb-0">
+                <li>기록이 남아 있고</li>
+                <li>책임이 명확하며</li>
+                <li>경험이 축적되는 조직</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 8. 이 문서의 가장 중요한 문장 -->
+          <div class="summary-box">
+            <h3><i class="fas fa-star"></i> 8️⃣ 이 문서의 가장 중요한 문장</h3>
+            <p style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem;">
+              SIMG는<br>
+              사람을 관리하지 않는다.<br>
+              일을 관리한다.
+            </p>
+            <p style="font-size: 1.1rem; margin: 0;">
+              그리고 그 방식이<br>
+              <strong>'티켓'</strong>이다.
+            </p>
+          </div>
+
+          <!-- 활용 권장 위치 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-bookmark"></i> 📌 활용 권장 위치</h3>
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <i class="fas fa-user-graduate"></i> 신규 입사자 온보딩 1번 문서
+              </div>
+              <div class="col-md-6 mb-2">
+                <i class="fas fa-book"></i> 사내 위키 첫 페이지
+              </div>
+              <div class="col-md-6 mb-2">
+                <i class="fas fa-ticket-alt"></i> 티켓 시스템 메인 설명
+              </div>
+              <div class="col-md-6 mb-2">
+                <i class="fas fa-chalkboard-teacher"></i> 팀장 교육 자료
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션 2: 티켓 시스템 상세 설명 -->
+        <section id="section2" class="guide-section">
+          <div class="section-header sec2">
+            <div class="d-flex align-items-center justify-content-center mb-3">
+              <div class="feature-icon" style="width: 80px; height: 80px; font-size: 2rem; margin-right: 1rem; background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                <i class="fas fa-ticket-alt"></i>
+              </div>
+              <div>
+                <h1 style="font-size: 2.5rem; font-weight: 700; margin: 0;">티켓 시스템 상세 설명</h1>
+                <p class="lead mb-0" style="font-size: 1.1rem; opacity: 0.95;">Part 2: 티켓이란 무엇인가?</p>
+              </div>
+            </div>
+            <div class="alert alert-light" style="max-width: 800px; margin: 1.5rem auto 0; text-align: left;">
+              <p class="mb-0" style="font-size: 1.1rem; font-weight: 500;">
+                티켓은 '일'이 아니라,<br>
+                <strong>'책임·결정·이력을 함께 봉인한 단위'</strong>입니다.
+              </p>
+            </div>
+          </div>
+
+          <!-- 핵심 정의 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-lightbulb"></i> 핵심 정의</h3>
+            <div class="highlight-box">
+              <p class="mb-0" style="font-size: 1.1rem; font-weight: 500;">
+                <strong>티켓 = 처리 단위</strong><br>
+                발행되면 반드시 처리되어야 하며, 처리 과정이 모두 기록되고, 책임자가 명확합니다.
+              </p>
+            </div>
+            
+            <div class="highlight-box" style="border-left-color: #198754; margin-top: 1.5rem;">
+              <h4 style="color: #198754; margin-bottom: 1rem;">
+                <i class="fas fa-language"></i> Ticket과 Case의 차이
+              </h4>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <div style="background: #f8f9fa; padding: 1rem; border-radius: 0.375rem;">
+                    <h5 style="color: #667eea; margin-bottom: 0.5rem;">
+                      <i class="fas fa-server"></i> Ticket
+                    </h5>
+                    <p class="mb-0" style="font-size: 0.95rem;">
+                      <strong>시스템의 언어</strong><br>
+                      기술적 단위, 데이터베이스에 저장되는 구조화된 정보
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <div style="background: #f8f9fa; padding: 1rem; border-radius: 0.375rem;">
+                    <h5 style="color: #198754; margin-bottom: 0.5rem;">
+                      <i class="fas fa-users"></i> Case
+                    </h5>
+                    <p class="mb-0" style="font-size: 0.95rem;">
+                      <strong>조직의 언어</strong><br>
+                      사람들이 일상적으로 사용하는 업무 단위, 비즈니스 맥락
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <p class="mt-3 mb-0" style="font-size: 0.95rem; font-style: italic;">
+                "우리는 Case를 Ticket으로 변환하여 시스템에 기록합니다."
+              </p>
+            </div>
+          </div>
+
+          <!-- 구조적 의미 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-sitemap"></i> 구조적 의미 (5가지 요소)</h3>
+            <p class="mb-3">티켓 하나에는 다음이 모두 포함됩니다:</p>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-start">
+                  <div class="feature-icon me-3" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <div>
+                    <h5>누가 (Owner/담당자)</h5>
+                    <p class="text-muted mb-0">책임이 명확한 담당자 지정</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-start">
+                  <div class="feature-icon me-3" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <div>
+                    <h5>언제 (생성/처리/완료 시점)</h5>
+                    <p class="text-muted mb-0">모든 시점이 기록됨</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-start">
+                  <div class="feature-icon me-3" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                    <i class="fas fa-tasks"></i>
+                  </div>
+                  <div>
+                    <h5>무엇을 (처리 내용)</h5>
+                    <p class="text-muted mb-0">구체적인 처리 내용</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-start">
+                  <div class="feature-icon me-3" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                    <i class="fas fa-question-circle"></i>
+                  </div>
+                  <div>
+                    <h5>왜 (판단 근거)</h5>
+                    <p class="text-muted mb-0">의사결정의 근거와 이유</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-12 mb-3">
+                <div class="d-flex align-items-start">
+                  <div class="feature-icon me-3" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                    <i class="fas fa-history"></i>
+                  </div>
+                  <div>
+                    <h5>어떻게 (처리 과정/변경 이력)</h5>
+                    <p class="text-muted mb-0">모든 변경 사항과 활동 로그</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 실무적 의미 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-balance-scale"></i> 실무적 의미</h3>
+            <p class="mb-3">전통적 업무 방식과의 차이:</p>
+            
+            <div class="table-responsive">
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th>관점</th>
+                    <th>전통적 업무</th>
+                    <th>티켓</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>저장 위치</strong></td>
+                    <td>사람 머릿속</td>
+                    <td>시스템</td>
+                  </tr>
+                  <tr>
+                    <td><strong>추적 가능성</strong></td>
+                    <td>기억 의존</td>
+                    <td>조회 가능</td>
+                  </tr>
+                  <tr>
+                    <td><strong>책임 소재</strong></td>
+                    <td>애매함</td>
+                    <td>명확함</td>
+                  </tr>
+                  <tr>
+                    <td><strong>인수인계</strong></td>
+                    <td>어려움</td>
+                    <td>쉬움</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 기능적 의미 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-cogs"></i> 기능적 의미 (3가지 역할)</h3>
+            
+            <div class="row">
+              <div class="col-md-4 mb-4">
+                <div class="text-center">
+                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                    <i class="fas fa-book"></i>
+                  </div>
+                  <h4>① 기록 도구</h4>
+                  <p class="text-muted">
+                    누가, 언제, 무엇을, 왜 했는지<br>
+                    영구 보존
+                  </p>
+                </div>
+              </div>
+              
+              <div class="col-md-4 mb-4">
+                <div class="text-center">
+                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                    <i class="fas fa-shield-alt"></i>
+                  </div>
+                  <h4>② 보호 장치</h4>
+                  <p class="text-muted">
+                    담당자를 보호하는 방패<br>
+                    "당시 이런 근거로 이렇게 판단했다"는 증거
+                  </p>
+                </div>
+              </div>
+              
+              <div class="col-md-4 mb-4">
+                <div class="text-center">
+                  <div class="feature-icon mx-auto" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                    <i class="fas fa-comments"></i>
+                  </div>
+                  <h4>③ 소통 수단</h4>
+                  <p class="text-muted">
+                    말이 아닌 기록으로 소통<br>
+                    구두 지시 없이 명확한 지시 전달
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 조직적 의미 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-building"></i> 조직적 의미</h3>
+            <h4>개인 → 조직 자산 전환</h4>
+            <div class="highlight-box" style="border-left-color: #198754;">
+              <p class="mb-2"><strong>개인의 경험 → 티켓 기록 → 조직의 지식</strong></p>
+              <ul class="mb-0">
+                <li>사람이 퇴사해도 티켓은 남음</li>
+                <li>신규 직원도 티켓만 보고 업무 파악</li>
+                <li>같은 실수 반복 방지 가능</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 철학적 의미 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-heart"></i> 철학적 의미</h3>
+            <div class="highlight-box" style="border-left-color: #198754;">
+              <h4 style="color: #198754; margin-bottom: 1rem;">
+                <i class="fas fa-shield-alt"></i> "티켓은 방패다"
+              </h4>
+              <div class="row">
+                <div class="col-md-6">
+                  <p class="text-danger mb-2">
+                    <i class="fas fa-times-circle"></i> 감시 도구<br>
+                    <i class="fas fa-times-circle"></i> 통제 수단
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <p class="text-success mb-0">
+                    <i class="fas fa-check-circle"></i> 개인 보호 장치<br>
+                    <i class="fas fa-check-circle"></i> 조직 기억 장치
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 한 문장 요약 -->
+          <div class="summary-box" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+            <h3><i class="fas fa-quote-left"></i> 한 문장 요약</h3>
+            <p>
+              티켓 = 업무를 사람에게서 분리하여 시스템에 기록하고,<br>
+              개인을 보호하며, 조직의 지식으로 축적하는 최소 단위
+            </p>
+          </div>
+
+          <!-- 실무 적용 원칙 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-rocket"></i> 실무 적용 원칙</h3>
+            
+            <div class="highlight-box" style="border-left-color: #ffc107;">
+              <h4 style="color: #ffc107; margin-bottom: 1rem;">
+                <i class="fas fa-exclamation-triangle"></i> "나중에 물어볼 수 있는 모든 일은 티켓으로"
+              </h4>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-calculator"></i> 정산 판단
+                  </div>
+                  <p class="mb-0">→ 티켓</p>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-user-headset"></i> 고객 요청
+                  </div>
+                  <p class="mb-0">→ 티켓</p>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-file-contract"></i> 정책 변경
+                  </div>
+                  <p class="mb-0">→ 티켓</p>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-paper-plane"></i> 중요 발송
+                  </div>
+                  <p class="mb-0">→ 티켓</p>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="principle-card">
+                  <div class="principle-title">
+                    <i class="fas fa-sync-alt"></i> 갱신 처리
+                  </div>
+                  <p class="mb-0">→ 티켓</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="alert alert-warning mt-4" role="alert">
+              <i class="fas fa-info-circle"></i> 
+              <strong>"말로 하지 말고, 티켓으로 남기세요"</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션 3: 티켓 유형 가이드 -->
+        <section id="section3" class="guide-section">
+          <div class="section-header sec3">
+            <div class="d-flex align-items-center justify-content-center mb-3">
+              <div class="feature-icon" style="width: 80px; height: 80px; font-size: 2rem; margin-right: 1rem; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                <i class="fas fa-tags"></i>
+              </div>
+              <div>
+                <h1 style="font-size: 2.5rem; font-weight: 700; margin: 0;">티켓 유형 가이드</h1>
+                <p class="lead mb-0" style="font-size: 1.1rem; opacity: 0.95;">Part 3: 9가지 티켓 유형 이해하기</p>
+              </div>
+            </div>
+            <div class="alert alert-light" style="max-width: 800px; margin: 1.5rem auto 0; text-align: left;">
+              <p class="mb-0" style="font-size: 1.1rem; font-weight: 500;">
+                모든 업무는 아래 9가지 티켓 유형 중 하나로만 시작합니다<br>
+                티켓 유형은 일을 제한하려는 게 아니라, 일을 보호하기 위한 분류입니다.
+              </p>
+            </div>
+          </div>
+
+          <!-- 기본 원칙 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-lightbulb text-warning"></i> 기본 원칙</h3>
+            <div class="alert alert-info mb-0" role="alert">
+              <ul class="mb-0">
+                <li><strong>모든 업무는 아래 9가지 티켓 유형 중 하나로만 시작합니다</strong> (복수 성격일 경우, "시작 목적" 기준으로 선택)</li>
+                <li><strong>티켓 유형은 일을 제한하려는 게 아니라, 일을 보호하기 위한 분류입니다.</strong></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 9가지 티켓 유형 -->
+          <div class="row mb-4">
+            <div class="col-12 mb-3">
+              <h3><i class="fas fa-tags"></i> 9가지 티켓 유형</h3>
+            </div>
+            
+            <!-- 1. 리서치 -->
+            <div class="col-md-4 col-lg-4 mb-3">
+              <div class="type-card">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="type-number">1</div>
+                  <div>
+                    <h4 style="margin: 0;">리서치</h4>
+                    <span class="type-badge">RESEARCH</span>
+                  </div>
+                </div>
+                <p class="mb-3">신시장, 신규 고객, 신규 제휴 가능성을 탐색하는 모든 활동</p>
+                <div class="mb-3">
+                  <strong>포함 업무:</strong>
+                  <ul class="mb-2">
+                    <li>신규 시장 조사</li>
+                    <li>잠재 고객 리스트 발굴</li>
+                    <li>보험사/플랫폼 후보 조사</li>
+                    <li>레퍼런스 수집</li>
+                  </ul>
+                  <strong>산출물:</strong>
+                  <ul class="mb-0">
+                    <li>고객/파트너 리스트</li>
+                    <li>시장 분석 메모</li>
+                    <li>접촉 이력</li>
+                  </ul>
+                </div>
+                <div>
+                  <span class="badge bg-danger">❌ 계약 없음</span>
+                  <span class="badge bg-danger">❌ 금액 없음</span>
+                  <span class="badge bg-success">✅ 출발점</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. 프로젝트 -->
+            <div class="col-md-4 col-lg-4 mb-3">
+              <div class="type-card">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="type-number">2</div>
+                  <div>
+                    <h4 style="margin: 0;">프로젝트</h4>
+                    <span class="type-badge">PROJECT</span>
+                  </div>
+                </div>
+                <p class="mb-3">보험 신상품 개발 또는 특정 목표를 가진 고객 접촉 활동</p>
+                <div class="mb-3">
+                  <strong>포함 업무:</strong>
+                  <ul class="mb-2">
+                    <li>보험 신상품 기획 프로젝트</li>
+                    <li>특정 기업/플랫폼 대상 영업</li>
+                    <li>제휴 추진 TF</li>
+                    <li>PoC, 시범 운영</li>
+                  </ul>
+                  <strong>산출물:</strong>
+                  <ul class="mb-0">
+                    <li>프로젝트 계획</li>
+                    <li>진행 이력</li>
+                    <li>결과 요약</li>
+                  </ul>
+                </div>
+                <div>
+                  <span class="badge bg-success">✅ 티켓 파생</span>
+                  <span class="badge bg-success">✅ 기간 중심</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. 계약 -->
+            <div class="col-md-4 col-lg-4 mb-3">
+              <div class="type-card">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="type-number">3</div>
+                  <div>
+                    <h4 style="margin: 0;">계약</h4>
+                    <span class="type-badge">CONTRACT</span>
+                  </div>
+                </div>
+                <p class="mb-3">보험 계약의 체결 또는 갱신과 직접적으로 관련된 업무</p>
+                <div class="mb-3">
+                  <strong>포함 업무:</strong>
+                  <ul class="mb-2">
+                    <li>신규 보험 계약</li>
+                    <li>계약 갱신</li>
+                    <li>조건 변경</li>
+                    <li>계약 종료 처리</li>
+                  </ul>
+                  <strong>산출물:</strong>
+                  <ul class="mb-0">
+                    <li>계약서</li>
+                    <li>증권번호</li>
+                    <li>계약 조건 기록</li>
+                  </ul>
+                </div>
+                <div>
+                  <span class="badge bg-success">✅ 고객/보험사 연결</span>
+                  <span class="badge bg-success">✅ 기준점</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. 정산 -->
+            <div class="col-md-4 col-lg-4 mb-3">
+              <div class="type-card">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="type-number">4</div>
+                  <div>
+                    <h4 style="margin: 0;">정산</h4>
+                    <span class="type-badge">SETTLEMENT</span>
+                  </div>
+                </div>
+                <p class="mb-3">보험 계약에 따른 금액 정산 업무</p>
+                <div class="mb-3">
+                  <strong>포함 업무:</strong>
+                  <ul class="mb-2">
+                    <li>일/주/월/연 단위 정산</li>
+                    <li>보험사 정산 자료 검증</li>
+                    <li>입금 확인</li>
+                    <li>차이 발생 시 조정</li>
+                  </ul>
+                  <strong>산출물:</strong>
+                  <ul class="mb-0">
+                    <li>정산 결과</li>
+                    <li>정산 기준 기록</li>
+                    <li>정산 이슈 로그</li>
+                  </ul>
+                </div>
+                <div>
+                  <span class="badge bg-success">✅ 반복성</span>
+                  <span class="badge bg-danger">❌ 리스크 큼</span>
+                  <span class="badge bg-success">✅ 체크리스트 필수</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. 실적 -->
+            <div class="col-md-4 col-lg-4 mb-3">
+              <div class="type-card">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="type-number">5</div>
+                  <div>
+                    <h4 style="margin: 0;">실적</h4>
+                    <span class="type-badge">PERFORMANCE</span>
+                  </div>
+                </div>
+                <p class="mb-3">계약 결과를 보험사 시스템 실적과 대조·검증하는 업무</p>
+                <div class="mb-3">
+                  <strong>포함 업무:</strong>
+                  <ul class="mb-2">
+                    <li>보험사 시스템 실적 대조</li>
+                    <li>수수료 확인</li>
+                    <li>수수료 배분</li>
+                    <li>실적 차이 분석</li>
+                  </ul>
+                  <strong>산출물:</strong>
+                  <ul class="mb-0">
+                    <li>실적 비교 결과</li>
+                    <li>수수료 산출 근거</li>
+                    <li>배분 내역</li>
+                  </ul>
+                </div>
+                <div>
+                  <span class="badge bg-success">✅ 정산 이후</span>
+                  <span class="badge bg-success">✅ 이력 중요</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. 클레임 -->
+            <div class="col-md-4 col-lg-4 mb-3">
+              <div class="type-card">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="type-number">6</div>
+                  <div>
+                    <h4 style="margin: 0;">클레임</h4>
+                    <span class="type-badge">CLAIM</span>
+                  </div>
+                </div>
+                <p class="mb-3">보험 계약 이후 발생하는 모든 사후 처리 (After Service)</p>
+                <div class="mb-3">
+                  <strong>포함 업무:</strong>
+                  <ul class="mb-2">
+                    <li>사고 접수</li>
+                    <li>고객 민원</li>
+                    <li>보험사 클레임 대응</li>
+                    <li>분쟁/이슈 처리</li>
+                  </ul>
+                  <strong>산출물:</strong>
+                  <ul class="mb-0">
+                    <li>사고/민원 처리 이력</li>
+                    <li>보험사 커뮤니케이션 기록</li>
+                    <li>결과 보고</li>
+                  </ul>
+                </div>
+                <div>
+                  <span class="badge bg-danger">❌ 리스크</span>
+                  <span class="badge bg-danger">❌ 민감도 높음</span>
+                  <span class="badge bg-success">✅ 기록 필수</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 7. 개발 -->
+            <div class="col-md-4 col-lg-4 mb-3">
+              <div class="type-card">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="type-number">7</div>
+                  <div>
+                    <h4 style="margin: 0;">개발</h4>
+                    <span class="type-badge">DEV</span>
+                  </div>
+                </div>
+                <p class="mb-3">시스템, API, 앱/웹 개발과 관련된 모든 기술 업무</p>
+                <div class="mb-3">
+                  <strong>포함 업무:</strong>
+                  <ul class="mb-2">
+                    <li>API 개발</li>
+                    <li>CMS 기능 개발</li>
+                    <li>앱/웹 화면 개발</li>
+                    <li>시스템 연동</li>
+                    <li>버그 수정</li>
+                  </ul>
+                  <strong>산출물:</strong>
+                  <ul class="mb-0">
+                    <li>코드</li>
+                    <li>API 명세</li>
+                    <li>배포 이력</li>
+                  </ul>
+                </div>
+                <div>
+                  <span class="badge bg-success">✅ 티켓 파생</span>
+                  <span class="badge bg-success">✅ 기술 로그</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8. 기획 -->
+            <div class="col-md-4 col-lg-4 mb-3">
+              <div class="type-card">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="type-number">8</div>
+                  <div>
+                    <h4 style="margin: 0;">기획</h4>
+                    <span class="type-badge">PLAN</span>
+                  </div>
+                </div>
+                <p class="mb-3">프로젝트 확정 이후, 실제 실행을 위한 상세 설계 업무</p>
+                <div class="mb-3">
+                  <strong>포함 업무:</strong>
+                  <ul class="mb-2">
+                    <li>업무 프로세스 설계</li>
+                    <li>시스템 연동 기획</li>
+                    <li>운영 정책 정의</li>
+                    <li>화면/UX 기획</li>
+                  </ul>
+                  <strong>산출물:</strong>
+                  <ul class="mb-0">
+                    <li>기획서</li>
+                    <li>정책 문서</li>
+                    <li>연동 정의서</li>
+                  </ul>
+                </div>
+                <div>
+                  <span class="badge bg-success">✅ 프로젝트→기획→개발</span>
+                  <span class="badge bg-success">✅ 기록 핵심</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 9. 기타 -->
+            <div class="col-md-4 col-lg-4 mb-3">
+              <div class="type-card">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="type-number">9</div>
+                  <div>
+                    <h4 style="margin: 0;">기타</h4>
+                    <span class="type-badge">OTHER</span>
+                  </div>
+                </div>
+                <p class="mb-3">위 유형에 명확히 속하지 않는 예외 업무</p>
+                <div class="mb-3">
+                  <strong>사용 원칙:</strong>
+                  <ul class="mb-0">
+                    <li>가급적 사용 ❌</li>
+                    <li>임시 성격 업무</li>
+                    <li>이후 유형 재분류 권장</li>
+                  </ul>
+                </div>
+                <div>
+                  <span class="badge bg-danger">❌ 최소화</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 티켓 유형 간 흐름 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-route text-primary"></i> 티켓 유형 간 자연스러운 흐름</h3>
+            <div class="text-center p-4" style="background: #f8f9fa; border-radius: 0.5rem;">
+              <div class="mb-2">
+                <span class="badge bg-primary p-2">리서치 <small>(시장/고객 탐색)</small></span>
+                <i class="fas fa-arrow-down mx-2"></i>
+                <span class="badge bg-primary p-2">프로젝트 <small>(목표 기반 추진)</small></span>
+                <i class="fas fa-arrow-down mx-2"></i>
+                <span class="badge bg-primary p-2">기획 <small>(상세 설계)</small></span>
+                <i class="fas fa-arrow-right mx-2"></i>
+                <span class="badge bg-primary p-2">개발 <small>(시스템 구현)</small></span>
+              </div>
+              <div>
+                <span class="badge bg-primary p-2">계약 <small>(보험 체결)</small></span>
+                <i class="fas fa-arrow-down mx-2"></i>
+                <span class="badge bg-primary p-2">정산 <small>(금액 정산)</small></span>
+                <i class="fas fa-arrow-right mx-2"></i>
+                <span class="badge bg-primary p-2">실적 <small>(결과 검증)</small></span>
+                <i class="fas fa-arrow-down mx-2"></i>
+                <span class="badge bg-primary p-2">클레임 <small>(사후 처리)</small></span>
+              </div>
+            </div>
+            <p class="text-center text-muted mt-2 mb-0 small">
+              <i class="fas fa-info-circle"></i> 티켓 유형은 고립된 분류가 아니라 흐름입니다
+            </p>
+          </div>
+
+          <!-- 빠른 판단 가이드 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-bolt text-warning"></i> 빠른 판단 가이드 (직원용)</h3>
+            <p class="mb-3"><strong>"이 일을 왜 시작했는가?"</strong></p>
+            
+            <div class="table-responsive">
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th>시작 목적</th>
+                    <th>티켓 유형</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>새로운 가능성 탐색</td>
+                    <td><strong>리서치</strong></td>
+                  </tr>
+                  <tr>
+                    <td>특정 목표 달성</td>
+                    <td><strong>프로젝트</strong></td>
+                  </tr>
+                  <tr>
+                    <td>보험 계약/갱신</td>
+                    <td><strong>계약</strong></td>
+                  </tr>
+                  <tr>
+                    <td>금액 계산/정산</td>
+                    <td><strong>정산</strong></td>
+                  </tr>
+                  <tr>
+                    <td>실적 검증/대조</td>
+                    <td><strong>실적</strong></td>
+                  </tr>
+                  <tr>
+                    <td>사고/민원 처리</td>
+                    <td><strong>클레임</strong></td>
+                  </tr>
+                  <tr>
+                    <td>시스템 개발/수정</td>
+                    <td><strong>개발</strong></td>
+                  </tr>
+                  <tr>
+                    <td>업무/시스템 설계</td>
+                    <td><strong>기획</strong></td>
+                  </tr>
+                  <tr>
+                    <td>위에 해당 없음</td>
+                    <td><strong>기타 (최소화)</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 실무 적용 예시 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-lightbulb text-info"></i> 실무 적용 예시</h3>
+            
+            <div class="alert alert-success">
+              <h6>예시 1: 신규 보험상품 개발</h6>
+              <ol class="mb-0">
+                <li><strong>리서치 티켓:</strong> 시장 조사, 경쟁사 분석</li>
+                <li><strong>프로젝트 티켓:</strong> "홀인원 보험 개발 프로젝트"</li>
+                <li><strong>기획 티켓:</strong> 상품 구조, 약관, 프로세스 설계</li>
+                <li><strong>개발 티켓:</strong> 시스템 개발, API 연동</li>
+                <li><strong>계약 티켓:</strong> 첫 계약 체결</li>
+                <li><strong>정산 티켓:</strong> 월별 정산</li>
+                <li><strong>실적 티켓:</strong> 보험사 실적 대조</li>
+              </ol>
+            </div>
+            
+            <div class="alert alert-info">
+              <h6>예시 2: 일상 업무</h6>
+              <ul class="mb-0">
+                <li>매일 오전 9시 발송 → <strong>정산 티켓</strong> (반복 업무)</li>
+                <li>고객 사고 접수 → <strong>클레임 티켓</strong></li>
+                <li>계약 갱신 요청 → <strong>계약 티켓</strong></li>
+                <li>시스템 버그 발견 → <strong>개발 티켓</strong></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 주의사항 -->
+          <div class="concept-card">
+            <h3><i class="fas fa-exclamation-triangle text-danger"></i> 주의사항</h3>
+            
+            <div class="alert alert-info mb-0">
+              <h6>유형 선택 시 헷갈리는 경우</h6>
+              
+              <p class="mb-2"><strong>Q: 프로젝트와 기획의 차이는?</strong></p>
+              <ul class="mb-3">
+                <li>프로젝트 = 큰 목표 단위 (예: "신상품 개발")</li>
+                <li>기획 = 프로젝트 내 상세 설계 단계</li>
+              </ul>
+              
+              <p class="mb-2"><strong>Q: 정산과 실적의 차이는?</strong></p>
+              <ul class="mb-3">
+                <li>정산 = 우리가 계산한 금액</li>
+                <li>실적 = 보험사 시스템과 대조·검증</li>
+              </ul>
+              
+              <p class="mb-2"><strong>Q: 여러 유형에 걸쳐 있으면?</strong></p>
+              <ul class="mb-0">
+                <li>"시작 목적" 기준으로 선택</li>
+                <li>이후 다른 티켓으로 파생 가능</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 체크리스트 -->
+          <div class="alert alert-warning">
+            <h4><i class="fas fa-clipboard-check"></i> 체크리스트 (티켓 생성 전)</h4>
+            <div class="mb-2">☐ 이 일의 시작 목적이 명확한가?</div>
+            <div class="mb-2">☐ 9가지 유형 중 하나에 해당하는가?</div>
+            <div class="mb-2">☐ 담당자(Owner)가 명확한가?</div>
+            <div class="mb-2">☐ 산출물이 정의되어 있는가?</div>
+            <div class="mb-2">☐ 완료 기준이 명확한가?</div>
+            <p class="mt-3 mb-0"><strong>→ 모두 Yes면 티켓 생성 ✓</strong></p>
+          </div>
+
+          <!-- 핵심 메시지 -->
+          <div class="summary-box" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+            <h3><i class="fas fa-heart"></i> 핵심 메시지</h3>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 1rem;">
+              <strong>유형이 명확할수록, 책임·기준·승인이 쉬워집니다</strong>
+            </p>
+            <p style="font-size: 1rem; line-height: 1.8; margin-bottom: 1rem;">
+              티켓 유형은 여러분의 일을 분류하는 게 아니라,<br>
+              여러분의 일을 보호하기 위한 구조입니다.
+            </p>
+            <p class="mb-0" style="font-size: 0.95rem; opacity: 0.9;">
+              <i class="fas fa-info-circle"></i> 유형 분류가 어렵거나 애매한 경우, 팀장 또는 관리자에게 문의하세요.
+            </p>
+          </div>
+        </section>
+
+        <!-- 액션 버튼 -->
+        <div class="text-center mt-5 mb-4">
+          <a href="/pages/tickets/list.html" class="btn btn-primary btn-lg me-2">
+            <i class="fas fa-list"></i> 티켓 목록 보기
+          </a>
+          <a href="/pages/tickets/form.html" class="btn btn-success btn-lg">
+            <i class="fas fa-plus"></i> 새 티켓 생성
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- SJ 템플릿 로더 -->
+  <script src="/js/sj-template-loader.js"></script>
+  
+  <script>
+    // 페이지 로드 후 자동 초기화
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('티켓 시스템 가이드 페이지가 로드되었습니다.');
+      
+      await window.sjTemplateLoader.initializePage('tickets-guide');
+      
+      // 네비게이션 스크롤 처리
+      const navLinks = document.querySelectorAll('.guide-nav .nav-link');
+      const sections = document.querySelectorAll('.guide-section');
+      
+      // 네비게이션 클릭 이벤트
+      navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetId = this.getAttribute('href');
+          const targetSection = document.querySelector(targetId);
+          
+          if (targetSection) {
+            // 모든 링크에서 active 제거
+            navLinks.forEach(l => l.classList.remove('active'));
+            // 클릭한 링크에 active 추가
+            this.classList.add('active');
+            
+            // 부드러운 스크롤
+            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+      
+      // 스크롤 시 활성 섹션 감지
+      function updateActiveNav() {
+        let current = '';
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.clientHeight;
+          if (window.pageYOffset >= (sectionTop - 150)) {
+            current = section.getAttribute('id');
+          }
+        });
+        
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + current) {
+            link.classList.add('active');
+          }
+        });
+      }
+      
+      window.addEventListener('scroll', updateActiveNav);
+      
+      // URL 해시가 있으면 해당 섹션으로 이동
+      if (window.location.hash) {
+        const targetSection = document.querySelector(window.location.hash);
+        if (targetSection) {
+          setTimeout(() => {
+            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const navLink = document.querySelector(`.guide-nav .nav-link[href="${window.location.hash}"]`);
+            if (navLink) {
+              navLinks.forEach(l => l.classList.remove('active'));
+              navLink.classList.add('active');
+            }
+          }, 500);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+
