@@ -18,42 +18,36 @@
   <link href="/css/sj-styles.css" rel="stylesheet">
   
   <style>
-    .hero-section {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 3rem 2rem;
-      border-radius: 0.5rem;
-      margin-bottom: 3rem;
-      text-align: center;
-    }
-    
-    .hero-section h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-    }
-    
     .type-card {
       border: 1px solid #dee2e6;
       border-radius: 0.5rem;
-      padding: 2rem;
-      margin-bottom: 2rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
       background: #fff;
       transition: all 0.3s ease;
-      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
     
     .type-card:hover {
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
       transform: translateY(-4px);
+      border-color: #667eea;
+    }
+    
+    .type-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #f8f9fa;
     }
     
     .type-number {
-      position: absolute;
-      top: -15px;
-      left: 20px;
-      width: 50px;
-      height: 50px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -61,56 +55,70 @@
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 1.25rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      font-size: 1.1rem;
+      flex-shrink: 0;
     }
     
-    .type-header {
-      margin-top: 1rem;
-      margin-bottom: 1.5rem;
+    .type-title-section {
+      flex: 1;
     }
     
-    .type-header h3 {
-      color: #667eea;
+    .type-title-section h3 {
+      color: #212529;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      font-size: 1.25rem;
+      margin: 0 0 0.25rem 0;
     }
     
     .type-badge {
       display: inline-block;
-      padding: 0.25rem 0.75rem;
+      padding: 0.25rem 0.5rem;
       background: #667eea;
       color: white;
       border-radius: 0.25rem;
-      font-size: 0.875rem;
+      font-size: 0.75rem;
       font-weight: 500;
-      margin-bottom: 1rem;
     }
     
-    .info-section {
-      margin-bottom: 1.5rem;
-    }
-    
-    .info-section h5 {
+    .type-definition {
       color: #495057;
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-      font-size: 1rem;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      line-height: 1.6;
     }
     
-    .info-list {
+    .type-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .type-detail-item {
+      font-size: 0.85rem;
+    }
+    
+    .type-detail-item strong {
+      color: #667eea;
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+    }
+    
+    .type-detail-item ul {
       list-style: none;
       padding: 0;
-      margin: 0;
+      margin: 0.25rem 0 0 0;
     }
     
-    .info-list li {
-      padding: 0.5rem 0;
-      padding-left: 1.5rem;
+    .type-detail-item li {
+      padding: 0.25rem 0;
+      padding-left: 1rem;
       position: relative;
+      color: #6c757d;
     }
     
-    .info-list li:before {
+    .type-detail-item li:before {
       content: "•";
       position: absolute;
       left: 0;
@@ -118,12 +126,21 @@
       font-weight: bold;
     }
     
+    .type-features {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid #f8f9fa;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
     .feature-tag {
       display: inline-block;
       padding: 0.25rem 0.5rem;
-      margin: 0.25rem;
       border-radius: 0.25rem;
-      font-size: 0.875rem;
+      font-size: 0.75rem;
+      font-weight: 500;
     }
     
     .feature-tag.positive {
@@ -226,12 +243,26 @@
     }
     
     @media (max-width: 768px) {
-      .hero-section h1 {
-        font-size: 2rem;
+      .type-card {
+        padding: 1.25rem;
       }
       
-      .type-card {
-        padding: 1.5rem;
+      .type-number {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+      }
+      
+      .type-title-section h3 {
+        font-size: 1.1rem;
+      }
+      
+      .type-definition {
+        font-size: 0.85rem;
+      }
+      
+      .type-detail-item {
+        font-size: 0.8rem;
       }
       
       .flow-item {
@@ -269,362 +300,410 @@
     <div class="row">
       <div class="col-12">
         
-        <!-- 히어로 섹션 -->
-        <div class="hero-section">
-          <h1><i class="fas fa-tags"></i> 티켓 유형 정의</h1>
-          <p class="lead">(주)에스아이엠지 티켓 시스템 분류 가이드</p>
+        <!-- 페이지 헤더 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h4 class="mb-2">티켓 유형 정의</h4>
+            <small class="text-muted">(주)에스아이엠지 티켓 시스템 분류 가이드</small>
+          </div>
         </div>
 
         <!-- 기본 원칙 -->
-        <div class="type-card">
-          <h3><i class="fas fa-lightbulb"></i> 기본 원칙</h3>
-          <div class="alert alert-info" role="alert">
-            <ul class="mb-0">
-              <li><strong>모든 업무는 아래 9가지 티켓 유형 중 하나로만 시작합니다</strong> (복수 성격일 경우, "시작 목적" 기준으로 선택)</li>
-              <li><strong>티켓 유형은 일을 제한하려는 게 아니라, 일을 보호하기 위한 분류입니다.</strong></li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- 1. 리서치 -->
-        <div class="type-card">
-          <div class="type-number">1</div>
-          <div class="type-header">
-            <span class="type-badge">RESEARCH</span>
-            <h3>리서치</h3>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-book"></i> 정의</h5>
-            <p>신시장, 신규 고객, 신규 제휴 가능성을 탐색하는 모든 활동</p>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-tasks"></i> 포함 업무</h5>
-            <ul class="info-list">
-              <li>신규 시장 조사</li>
-              <li>잠재 고객 리스트 발굴</li>
-              <li>보험사/플랫폼 후보 조사</li>
-              <li>레퍼런스 수집</li>
-              <li>사전 미팅, 콜 리스트 정리</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-file-alt"></i> 산출물</h5>
-            <ul class="info-list">
-              <li>고객/파트너 리스트</li>
-              <li>시장 분석 메모</li>
-              <li>접촉 이력</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-star"></i> 특징</h5>
-            <span class="feature-tag negative">❌ 계약 없음</span>
-            <span class="feature-tag negative">❌ 금액 없음</span>
-            <span class="feature-tag positive">✅ 이후 프로젝트/계약 티켓의 출발점</span>
-          </div>
-        </div>
-
-        <!-- 2. 프로젝트 -->
-        <div class="type-card">
-          <div class="type-number">2</div>
-          <div class="type-header">
-            <span class="type-badge">PROJECT</span>
-            <h3>프로젝트</h3>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-book"></i> 정의</h5>
-            <p>보험 신상품 개발 또는 특정 목표를 가진 고객 접촉 활동</p>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-tasks"></i> 포함 업무</h5>
-            <ul class="info-list">
-              <li>보험 신상품 기획 프로젝트</li>
-              <li>특정 기업/플랫폼 대상 영업 프로젝트</li>
-              <li>제휴 추진 TF</li>
-              <li>PoC, 시범 운영</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-file-alt"></i> 산출물</h5>
-            <ul class="info-list">
-              <li>프로젝트 계획</li>
-              <li>진행 이력</li>
-              <li>결과 요약</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-star"></i> 특징</h5>
-            <span class="feature-tag positive">✅ 다수의 계약/개발/기획 티켓을 파생</span>
-            <span class="feature-tag positive">✅ 기간 중심 업무</span>
-          </div>
-        </div>
-
-        <!-- 3. 계약 -->
-        <div class="type-card">
-          <div class="type-number">3</div>
-          <div class="type-header">
-            <span class="type-badge">CONTRACT</span>
-            <h3>계약</h3>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-book"></i> 정의</h5>
-            <p>보험 계약의 체결 또는 갱신과 직접적으로 관련된 업무</p>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-tasks"></i> 포함 업무</h5>
-            <ul class="info-list">
-              <li>신규 보험 계약</li>
-              <li>계약 갱신</li>
-              <li>조건 변경</li>
-              <li>계약 종료 처리</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-file-alt"></i> 산출물</h5>
-            <ul class="info-list">
-              <li>계약서</li>
-              <li>증권번호</li>
-              <li>계약 조건 기록</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-star"></i> 특징</h5>
-            <span class="feature-tag positive">✅ 고객/보험사와 직접 연결</span>
-            <span class="feature-tag positive">✅ 이후 정산·실적·클레임 티켓의 기준점</span>
-          </div>
-        </div>
-
-        <!-- 4. 정산 -->
-        <div class="type-card">
-          <div class="type-number">4</div>
-          <div class="type-header">
-            <span class="type-badge">SETTLEMENT</span>
-            <h3>정산</h3>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-book"></i> 정의</h5>
-            <p>보험 계약에 따른 금액 정산 업무</p>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-tasks"></i> 포함 업무</h5>
-            <ul class="info-list">
-              <li>일/주/월/연 단위 정산</li>
-              <li>보험사 정산 자료 검증</li>
-              <li>입금 확인</li>
-              <li>차이 발생 시 조정</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-file-alt"></i> 산출물</h5>
-            <ul class="info-list">
-              <li>정산 결과</li>
-              <li>정산 기준 기록</li>
-              <li>정산 이슈 로그</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-star"></i> 특징</h5>
-            <span class="feature-tag positive">✅ 반복성 업무</span>
-            <span class="feature-tag negative">❌ 누락/실수 리스크가 가장 큰 유형</span>
-            <span class="feature-tag positive">✅ 체크리스트 필수 유형</span>
-          </div>
-        </div>
-
-        <!-- 5. 실적 -->
-        <div class="type-card">
-          <div class="type-number">5</div>
-          <div class="type-header">
-            <span class="type-badge">PERFORMANCE</span>
-            <h3>실적</h3>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-book"></i> 정의</h5>
-            <p>계약 결과를 보험사 시스템 실적과 대조·검증하는 업무</p>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-tasks"></i> 포함 업무</h5>
-            <ul class="info-list">
-              <li>보험사 시스템 실적 대조</li>
-              <li>수수료 확인</li>
-              <li>수수료 배분</li>
-              <li>실적 차이 분석</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-file-alt"></i> 산출물</h5>
-            <ul class="info-list">
-              <li>실적 비교 결과</li>
-              <li>수수료 산출 근거</li>
-              <li>배분 내역</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-star"></i> 특징</h5>
-            <span class="feature-tag positive">✅ 정산 이후 발생</span>
-            <span class="feature-tag positive">✅ 대표/CFO 관심도 높은 티켓</span>
-            <span class="feature-tag positive">✅ 이력 보존 매우 중요</span>
-          </div>
-        </div>
-
-        <!-- 6. 클레임 -->
-        <div class="type-card">
-          <div class="type-number">6</div>
-          <div class="type-header">
-            <span class="type-badge">CLAIM</span>
-            <h3>클레임</h3>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-book"></i> 정의</h5>
-            <p>보험 계약 이후 발생하는 모든 사후 처리 (After Service)</p>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-tasks"></i> 포함 업무</h5>
-            <ul class="info-list">
-              <li>사고 접수</li>
-              <li>고객 민원</li>
-              <li>보험사 클레임 대응</li>
-              <li>분쟁/이슈 처리</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-file-alt"></i> 산출물</h5>
-            <ul class="info-list">
-              <li>사고/민원 처리 이력</li>
-              <li>보험사 커뮤니케이션 기록</li>
-              <li>결과 보고</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-star"></i> 특징</h5>
-            <span class="feature-tag negative">❌ 리스크 티켓</span>
-            <span class="feature-tag negative">❌ 민감도(SENSITIVE) 빈번</span>
-            <span class="feature-tag positive">✅ 판단 근거 기록 필수</span>
-          </div>
-        </div>
-
-        <!-- 7. 개발 -->
-        <div class="type-card">
-          <div class="type-number">7</div>
-          <div class="type-header">
-            <span class="type-badge">DEV</span>
-            <h3>개발</h3>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-book"></i> 정의</h5>
-            <p>시스템, API, 앱/웹 개발과 관련된 모든 기술 업무</p>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-tasks"></i> 포함 업무</h5>
-            <ul class="info-list">
-              <li>API 개발</li>
-              <li>CMS 기능 개발</li>
-              <li>앱/웹 화면 개발</li>
-              <li>시스템 연동</li>
-              <li>버그 수정</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-file-alt"></i> 산출물</h5>
-            <ul class="info-list">
-              <li>코드</li>
-              <li>API 명세</li>
-              <li>배포 이력</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-star"></i> 특징</h5>
-            <span class="feature-tag positive">✅ 프로젝트/기획 티켓에서 파생</span>
-            <span class="feature-tag positive">✅ 기술 로그 중심</span>
-          </div>
-        </div>
-
-        <!-- 8. 기획 -->
-        <div class="type-card">
-          <div class="type-number">8</div>
-          <div class="type-header">
-            <span class="type-badge">PLAN</span>
-            <h3>기획</h3>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-book"></i> 정의</h5>
-            <p>프로젝트 확정 이후, 실제 실행을 위한 상세 설계 업무</p>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-tasks"></i> 포함 업무</h5>
-            <ul class="info-list">
-              <li>업무 프로세스 설계</li>
-              <li>시스템 연동 기획</li>
-              <li>운영 정책 정의</li>
-              <li>화면/UX 기획</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-file-alt"></i> 산출물</h5>
-            <ul class="info-list">
-              <li>기획서</li>
-              <li>정책 문서</li>
-              <li>연동 정의서</li>
-            </ul>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-star"></i> 특징</h5>
-            <span class="feature-tag positive">✅ 프로젝트 → 기획 → 개발 흐름</span>
-            <span class="feature-tag positive">✅ 결정 사항 기록이 핵심</span>
-          </div>
-        </div>
-
-        <!-- 9. 기타 -->
-        <div class="type-card">
-          <div class="type-number">9</div>
-          <div class="type-header">
-            <span class="type-badge">OTHER</span>
-            <h3>기타</h3>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-book"></i> 정의</h5>
-            <p>위 유형에 명확히 속하지 않는 예외 업무</p>
-          </div>
-          
-          <div class="info-section">
-            <h5><i class="fas fa-exclamation-triangle"></i> 사용 원칙</h5>
-            <div class="alert alert-warning">
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="mb-3"><i class="fas fa-lightbulb text-warning"></i> 기본 원칙</h5>
+            <div class="alert alert-info mb-0" role="alert">
               <ul class="mb-0">
-                <li><strong>가급적 사용 ❌</strong></li>
-                <li>임시 성격 업무</li>
-                <li>이후 유형 재분류 권장</li>
+                <li><strong>모든 업무는 아래 9가지 티켓 유형 중 하나로만 시작합니다</strong> (복수 성격일 경우, "시작 목적" 기준으로 선택)</li>
+                <li><strong>티켓 유형은 일을 제한하려는 게 아니라, 일을 보호하기 위한 분류입니다.</strong></li>
               </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9가지 티켓 유형 카드 그리드 -->
+        <div class="row mb-4">
+          <div class="col-12 mb-3">
+            <h5><i class="fas fa-tags"></i> 9가지 티켓 유형</h5>
+          </div>
+          
+          <!-- 1. 리서치 -->
+          <div class="col-md-4 col-lg-4 mb-3">
+            <div class="type-card">
+              <div class="type-card-header">
+                <div class="type-number">1</div>
+                <div class="type-title-section">
+                  <h3>리서치</h3>
+                  <span class="type-badge">RESEARCH</span>
+                </div>
+              </div>
+              
+              <div class="type-definition">
+                신시장, 신규 고객, 신규 제휴 가능성을 탐색하는 모든 활동
+              </div>
+              
+              <div class="type-details">
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-tasks"></i> 포함 업무</strong>
+                  <ul>
+                    <li>신규 시장 조사</li>
+                    <li>잠재 고객 리스트 발굴</li>
+                    <li>보험사/플랫폼 후보 조사</li>
+                    <li>레퍼런스 수집</li>
+                  </ul>
+                </div>
+                
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-file-alt"></i> 산출물</strong>
+                  <ul>
+                    <li>고객/파트너 리스트</li>
+                    <li>시장 분석 메모</li>
+                    <li>접촉 이력</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="type-features">
+                <span class="feature-tag negative">❌ 계약 없음</span>
+                <span class="feature-tag negative">❌ 금액 없음</span>
+                <span class="feature-tag positive">✅ 출발점</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. 프로젝트 -->
+          <div class="col-md-4 col-lg-4 mb-3">
+            <div class="type-card">
+              <div class="type-card-header">
+                <div class="type-number">2</div>
+                <div class="type-title-section">
+                  <h3>프로젝트</h3>
+                  <span class="type-badge">PROJECT</span>
+                </div>
+              </div>
+              
+              <div class="type-definition">
+                보험 신상품 개발 또는 특정 목표를 가진 고객 접촉 활동
+              </div>
+              
+              <div class="type-details">
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-tasks"></i> 포함 업무</strong>
+                  <ul>
+                    <li>보험 신상품 기획 프로젝트</li>
+                    <li>특정 기업/플랫폼 대상 영업</li>
+                    <li>제휴 추진 TF</li>
+                    <li>PoC, 시범 운영</li>
+                  </ul>
+                </div>
+                
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-file-alt"></i> 산출물</strong>
+                  <ul>
+                    <li>프로젝트 계획</li>
+                    <li>진행 이력</li>
+                    <li>결과 요약</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="type-features">
+                <span class="feature-tag positive">✅ 티켓 파생</span>
+                <span class="feature-tag positive">✅ 기간 중심</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. 계약 -->
+          <div class="col-md-4 col-lg-4 mb-3">
+            <div class="type-card">
+              <div class="type-card-header">
+                <div class="type-number">3</div>
+                <div class="type-title-section">
+                  <h3>계약</h3>
+                  <span class="type-badge">CONTRACT</span>
+                </div>
+              </div>
+              
+              <div class="type-definition">
+                보험 계약의 체결 또는 갱신과 직접적으로 관련된 업무
+              </div>
+              
+              <div class="type-details">
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-tasks"></i> 포함 업무</strong>
+                  <ul>
+                    <li>신규 보험 계약</li>
+                    <li>계약 갱신</li>
+                    <li>조건 변경</li>
+                    <li>계약 종료 처리</li>
+                  </ul>
+                </div>
+                
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-file-alt"></i> 산출물</strong>
+                  <ul>
+                    <li>계약서</li>
+                    <li>증권번호</li>
+                    <li>계약 조건 기록</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="type-features">
+                <span class="feature-tag positive">✅ 고객/보험사 연결</span>
+                <span class="feature-tag positive">✅ 기준점</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. 정산 -->
+          <div class="col-md-4 col-lg-4 mb-3">
+            <div class="type-card">
+              <div class="type-card-header">
+                <div class="type-number">4</div>
+                <div class="type-title-section">
+                  <h3>정산</h3>
+                  <span class="type-badge">SETTLEMENT</span>
+                </div>
+              </div>
+              
+              <div class="type-definition">
+                보험 계약에 따른 금액 정산 업무
+              </div>
+              
+              <div class="type-details">
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-tasks"></i> 포함 업무</strong>
+                  <ul>
+                    <li>일/주/월/연 단위 정산</li>
+                    <li>보험사 정산 자료 검증</li>
+                    <li>입금 확인</li>
+                    <li>차이 발생 시 조정</li>
+                  </ul>
+                </div>
+                
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-file-alt"></i> 산출물</strong>
+                  <ul>
+                    <li>정산 결과</li>
+                    <li>정산 기준 기록</li>
+                    <li>정산 이슈 로그</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="type-features">
+                <span class="feature-tag positive">✅ 반복성</span>
+                <span class="feature-tag negative">❌ 리스크 큼</span>
+                <span class="feature-tag positive">✅ 체크리스트 필수</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. 실적 -->
+          <div class="col-md-4 col-lg-4 mb-3">
+            <div class="type-card">
+              <div class="type-card-header">
+                <div class="type-number">5</div>
+                <div class="type-title-section">
+                  <h3>실적</h3>
+                  <span class="type-badge">PERFORMANCE</span>
+                </div>
+              </div>
+              
+              <div class="type-definition">
+                계약 결과를 보험사 시스템 실적과 대조·검증하는 업무
+              </div>
+              
+              <div class="type-details">
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-tasks"></i> 포함 업무</strong>
+                  <ul>
+                    <li>보험사 시스템 실적 대조</li>
+                    <li>수수료 확인</li>
+                    <li>수수료 배분</li>
+                    <li>실적 차이 분석</li>
+                  </ul>
+                </div>
+                
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-file-alt"></i> 산출물</strong>
+                  <ul>
+                    <li>실적 비교 결과</li>
+                    <li>수수료 산출 근거</li>
+                    <li>배분 내역</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="type-features">
+                <span class="feature-tag positive">✅ 정산 이후</span>
+                <span class="feature-tag positive">✅ 이력 중요</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. 클레임 -->
+          <div class="col-md-4 col-lg-4 mb-3">
+            <div class="type-card">
+              <div class="type-card-header">
+                <div class="type-number">6</div>
+                <div class="type-title-section">
+                  <h3>클레임</h3>
+                  <span class="type-badge">CLAIM</span>
+                </div>
+              </div>
+              
+              <div class="type-definition">
+                보험 계약 이후 발생하는 모든 사후 처리 (After Service)
+              </div>
+              
+              <div class="type-details">
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-tasks"></i> 포함 업무</strong>
+                  <ul>
+                    <li>사고 접수</li>
+                    <li>고객 민원</li>
+                    <li>보험사 클레임 대응</li>
+                    <li>분쟁/이슈 처리</li>
+                  </ul>
+                </div>
+                
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-file-alt"></i> 산출물</strong>
+                  <ul>
+                    <li>사고/민원 처리 이력</li>
+                    <li>보험사 커뮤니케이션 기록</li>
+                    <li>결과 보고</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="type-features">
+                <span class="feature-tag negative">❌ 리스크</span>
+                <span class="feature-tag negative">❌ 민감도 높음</span>
+                <span class="feature-tag positive">✅ 기록 필수</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. 개발 -->
+          <div class="col-md-4 col-lg-4 mb-3">
+            <div class="type-card">
+              <div class="type-card-header">
+                <div class="type-number">7</div>
+                <div class="type-title-section">
+                  <h3>개발</h3>
+                  <span class="type-badge">DEV</span>
+                </div>
+              </div>
+              
+              <div class="type-definition">
+                시스템, API, 앱/웹 개발과 관련된 모든 기술 업무
+              </div>
+              
+              <div class="type-details">
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-tasks"></i> 포함 업무</strong>
+                  <ul>
+                    <li>API 개발</li>
+                    <li>CMS 기능 개발</li>
+                    <li>앱/웹 화면 개발</li>
+                    <li>시스템 연동</li>
+                    <li>버그 수정</li>
+                  </ul>
+                </div>
+                
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-file-alt"></i> 산출물</strong>
+                  <ul>
+                    <li>코드</li>
+                    <li>API 명세</li>
+                    <li>배포 이력</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="type-features">
+                <span class="feature-tag positive">✅ 티켓 파생</span>
+                <span class="feature-tag positive">✅ 기술 로그</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8. 기획 -->
+          <div class="col-md-4 col-lg-4 mb-3">
+            <div class="type-card">
+              <div class="type-card-header">
+                <div class="type-number">8</div>
+                <div class="type-title-section">
+                  <h3>기획</h3>
+                  <span class="type-badge">PLAN</span>
+                </div>
+              </div>
+              
+              <div class="type-definition">
+                프로젝트 확정 이후, 실제 실행을 위한 상세 설계 업무
+              </div>
+              
+              <div class="type-details">
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-tasks"></i> 포함 업무</strong>
+                  <ul>
+                    <li>업무 프로세스 설계</li>
+                    <li>시스템 연동 기획</li>
+                    <li>운영 정책 정의</li>
+                    <li>화면/UX 기획</li>
+                  </ul>
+                </div>
+                
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-file-alt"></i> 산출물</strong>
+                  <ul>
+                    <li>기획서</li>
+                    <li>정책 문서</li>
+                    <li>연동 정의서</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="type-features">
+                <span class="feature-tag positive">✅ 프로젝트→기획→개발</span>
+                <span class="feature-tag positive">✅ 기록 핵심</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 9. 기타 -->
+          <div class="col-md-4 col-lg-4 mb-3">
+            <div class="type-card">
+              <div class="type-card-header">
+                <div class="type-number">9</div>
+                <div class="type-title-section">
+                  <h3>기타</h3>
+                  <span class="type-badge">OTHER</span>
+                </div>
+              </div>
+              
+              <div class="type-definition">
+                위 유형에 명확히 속하지 않는 예외 업무
+              </div>
+              
+              <div class="type-details">
+                <div class="type-detail-item">
+                  <strong><i class="fas fa-exclamation-triangle"></i> 사용 원칙</strong>
+                  <ul>
+                    <li>가급적 사용 ❌</li>
+                    <li>임시 성격 업무</li>
+                    <li>이후 유형 재분류 권장</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div class="type-features">
+                <span class="feature-tag negative">❌ 최소화</span>
+              </div>
             </div>
           </div>
         </div>
