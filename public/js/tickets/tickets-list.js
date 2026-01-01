@@ -39,9 +39,6 @@ class TicketsManager {
         this.searchInput = document.getElementById('searchInput');
         this.searchBtn = document.getElementById('searchBtn');
         
-        // 정보 요소들
-        this.totalInfo = document.getElementById('totalInfo');
-        
         // 테이블 요소들
         this.tableBody = document.getElementById('ticketsTableBody');
         this.cardView = document.getElementById('ticketsCardView');
@@ -93,7 +90,6 @@ class TicketsManager {
                 this.totalCount = result.count || 0;
                 this.renderTable();
                 this.renderPagination();
-                this.updateTotalInfo();
             } else {
                 this.showError(result.message || '티켓 목록을 불러오는데 실패했습니다.');
             }
@@ -366,10 +362,6 @@ class TicketsManager {
         }
 
         this.paginationControls.innerHTML = paginationHTML;
-    }
-
-    updateTotalInfo() {
-        this.totalInfo.textContent = `전체 ${this.totalCount}건`;
     }
 
     handleSearch() {
