@@ -104,7 +104,7 @@ class TicketsManager {
     renderTable() {
         const emptyState = `
             <tr>
-                <td colspan="9" class="text-center py-5">
+                <td colspan="8" class="text-center py-5">
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
                         <div class="mt-2">등록된 티켓이 없습니다.</div>
@@ -136,27 +136,22 @@ class TicketsManager {
                 const typeBadge = this.getTypeBadge(ticket.ticket_type_code);
                 const priorityBadge = this.getPriorityBadge(ticket.priority);
                 const createdAt = this.formatDate(ticket.created_at);
-                const description = ticket.description ? 
-                    (ticket.description.length > 50 ? ticket.description.substring(0, 50) + '...' : ticket.description) : '';
 
                 return `
                     <tr style="cursor: pointer;" onclick="window.location.href='/pages/tickets/detail.html?id=${ticket.id}'">
                         <td class="text-center">${rowNum}</td>
-                        <td><code class="text-primary">${this.escapeHtml(ticket.ticket_number)}</code></td>
-                        <td>${typeBadge}</td>
-                        <td>${statusBadge}</td>
-                        <td>
-                            <div class="fw-semibold">${this.escapeHtml(ticket.title)}</div>
-                            ${description ? `<small class="text-muted d-block mt-1">${this.escapeHtml(description)}</small>` : ''}
-                        </td>
+                        <td class="fw-semibold">${this.escapeHtml(ticket.title)}</td>
                         <td><small>${this.escapeHtml(ticket.owner_name || ticket.creator_name || '-')}</small></td>
-                        <td class="text-center">${priorityBadge}</td>
+                        <td>${typeBadge}</td>
                         <td><small class="text-muted">${createdAt}</small></td>
+                        <td class="text-center">${priorityBadge}</td>
+                        <td>${statusBadge}</td>
                         <td class="text-center">
                             <a href="/pages/tickets/detail.html?id=${ticket.id}" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
                                 <i class="fas fa-eye"></i>
                             </a>
                         </td>
+                        <td style="display: none;"><code class="text-primary">${this.escapeHtml(ticket.ticket_number)}</code></td>
                     </tr>
                 `;
             }).join('');
@@ -380,7 +375,7 @@ class TicketsManager {
             if (this.tableBody) {
                 this.tableBody.innerHTML = `
                     <tr>
-                        <td colspan="9" class="text-center py-4">
+                        <td colspan="8" class="text-center py-4">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
@@ -402,7 +397,7 @@ class TicketsManager {
         if (this.tableBody) {
             this.tableBody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                         <div class="alert alert-danger mb-0">
                             <i class="fas fa-exclamation-circle"></i> ${this.escapeHtml(message)}
                         </div>

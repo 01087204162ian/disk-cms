@@ -25,7 +25,17 @@
     }
     
     .filter-select {
-      font-size: 0.875rem;
+      font-size: 0.875rem !important;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+    
+    /* 모든 필터 선택박스 일관된 스타일 */
+    select.filter-select,
+    select.form-control-sm.filter-select {
+      font-size: 0.875rem !important;
+      padding: 0.25rem 0.5rem;
+      height: calc(1.5em + 0.5rem + 2px);
     }
     
     /* 테이블 스타일 개선 */
@@ -302,19 +312,19 @@
                 <thead class="table-light">
                   <tr>
                     <th style="width: 50px;" class="text-center">번호</th>
-                    <th style="width: 150px;">티켓 번호</th>
-                    <th style="width: 100px;">유형</th>
-                    <th style="width: 90px;">상태</th>
                     <th>제목</th>
                     <th style="width: 100px;">담당자</th>
-                    <th style="width: 90px;" class="text-center">우선순위</th>
+                    <th style="width: 100px;">유형</th>
                     <th style="width: 110px;">생성일</th>
+                    <th style="width: 90px;" class="text-center">우선순위</th>
+                    <th style="width: 90px;">상태</th>
                     <th style="width: 80px;" class="text-center">작업</th>
+                    <th style="display: none;">티켓 번호</th>
                   </tr>
                 </thead>
                 <tbody id="ticketsTableBody">
                   <tr>
-                    <td colspan="9" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                       <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                       </div>
