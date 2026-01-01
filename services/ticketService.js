@@ -312,7 +312,8 @@ class TicketService {
         if (tickets.length === 0) return;
 
         const ticket = tickets[0];
-        const ticketAmount = ticket.amount || 0;
+        // amount를 숫자로 변환 (DECIMAL이 문자열로 올 수 있음)
+        const ticketAmount = parseFloat(ticket.amount) || 0;
 
         // 모든 활성 규칙 조회
         const [allRules] = await connection.execute(
@@ -329,21 +330,30 @@ class TicketService {
                 continue;
             }
 
-            // amount 범위 매칭
-            if (rule.amount_min !== null && ticketAmount < rule.amount_min) {
+            // amount 범위 매칭 (NULL 체크 및 숫자 변환)
+            const amountMin = rule.amount_min !== null && rule.amount_min !== undefined 
+                ? parseFloat(rule.amount_min) 
+                : null;
+            const amountMax = rule.amount_max !== null && rule.amount_max !== undefined 
+                ? parseFloat(rule.amount_max) 
+                : null;
+
+            if (amountMin !== null && ticketAmount < amountMin) {
                 continue;
             }
-            if (rule.amount_max !== null && ticketAmount > rule.amount_max) {
+            if (amountMax !== null && ticketAmount > amountMax) {
                 continue;
             }
 
             // sensitivity_level 매칭
-            if (rule.sensitivity_level !== null && rule.sensitivity_level !== ticket.sensitivity_level) {
+            if (rule.sensitivity_level !== null && rule.sensitivity_level !== undefined 
+                && rule.sensitivity_level !== ticket.sensitivity_level) {
                 continue;
             }
 
             // severity 매칭
-            if (rule.severity !== null && rule.severity !== ticket.severity) {
+            if (rule.severity !== null && rule.severity !== undefined 
+                && rule.severity !== ticket.severity) {
                 continue;
             }
 
