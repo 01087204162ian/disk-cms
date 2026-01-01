@@ -169,6 +169,7 @@ class TicketsManager {
                 return `
                     <div class="ticket-card" onclick="window.location.href='/pages/tickets/detail.html?id=${ticket.id}'">
                         <div class="ticket-card-header">
+                            <span class="text-muted small me-2">#${rowNum}</span>
                             <h6 class="ticket-card-title">${this.escapeHtml(ticket.title)}</h6>
                         </div>
                         <div class="ticket-card-body">
@@ -194,7 +195,6 @@ class TicketsManager {
                             </div>
                         </div>
                         <div class="ticket-card-footer">
-                            <span class="text-muted small">#${rowNum}</span>
                             <a href="/pages/tickets/detail.html?id=${ticket.id}" class="btn btn-sm btn-primary" onclick="event.stopPropagation();">
                                 <i class="fas fa-eye"></i> 보기
                             </a>
