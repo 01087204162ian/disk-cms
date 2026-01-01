@@ -304,7 +304,19 @@ router.post('/:id/checklists/init', async (req, res) => {
         }
 
         const template = templates[0];
-        const items = JSON.parse(template.items);
+        
+        // JSON 파싱 (이미 객체일 수도 있고 문자열일 수도 있음)
+        let items;
+        if (typeof template.items === 'string') {
+            items = JSON.parse(template.items);
+        } else {
+            items = template.items; // 이미 파싱된 객체
+        }
+
+        // 배열인지 확인
+        if (!Array.isArray(items)) {
+            throw new Error('템플릿 items가 배열 형식이 아닙니다.');
+        }
 
         // 기존 체크리스트 삭제
         await connection.execute(
@@ -314,16 +326,26 @@ router.post('/:id/checklists/init', async (req, res) => {
 
         // 체크리스트 항목 생성
         for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            let itemText;
+            let required = true;
+
+            if (typeof item === 'string') {
+                // 단순 문자열 배열
+                itemText = item;
+            } else if (typeof item === 'object' && item !== null) {
+                // 객체 형태 {text: "...", required: true/false}
+                itemText = item.text || item.item_text || '';
+                required = item.required !== undefined ? item.required : true;
+            } else {
+                continue; // 잘못된 형식은 건너뜀
+            }
+
             await connection.execute(
                 `INSERT INTO ticket_checklists (
                     ticket_id, item_text, item_order, required
                 ) VALUES (?, ?, ?, ?)`,
-                [
-                    ticketId,
-                    items[i].text || items[i],
-                    i + 1,
-                    items[i].required !== undefined ? items[i].required : true
-                ]
+                [ticketId, itemText, i + 1, required ? 1 : 0]
             );
         }
 
@@ -351,7 +373,9 @@ router.post('/:id/checklists/init', async (req, res) => {
         console.error('체크리스트 초기화 오류:', error);
         res.status(500).json({
             success: false,
-            message: '체크리스트 초기화 중 오류가 발생했습니다.'
+            message: '체크리스트 초기화 중 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     } finally {
         connection.release();
