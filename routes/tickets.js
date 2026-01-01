@@ -740,5 +740,104 @@ router.delete('/:id/collaborators/:email', async (req, res) => {
     }
 });
 
+/**
+ * PATCH /tickets/:id/approvals/:approvalId - 승인 처리
+ */
+router.patch('/:id/approvals/:approvalId', async (req, res) => {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const ticketId = parseInt(req.params.id);
+        const approvalId = parseInt(req.params.approvalId);
+        const userId = req.session.user.email;
+        const { status, comment } = req.body;
+
+        // 승인 상태 검증
+        if (!['APPROVED', 'REJECTED'].includes(status)) {
+            await connection.rollback();
+            return res.status(400).json({
+                success: false,
+                message: '유효하지 않은 승인 상태입니다.'
+            });
+        }
+
+        // 승인 인스턴스 조회
+        const [approvals] = await connection.execute(
+            'SELECT * FROM ticket_approval_instances WHERE id = ? AND ticket_id = ?',
+            [approvalId, ticketId]
+        );
+
+        if (approvals.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({
+                success: false,
+                message: '승인 인스턴스를 찾을 수 없습니다.'
+            });
+        }
+
+        const approval = approvals[0];
+
+        // 권한 확인: 승인자만 처리 가능
+        if (approval.approver_id !== userId) {
+            await connection.rollback();
+            return res.status(403).json({
+                success: false,
+                message: '승인 처리 권한이 없습니다.'
+            });
+        }
+
+        // 이미 처리된 경우
+        if (approval.status !== 'PENDING') {
+            await connection.rollback();
+            return res.status(400).json({
+                success: false,
+                message: '이미 처리된 승인입니다.'
+            });
+        }
+
+        // 승인 상태 업데이트
+        await connection.execute(
+            `UPDATE ticket_approval_instances 
+            SET status = ?, comment = ?, approved_at = NOW(), updated_at = NOW()
+            WHERE id = ?`,
+            [status, comment || null, approvalId]
+        );
+
+        // Activity Log 기록
+        await TicketService.logActivity(connection, {
+            ticket_id: ticketId,
+            activity_type: 'APPROVAL',
+            user_id: userId,
+            description: `승인 ${status === 'APPROVED' ? '승인' : '거부'}: ${approval.approver_role || ''}`,
+            new_value: status
+        });
+
+        await connection.commit();
+
+        // 업데이트된 승인 정보 반환
+        const [updatedApproval] = await connection.execute(
+            'SELECT * FROM ticket_approval_instances WHERE id = ?',
+            [approvalId]
+        );
+
+        res.json({
+            success: true,
+            data: updatedApproval[0],
+            message: status === 'APPROVED' ? '승인 처리되었습니다.' : '거부 처리되었습니다.'
+        });
+    } catch (error) {
+        await connection.rollback();
+        console.error('승인 처리 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '승인 처리 중 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    } finally {
+        connection.release();
+    }
+});
+
 module.exports = router;
 
