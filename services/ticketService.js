@@ -15,17 +15,26 @@ class TicketService {
         try {
             await connection.beginTransaction();
 
-            // 원자적 증가
+            // 원자적 증가 (더 안전한 방법)
             await connection.execute(
                 `INSERT INTO ticket_counters (ticket_type_code, date_key, current_seq)
                  VALUES (?, ?, 1)
-                 ON DUPLICATE KEY UPDATE current_seq = LAST_INSERT_ID(current_seq + 1)`,
+                 ON DUPLICATE KEY UPDATE current_seq = current_seq + 1`,
                 [ticketTypeCode, dateKey]
             );
 
-            // 시퀀스 조회
-            const [result] = await connection.execute('SELECT LAST_INSERT_ID() AS seq');
-            const seq = result[0].seq;
+            // 시퀀스 직접 조회
+            const [result] = await connection.execute(
+                `SELECT current_seq FROM ticket_counters
+                 WHERE ticket_type_code = ? AND date_key = ?`,
+                [ticketTypeCode, dateKey]
+            );
+
+            if (result.length === 0) {
+                throw new Error('티켓 번호 카운터 조회 실패');
+            }
+
+            const seq = result[0].current_seq;
 
             // 티켓 번호 생성: {TYPE}-{YYYYMMDD}-{SEQ4}
             const ticketNumber = `${ticketTypeCode}-${dateKey}-${String(seq).padStart(4, '0')}`;
