@@ -373,7 +373,26 @@ class TicketService {
 
         // 매칭된 규칙으로 승인 인스턴스 생성
         for (const rule of matchedRules) {
-            const approverRoles = JSON.parse(rule.approver_roles);
+            // approver_roles 파싱 (이미 객체일 수도 있고 문자열일 수도 있음)
+            let approverRoles;
+            try {
+                if (typeof rule.approver_roles === 'string') {
+                    approverRoles = JSON.parse(rule.approver_roles);
+                } else if (Array.isArray(rule.approver_roles)) {
+                    approverRoles = rule.approver_roles;
+                } else {
+                    console.error('approver_roles 형식이 올바르지 않습니다:', rule.approver_roles);
+                    continue;
+                }
+            } catch (error) {
+                console.error('approver_roles 파싱 오류:', error, rule);
+                continue;
+            }
+
+            if (!Array.isArray(approverRoles) || approverRoles.length === 0) {
+                console.error('approver_roles가 배열이 아니거나 비어있습니다:', approverRoles);
+                continue;
+            }
 
             // 역할별 사용자 조회 및 인스턴스 생성
             for (const role of approverRoles) {
@@ -384,7 +403,7 @@ class TicketService {
                     [role]
                 );
 
-                if (users.length > 0) {
+                if (users && users.length > 0) {
                     const approver = users[0];
                     await connection.execute(
                         `INSERT INTO ticket_approval_instances (
