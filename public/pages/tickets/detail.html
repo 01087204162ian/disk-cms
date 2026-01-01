@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보험 CMS | 업무 티켓 - 상세</title>
+  
+  <!-- 한글 폰트 (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/sj-styles.css" rel="stylesheet">
+  
+  <style>
+    /* 티켓 상세 전용 스타일 */
+    .ticket-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .ticket-header h4 {
+      margin: 0;
+      color: white;
+    }
+    
+    .info-card {
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: #fff;
+    }
+    
+    .info-label {
+      font-size: 0.875rem;
+      color: #6c757d;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+      font-size: 1rem;
+      color: #212529;
+      font-weight: 500;
+    }
+    
+    .checklist-item {
+      padding: 0.75rem;
+      border: 1px solid #dee2e6;
+      border-radius: 0.375rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.2s ease;
+    }
+    
+    .checklist-item:hover {
+      background-color: #f8f9fa;
+      border-color: #0d6efd;
+    }
+    
+    .checklist-item.checked {
+      background-color: #d1e7dd;
+      border-color: #198754;
+    }
+    
+    .checklist-item.required {
+      border-left: 3px solid #dc3545;
+    }
+    
+    .checklist-item.required.checked {
+      border-left-color: #198754;
+    }
+    
+    .approval-card {
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: #fff;
+    }
+    
+    .approval-card.approved {
+      border-left: 4px solid #198754;
+      background-color: #d1e7dd;
+    }
+    
+    .approval-card.pending {
+      border-left: 4px solid #ffc107;
+      background-color: #fff3cd;
+    }
+    
+    .approval-card.rejected {
+      border-left: 4px solid #dc3545;
+      background-color: #f8d7da;
+    }
+    
+    .activity-log-item {
+      padding: 0.75rem;
+      border-left: 3px solid #dee2e6;
+      margin-bottom: 0.75rem;
+      background: #f8f9fa;
+      border-radius: 0.25rem;
+    }
+    
+    .activity-log-item:hover {
+      background-color: #e9ecef;
+    }
+    
+    .collaborator-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #e7f3ff;
+      border: 1px solid #b3d9ff;
+      border-radius: 0.375rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .status-badge {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+      .ticket-header {
+        padding: 1rem;
+      }
+      
+      .info-card {
+        padding: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <i class="fas fa-spinner"></i>
+      <div>페이지를 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 헤더 컨테이너 -->
+  <div id="header-container"></div>
+
+  <!-- 사이드바 오버레이 (모바일용) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container"></div>
+
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            
+            <!-- 헤더 영역 -->
+            <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+              <div class="flex-grow-1">
+                <a href="/pages/tickets/list.html" class="btn btn-sm btn-outline-secondary mb-2">
+                  <i class="fas fa-arrow-left"></i> 목록으로
+                </a>
+                <div class="ticket-header">
+                  <h4 id="ticketTitle" class="mb-2">티켓 상세</h4>
+                  <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span id="ticketNumber" class="badge bg-light text-dark">-</span>
+                    <span id="ticketStatusBadge" class="status-badge">-</span>
+                    <span id="ticketTypeBadge" class="badge bg-primary">-</span>
+                    <span id="ticketPriorityBadge" class="badge">-</span>
+                  </div>
+                </div>
+              </div>
+              <div id="actionButtons" class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-primary" id="editBtn" style="display: none;">
+                  <i class="fas fa-edit"></i> 수정
+                </button>
+                <button class="btn btn-sm btn-success" id="statusChangeBtn" style="display: none;">
+                  <i class="fas fa-exchange-alt"></i> 상태 변경
+                </button>
+              </div>
+            </div>
+
+            <!-- 탭 메뉴 -->
+            <ul class="nav nav-tabs mb-4" id="detailTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                  <i class="fas fa-info-circle"></i> 개요
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="checklist-tab" data-bs-toggle="tab" data-bs-target="#checklist" type="button" role="tab">
+                  <i class="fas fa-tasks"></i> 체크리스트 <span id="checklistCountBadge" class="badge bg-secondary">0</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="approvals-tab" data-bs-toggle="tab" data-bs-target="#approvals" type="button" role="tab">
+                  <i class="fas fa-check-circle"></i> 승인 <span id="approvalsCountBadge" class="badge bg-secondary">0</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab">
+                  <i class="fas fa-history"></i> 활동 로그
+                </button>
+              </li>
+            </ul>
+
+            <!-- 탭 콘텐츠 -->
+            <div class="tab-content" id="detailTabContent">
+              
+              <!-- 개요 탭 -->
+              <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <div class="row">
+                  <!-- 기본 정보 -->
+                  <div class="col-md-6 mb-3">
+                    <div class="info-card">
+                      <div class="info-label">생성자</div>
+                      <div class="info-value" id="creatorName">-</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <div class="info-card">
+                      <div class="info-label">담당자</div>
+                      <div class="info-value" id="ownerName">-</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <div class="info-card">
+                      <div class="info-label">생성일</div>
+                      <div class="info-value" id="createdAt">-</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <div class="info-card">
+                      <div class="info-label">수정일</div>
+                      <div class="info-value" id="updatedAt">-</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <div class="info-card">
+                      <div class="info-label">금액</div>
+                      <div class="info-value" id="amount">-</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <div class="info-card">
+                      <div class="info-label">심각도</div>
+                      <div class="info-value" id="severity">-</div>
+                    </div>
+                  </div>
+                  
+                  <!-- 설명 -->
+                  <div class="col-12 mb-3">
+                    <div class="info-card">
+                      <div class="info-label">설명</div>
+                      <div class="info-value" id="description" style="white-space: pre-wrap;">-</div>
+                    </div>
+                  </div>
+                  
+                  <!-- 협업자 -->
+                  <div class="col-12 mb-3" id="collaboratorsSection" style="display: none;">
+                    <div class="info-card">
+                      <div class="info-label mb-2">협업자</div>
+                      <div id="collaboratorsList"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 체크리스트 탭 -->
+              <div class="tab-pane fade" id="checklist" role="tabpanel">
+                <div id="checklistContainer">
+                  <div class="text-center text-muted py-4">
+                    <i class="fas fa-tasks fa-2x mb-2"></i>
+                    <div>체크리스트가 없습니다.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 승인 탭 -->
+              <div class="tab-pane fade" id="approvals" role="tabpanel">
+                <div id="approvalsContainer">
+                  <div class="text-center text-muted py-4">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <div>승인 정보가 없습니다.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 활동 로그 탭 -->
+              <div class="tab-pane fade" id="activity" role="tabpanel">
+                <div id="activityLogsContainer">
+                  <div class="text-center text-muted py-4">
+                    <i class="fas fa-history fa-2x mb-2"></i>
+                    <div>활동 로그가 없습니다.</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 상태 변경 모달 -->
+  <div class="modal fade" id="statusChangeModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">상태 변경</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">새로운 상태</label>
+            <select class="form-select" id="newStatusSelect">
+              <option value="NEW">신규</option>
+              <option value="ASSIGNED">배정됨</option>
+              <option value="IN_PROGRESS">진행중</option>
+              <option value="REVIEW">검토중</option>
+              <option value="DONE">완료</option>
+              <option value="ARCHIVED">보관</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-primary" id="confirmStatusChangeBtn">변경</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- SJ 템플릿 로더 -->
+  <script src="/js/sj-template-loader.js"></script>
+  
+  <script>
+    // 페이지 로드 후 자동 초기화
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('티켓 상세 페이지가 로드되었습니다.');
+      
+      await window.sjTemplateLoader.initializePage('tickets-detail');
+    });
+  </script>
+  <script src="/js/tickets/tickets-detail.js"></script>
+</body>
+</html>
+
