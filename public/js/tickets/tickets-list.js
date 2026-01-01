@@ -165,41 +165,33 @@ class TicketsManager {
                 const typeBadge = this.getTypeBadge(ticket.ticket_type_code);
                 const priorityBadge = this.getPriorityBadge(ticket.priority);
                 const createdAt = this.formatDate(ticket.created_at);
-                const description = ticket.description ? 
-                    (ticket.description.length > 80 ? ticket.description.substring(0, 80) + '...' : ticket.description) : '';
 
                 return `
                     <div class="ticket-card" onclick="window.location.href='/pages/tickets/detail.html?id=${ticket.id}'">
                         <div class="ticket-card-header">
                             <h6 class="ticket-card-title">${this.escapeHtml(ticket.title)}</h6>
-                            <div class="ticket-card-badges">
-                                ${statusBadge}
-                                ${priorityBadge}
-                            </div>
                         </div>
                         <div class="ticket-card-body">
                             <div class="ticket-card-row">
-                                <div class="ticket-card-label">티켓 번호</div>
-                                <div class="ticket-card-value"><code class="text-primary">${this.escapeHtml(ticket.ticket_number)}</code></div>
+                                <div class="ticket-card-label">담당자</div>
+                                <div class="ticket-card-value">${this.escapeHtml(ticket.owner_name || ticket.creator_name || '-')}</div>
                             </div>
                             <div class="ticket-card-row">
                                 <div class="ticket-card-label">유형</div>
                                 <div class="ticket-card-value">${typeBadge}</div>
                             </div>
                             <div class="ticket-card-row">
-                                <div class="ticket-card-label">담당자</div>
-                                <div class="ticket-card-value">${this.escapeHtml(ticket.owner_name || ticket.creator_name || '-')}</div>
-                            </div>
-                            <div class="ticket-card-row">
                                 <div class="ticket-card-label">생성일</div>
                                 <div class="ticket-card-value">${createdAt}</div>
                             </div>
-                            ${description ? `
-                            <div class="ticket-card-row full-width">
-                                <div class="ticket-card-label">설명</div>
-                                <div class="ticket-card-value text-muted">${this.escapeHtml(description)}</div>
+                            <div class="ticket-card-row">
+                                <div class="ticket-card-label">우선순위</div>
+                                <div class="ticket-card-value">${priorityBadge}</div>
                             </div>
-                            ` : ''}
+                            <div class="ticket-card-row">
+                                <div class="ticket-card-label">상태</div>
+                                <div class="ticket-card-value">${statusBadge}</div>
+                            </div>
                         </div>
                         <div class="ticket-card-footer">
                             <span class="text-muted small">#${rowNum}</span>
@@ -260,7 +252,9 @@ class TicketsManager {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
 
     renderPagination() {
@@ -428,4 +422,5 @@ document.addEventListener('DOMContentLoaded', () => {
     ticketsManager = new TicketsManager();
     window.ticketsManager = ticketsManager;
 });
+
 
