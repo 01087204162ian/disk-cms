@@ -860,6 +860,10 @@ createDynamicModal() {
 			'tickets-about': {
 			  title: '보험 운영 플랫폼',
 			  description: '티켓 시스템이란?'
+			},
+			'tickets-types-guide': {
+			  title: '보험 운영 플랫폼',
+			  description: '티켓 유형 가이드'
 			}
 		  };
 

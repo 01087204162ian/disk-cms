@@ -107,14 +107,21 @@
                     <label for="ticketType" class="form-label required-field">티켓 유형</label>
                     <select class="form-select" id="ticketType" name="ticket_type_code" required>
                       <option value="">선택하세요</option>
-                      <option value="SETTLE">정산</option>
+                      <option value="RESEARCH">리서치</option>
+                      <option value="PROJECT">프로젝트</option>
+                      <option value="CONTRACT">계약</option>
+                      <option value="SETTLEMENT">정산</option>
+                      <option value="PERFORMANCE">실적</option>
                       <option value="CLAIM">클레임</option>
-                      <option value="ACCIDENT">사고</option>
-                      <option value="PARTNER">파트너</option>
                       <option value="DEV">개발</option>
                       <option value="PLAN">기획</option>
                       <option value="OTHER">기타</option>
                     </select>
+                    <small class="form-text text-muted">
+                      <a href="/pages/tickets/types-guide.html" target="_blank">
+                        <i class="fas fa-question-circle"></i> 유형 선택 가이드 보기
+                      </a>
+                    </small>
                   </div>
                   
                   <div class="col-md-6 mb-3">

@@ -362,13 +362,19 @@ class TicketApprovals {
 
     getTypeLabel(type) {
         const types = {
-            'SETTLE': '정산',
+            'RESEARCH': '리서치',
+            'PROJECT': '프로젝트',
+            'CONTRACT': '계약',
+            'SETTLEMENT': '정산',
+            'PERFORMANCE': '실적',
             'CLAIM': '클레임',
-            'ACCIDENT': '사고',
-            'PARTNER': '파트너',
             'DEV': '개발',
             'PLAN': '기획',
-            'OTHER': '기타'
+            'OTHER': '기타',
+            // 기존 데이터 호환성
+            'SETTLE': '정산',
+            'ACCIDENT': '사고',
+            'PARTNER': '파트너'
         };
         return types[type] || type;
     }

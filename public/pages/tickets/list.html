@@ -251,13 +251,19 @@
                     <label class="filter-label fw-semibold">유형</label>
                     <select id="ticketTypeFilter" class="form-control form-control-sm filter-select">
                       <option value="">전체</option>
-                      <option value="SETTLE">정산</option>
+                      <option value="RESEARCH">리서치</option>
+                      <option value="PROJECT">프로젝트</option>
+                      <option value="CONTRACT">계약</option>
+                      <option value="SETTLEMENT">정산</option>
+                      <option value="PERFORMANCE">실적</option>
                       <option value="CLAIM">클레임</option>
-                      <option value="ACCIDENT">사고</option>
-                      <option value="PARTNER">파트너</option>
                       <option value="DEV">개발</option>
                       <option value="PLAN">기획</option>
                       <option value="OTHER">기타</option>
+                      <!-- 기존 데이터 호환성 -->
+                      <option value="SETTLE">정산 (구)</option>
+                      <option value="ACCIDENT">사고 (구)</option>
+                      <option value="PARTNER">파트너 (구)</option>
                     </select>
                   </div>
                   
