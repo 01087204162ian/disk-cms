@@ -159,13 +159,11 @@ class TicketService {
 
         query += ' ORDER BY t.created_at DESC';
 
+        // LIMIT/OFFSET은 문자열 삽입 방식 사용 (MySQL 파라미터 바인딩 이슈 방지)
         if (filters.limit) {
-            query += ' LIMIT ?';
-            params.push(parseInt(filters.limit));
-            if (filters.offset) {
-                query += ' OFFSET ?';
-                params.push(parseInt(filters.offset));
-            }
+            const limitNum = parseInt(filters.limit) || 50;
+            const offsetNum = parseInt(filters.offset) || 0;
+            query += ` LIMIT ${limitNum} OFFSET ${offsetNum}`;
         }
 
         const [tickets] = await pool.execute(query, params);

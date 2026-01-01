@@ -82,7 +82,9 @@ router.get('/', async (req, res) => {
         console.error('티켓 목록 조회 오류:', error);
         res.status(500).json({
             success: false,
-            message: '티켓 목록 조회 중 오류가 발생했습니다.'
+            message: '티켓 목록 조회 중 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
