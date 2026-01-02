@@ -1534,6 +1534,12 @@ function displayPharmcay(pharmacyId, payload) {
           </button>
         </div>
 
+        <!-- 메시지 (전체 폭) -->
+        <div class="full-width">
+          <label for="message" class="col-form-label">메시지</label>
+          <textarea class="form-control" id="message" name="message" rows="3" readonly style="background-color: #f8f9fa;">${val(d.message)}</textarea>
+        </div>
+
         <!-- 메모 (전체 폭) -->
         <div class="full-width">
           <label for="memo" class="col-form-label">메모</label>
@@ -1771,6 +1777,13 @@ function displayPharmcay(pharmacyId, payload) {
                      value="${val(d.insurance_end_date || d.jeonggi)}">
             </div>
           </div>
+        </div>
+        
+        <!-- 메시지 -->
+        <div class="mobile-field-group">
+          <label class="mobile-field-label">메시지</label>
+          <textarea class="form-control mobile-input" id="message_mobile" 
+                    rows="3" readonly style="background-color: #f8f9fa;">${val(d.message)}</textarea>
         </div>
         
         <!-- 메모 -->
