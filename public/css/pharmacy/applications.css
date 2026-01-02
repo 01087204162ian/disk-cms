@@ -490,8 +490,13 @@
     }
 
     /* 보험료 열 보더 제거 */
-    .table-bordered td.col-premium {
+    .table.table-bordered td.col-premium,
+    table.table-bordered td.col-premium {
       border: none !important;
+      border-left: none !important;
+      border-right: none !important;
+      border-top: none !important;
+      border-bottom: none !important;
     }
 
     /* ========== 모바일 카드 ========== */
