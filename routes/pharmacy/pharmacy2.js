@@ -538,13 +538,19 @@ router.post('/update-status', async (req, res) => {
     }
 
     const trimmedStatus = status.trim();
+    const oldStatus = req.body.old_status; // 프론트엔드에서 전달된 old_status
 
     const requestData = {
       pharmacy_id: validPharmacyId,
       status: trimmedStatus
     };
 
-    console.log(`[POST /update-status] 상태 변경 요청 - 약국ID: ${validPharmacyId}, 상태: "${trimmedStatus}"`);
+    // old_status가 있으면 전달 (PHP API에서 필요할 수 있음)
+    if (oldStatus) {
+      requestData.old_status = oldStatus;
+    }
+
+    console.log(`[POST /update-status] 상태 변경 요청 - 약국ID: ${validPharmacyId}, 상태: "${trimmedStatus}", 이전 상태: "${oldStatus || 'N/A'}"`);
 
     // PHP API 호출
     const response = await axios.post(`${PHP_API_BASE_URL}/pharmacy-status-update.php`, requestData, {
@@ -552,11 +558,25 @@ router.post('/update-status', async (req, res) => {
       headers: getDefaultHeaders()
     });
 
+    // PHP API 응답 확인
+    if (response.data && !response.data.success) {
+      console.error(`[POST /update-status] PHP API 실패 응답:`, JSON.stringify(response.data, null, 2));
+      return res.status(400).json({
+        success: false,
+        error: response.data.error || response.data.message || '상태 변경에 실패했습니다.',
+        details: response.data
+      });
+    }
+
     console.log(`[POST /update-status] 성공 - 상태 변경 완료`);
     
     res.json(response.data);
     
   } catch (error) {
+    console.error(`[POST /update-status] 에러 발생:`, error.message);
+    if (error.response) {
+      console.error(`[POST /update-status] PHP API 에러 응답:`, JSON.stringify(error.response.data, null, 2));
+    }
     handleApiError(error, res, '상태 변경 중 오류가 발생했습니다.');
   }
 });
