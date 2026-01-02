@@ -54,10 +54,27 @@
       padding-left: 0.75rem;
     }
 
-    /* 입력 필드가 있는 셀들 - 가운데 정렬 유지 */
+    /* 입력 필드가 있는 셀들 - 가운데 정렬 유지, padding 0 */
     .table tbody td:has(input),
     .table tbody td:has(select) {
       text-align: center !important;
+      padding: 0 !important;
+    }
+
+    /* select 요소도 동일한 스타일 적용 */
+    .table select.form-control,
+    .table select.form-control-sm {
+      border: none !important;
+      background-color: #ffffff !important;
+      border-radius: 0;
+    }
+
+    .table select.form-control:focus,
+    .table select.form-control-sm:focus {
+      border: none !important;
+      background-color: #ffffff !important;
+      box-shadow: none;
+      outline: none;
     }
 
     /* 버튼이 있는 셀들 - 가운데 정렬 유지 */
@@ -82,18 +99,22 @@
       font-family: 'Pretendard', 'Inter', sans-serif;
       font-size: 0.6875rem;  /* 13px → 11px */
       font-weight: 400;
-      border: 1px solid #ffffff;
-      border-radius: 0.375rem;
+      border: none !important;
+      border-radius: 0;
+      background-color: #ffffff !important;
       transition: all 0.15s ease;
       padding: 0.25rem 0.375rem;  /* 패딩 줄임 */
       height: auto;
       min-height: 1.75rem;  /* 최소 높이 설정 */
+      width: 100%;
     }
 
     .table input.form-control:focus,
     .form-control-sm:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border: none !important;
+      background-color: #ffffff !important;
+      box-shadow: none;
+      outline: none;
     }
 
     /* 버튼 스타일 개선 - 작은 크기 */
@@ -264,6 +285,9 @@
   height: 28px;
   min-height: 28px;
   padding: 0.2rem 0.4rem;
+  border: none !important;
+  background-color: #ffffff !important;
+  border-radius: 0;
 }
   
   /* ========== 카드 스타일 ========== */
