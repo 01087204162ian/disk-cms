@@ -748,8 +748,9 @@ body {
 
 .col-status {
   text-align: center;
-  width: 120px;
-  min-width: 120px;
+  width: 108px;
+  min-width: 108px;
+  max-width: 108px;
 }
 .claim-col-status {
   text-align: center;
@@ -771,6 +772,7 @@ body {
   letter-spacing: 0.025em;
   color: #28a745;
   font-weight: bold;
+  min-width: 132px;
 }
 
 .field-col-premium {
