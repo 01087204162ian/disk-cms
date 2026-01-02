@@ -593,6 +593,15 @@ body {
   text-align: center;
 }
 
+/* 보험료 열 보더 완전 제거 */
+.table tbody td.col-premium {
+  border: none !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+}
+
 .table-bordered {
   border: 1px solid #dee2e6;
 }
