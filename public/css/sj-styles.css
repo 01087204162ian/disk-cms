@@ -773,6 +773,17 @@ body {
   color: #28a745;
   font-weight: bold;
   min-width: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.col-premium > button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
 }
 
 .field-col-premium {
@@ -893,12 +904,28 @@ body {
   outline: none;
 }
 
-/* select 요소도 동일한 스타일 */
-.table select.form-control,
-.table select.form-control-sm {
+/* select 요소도 동일한 스타일 (단, select-status는 제외) */
+.table select.form-control:not(.select-status),
+.table select.form-control-sm:not(.select-status) {
   border: none !important;
   background-color: #ffffff !important;
   border-radius: 0;
+}
+
+/* select-status는 테두리와 화살표 유지 */
+.table select.select-status {
+  border: 1px solid #d1d5db !important;
+  background-color: #ffffff !important;
+  border-radius: 0.25rem;
+  padding-right: 1.75rem; /* 화살표 공간 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 12px;
+  appearance: auto;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  cursor: pointer;
 }
 
 .input-group-append .btn {
@@ -939,16 +966,24 @@ body {
   font-weight: 400;
   min-width: 100px;
   max-width: 120px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d1d5db !important;
   border-radius: 0.25rem;
-  padding: 0.25rem 0.375rem;
+  padding: 0.25rem 1.75rem 0.25rem 0.375rem; /* 오른쪽에 화살표 공간 확보 */
   background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 12px;
+  appearance: auto; /* 브라우저 기본 화살표 표시 */
+  -webkit-appearance: menulist; /* Safari/Chrome */
+  -moz-appearance: menulist; /* Firefox */
   transition: all 0.15s ease;
   height: 28px;
   min-height: 28px;
   margin-left: auto;
   margin-right: auto;
   display: block;
+  cursor: pointer;
 }
 
 .select-status:focus {
@@ -1073,9 +1108,17 @@ body {
   width: 100%;
   max-width: 120px;
   font-size: 0.8rem;
-  padding: 2px 4px;
+  padding: 2px 1.75rem 2px 4px; /* 오른쪽에 화살표 공간 확보 */
   border: 1px solid #ddd;
   border-radius: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 12px;
+  appearance: auto;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  cursor: pointer;
 }
 
 .mobile-card-row:has(.mobile-status-select) {
