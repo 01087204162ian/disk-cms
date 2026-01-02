@@ -593,8 +593,8 @@ body {
   text-align: center;
 }
 
-/* 보험료 열 보더 완전 제거 */
-.table tbody td.col-premium {
+/* 보험료 열 보더 제거 - 새 클래스 사용 */
+.premium-no-border {
   border: none !important;
   border-top: none !important;
   border-right: none !important;
@@ -964,9 +964,9 @@ body {
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
   background-size: 12px;
-  appearance: auto;
-  -webkit-appearance: menulist;
-  -moz-appearance: menulist;
+  appearance: none; /* 브라우저 기본 화살표 숨김 */
+  -webkit-appearance: none; /* Safari/Chrome 기본 화살표 숨김 */
+  -moz-appearance: none; /* Firefox 기본 화살표 숨김 */
   cursor: pointer;
 }
 
@@ -1016,9 +1016,9 @@ body {
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
   background-size: 12px;
-  appearance: auto; /* 브라우저 기본 화살표 표시 */
-  -webkit-appearance: menulist; /* Safari/Chrome */
-  -moz-appearance: menulist; /* Firefox */
+  appearance: none; /* 브라우저 기본 화살표 숨김 */
+  -webkit-appearance: none; /* Safari/Chrome 기본 화살표 숨김 */
+  -moz-appearance: none; /* Firefox 기본 화살표 숨김 */
   transition: all 0.15s ease;
   height: 28px;
   min-height: 28px;
@@ -1157,9 +1157,9 @@ body {
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
   background-size: 12px;
-  appearance: auto;
-  -webkit-appearance: menulist;
-  -moz-appearance: menulist;
+  appearance: none; /* 브라우저 기본 화살표 숨김 */
+  -webkit-appearance: none; /* Safari/Chrome 기본 화살표 숨김 */
+  -moz-appearance: none; /* Firefox 기본 화살표 숨김 */
   cursor: pointer;
 }
 

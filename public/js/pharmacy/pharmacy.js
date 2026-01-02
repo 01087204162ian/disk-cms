@@ -577,7 +577,7 @@ function createTableRow(item, index) {
       <input type='text' id="memo_${item.num}" class="form-control form-control-sm input-memo" 
              value='${item.memo || ''}' placeholder="메모" data-id="${item.num}">
     </td>
-    <td class="col-premium">
+    <td class="col-premium premium-no-border">
       ${item.premium || (item.premium_raw ? formatCurrency(item.premium_raw) : '-')}
       <button type="button" class="btn btn-sm btn-link p-0 ms-1" 
               onclick="verifyPremium(${item.num})" 
