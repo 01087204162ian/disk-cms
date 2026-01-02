@@ -1537,7 +1537,7 @@ function displayPharmcay(pharmacyId, payload) {
         <!-- 메시지 (전체 폭) -->
         <div class="full-width">
           <label for="message" class="col-form-label">메시지</label>
-          <textarea class="form-control" id="message" name="message" rows="3" readonly style="background-color: #f8f9fa;">${val(d.message)}</textarea>
+          ${val(d.message)}
         </div>
 
         <!-- 메모 (전체 폭) -->
