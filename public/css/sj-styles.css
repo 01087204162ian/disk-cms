@@ -982,7 +982,9 @@ body {
   border: 1px solid #dee2e6;
   transition: all 0.2s;
   background-color: #fff;
-  text-align:center;
+  text-align: center;
+  display: block;
+  margin: 0 auto;
 }
 
 .input-design-number:focus {
