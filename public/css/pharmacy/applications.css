@@ -489,6 +489,11 @@
       border: 1px solid #dee2e6;
     }
 
+    /* 보험료 열 보더 제거 */
+    .table-bordered td.col-premium {
+      border: none !important;
+    }
+
     /* ========== 모바일 카드 ========== */
     .mobile-cards {
       display: none;
