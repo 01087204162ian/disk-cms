@@ -294,13 +294,13 @@
   height: 28px;
   min-height: 28px;
   padding: 0.2rem 1.75rem 0.2rem 0.4rem; /* 오른쪽에 화살표 공간 확보 */
-  border: 1px solid #d1d5db !important;
+  border: none !important;
   background-color: #ffffff !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
   background-size: 12px;
-  border-radius: 0.25rem;
+  border-radius: 0;
   appearance: none; /* 브라우저 기본 화살표 숨김 */
   -webkit-appearance: none; /* Safari/Chrome 기본 화살표 숨김 */
   -moz-appearance: none; /* Firefox 기본 화살표 숨김 */
