@@ -18,34 +18,140 @@
   <link href="/css/sj-styles.css" rel="stylesheet">
   
   <style>
-    /* 네비게이션 스타일 */
-    .guide-nav {
+    /* 사이드바 네비게이션 스타일 */
+    .guide-sidebar {
       position: sticky;
       top: 70px;
-      z-index: 100;
-      background: white;
-      border-bottom: 2px solid #e9ecef;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
+      height: calc(100vh - 70px);
+      overflow-y: auto;
+      background: #f8f9fa;
+      border-right: 1px solid #dee2e6;
+      padding: 1.5rem 0;
+      z-index: 50;
     }
     
-    .guide-nav .nav-link {
+    .guide-toc {
+      padding: 0 1rem;
+    }
+    
+    .guide-toc h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
       color: #495057;
+      margin-bottom: 1rem;
+      padding: 0 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .guide-toc ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .guide-toc .toc-item {
+      margin-bottom: 0.25rem;
+    }
+    
+    .guide-toc .toc-item > a {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      color: #495057;
+      text-decoration: none;
+      border-radius: 0.25rem;
       font-weight: 500;
-      padding: 1rem 1.5rem;
-      border-bottom: 3px solid transparent;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+    
+    .guide-toc .toc-item > a:hover {
+      background-color: #e9ecef;
+      color: #667eea;
+    }
+    
+    .guide-toc .toc-item.active > a {
+      background-color: #667eea;
+      color: white;
+      font-weight: 600;
+    }
+    
+    .guide-toc .toc-subitems {
+      margin-top: 0.25rem;
+      margin-left: 0.5rem;
+      border-left: 2px solid #dee2e6;
+      padding-left: 0.5rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    
+    .guide-toc .toc-item.active .toc-subitems,
+    .guide-toc .toc-item.expanded .toc-subitems {
+      max-height: 2000px;
+    }
+    
+    .guide-toc .toc-subitems li {
+      margin-bottom: 0.15rem;
+    }
+    
+    .guide-toc .toc-subitems a {
+      display: block;
+      padding: 0.4rem 0.75rem;
+      color: #6c757d;
+      text-decoration: none;
+      border-radius: 0.25rem;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+    
+    .guide-toc .toc-subitems a:hover {
+      background-color: #e9ecef;
+      color: #495057;
+    }
+    
+    .guide-toc .toc-subitems a.active {
+      background-color: #e7e9fd;
+      color: #667eea;
+      font-weight: 500;
+    }
+    
+    .btn-back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #667eea;
+      color: white;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
       transition: all 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
     }
     
-    .guide-nav .nav-link:hover {
-      color: #667eea;
-      background-color: #f8f9fa;
+    .btn-back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
     }
     
-    .guide-nav .nav-link.active {
-      color: #667eea;
-      border-bottom-color: #667eea;
-      background-color: #f8f9fa;
+    .btn-back-to-top:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
+    
+    /* 네비게이션 메뉴 (상단) - 제거 또는 숨김 */
+    .guide-nav {
+      display: none;
     }
     
     /* 섹션 스타일 */
@@ -206,20 +312,52 @@
       background-color: #f8f9fa;
     }
     
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
+      .guide-sidebar {
+        display: none;
+      }
+      
       .guide-nav {
-        top: 60px;
+        display: block;
+        position: sticky;
+        top: 70px;
+        z-index: 100;
+        background: white;
+        border-bottom: 2px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
       }
       
       .guide-nav .nav-link {
+        color: #495057;
+        font-weight: 500;
         padding: 0.75rem 1rem;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
         font-size: 0.9rem;
       }
       
-      .section-header h1 {
-        font-size: 1.8rem;
+      .guide-nav .nav-link:hover {
+        color: #667eea;
+        background-color: #f8f9fa;
       }
       
+      .guide-nav .nav-link.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+        background-color: #f8f9fa;
+      }
+      
+      .btn-back-to-top {
+        bottom: 1rem;
+        right: 1rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1rem;
+      }
+    }
+    
+    @media (max-width: 768px) {
       .guide-section {
         scroll-margin-top: 100px;
       }
@@ -247,9 +385,70 @@
   <!-- 메인 컨텐츠 -->
   <main class="main-content">
     <div class="row">
-      <div class="col-12">
+      <!-- 사이드바 네비게이션 (데스크톱) -->
+      <aside class="col-md-3 d-none d-md-block guide-sidebar">
+        <nav class="guide-toc">
+          <h4>📋 목차</h4>
+          <ul>
+            <!-- 섹션 1: SIMG의 일하는 방법 -->
+            <li class="toc-item" data-section="section1">
+              <a href="#section1">
+                <i class="fas fa-building"></i> SIMG의 일하는 방법
+              </a>
+              <ul class="toc-subitems">
+                <li><a href="#s1-1">1. 이 문서를 만드는 이유</a></li>
+                <li><a href="#s1-2">2. SIMG에서 '일'이란</a></li>
+                <li><a href="#s1-3">3. 5가지 원칙</a></li>
+                <li><a href="#s1-4">4. 피하는 일하는 방식</a></li>
+                <li><a href="#s1-5">5. SIMG에서 말하는 '성장'</a></li>
+                <li><a href="#s1-6">6. 실수를 다루는 방식</a></li>
+                <li><a href="#s1-7">7. 지향하는 최종 상태</a></li>
+                <li><a href="#s1-8">8. 가장 중요한 문장</a></li>
+                <li><a href="#s1-9">활용 권장 위치</a></li>
+              </ul>
+            </li>
+            
+            <!-- 섹션 2: 티켓 시스템 상세 설명 -->
+            <li class="toc-item" data-section="section2">
+              <a href="#section2">
+                <i class="fas fa-ticket-alt"></i> 티켓 시스템 상세
+              </a>
+              <ul class="toc-subitems">
+                <li><a href="#s2-1">핵심 정의</a></li>
+                <li><a href="#s2-2">구조적 의미</a></li>
+                <li><a href="#s2-3">실무적 의미</a></li>
+                <li><a href="#s2-4">기능적 의미</a></li>
+                <li><a href="#s2-5">조직적 의미</a></li>
+                <li><a href="#s2-6">철학적 의미</a></li>
+                <li><a href="#s2-7">한 문장 요약</a></li>
+                <li><a href="#s2-8">실무 적용 원칙</a></li>
+              </ul>
+            </li>
+            
+            <!-- 섹션 3: 티켓 유형 가이드 -->
+            <li class="toc-item" data-section="section3">
+              <a href="#section3">
+                <i class="fas fa-tags"></i> 티켓 유형 가이드
+              </a>
+              <ul class="toc-subitems">
+                <li><a href="#s3-1">기본 원칙</a></li>
+                <li><a href="#s3-2">9가지 티켓 유형</a></li>
+                <li><a href="#s3-3">티켓 유형 간 흐름</a></li>
+                <li><a href="#s3-4">빠른 판단 가이드</a></li>
+                <li><a href="#s3-5">실무 적용 예시</a></li>
+                <li><a href="#s3-6">주의사항</a></li>
+                <li><a href="#s3-7">체크리스트</a></li>
+                <li><a href="#s3-8">핵심 메시지</a></li>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+      
+      <!-- 메인 콘텐츠 영역 -->
+      <div class="col-md-9 col-12">
         
-        <!-- 네비게이션 메뉴 -->
+        <!-- 네비게이션 메뉴 (모바일) -->
         <nav class="guide-nav">
           <ul class="nav nav-pills">
             <li class="nav-item">
@@ -273,7 +472,7 @@
         <!-- 섹션 1: SIMG의 일하는 방법 -->
         <section id="section1" class="guide-section">
           <!-- 1. 이 문서를 만드는 이유 -->
-          <div class="concept-card">
+          <div id="s1-1" class="concept-card">
             <h3><i class="fas fa-question-circle"></i> 1️⃣ 우리가 이 문서를 만드는 이유</h3>
             <div class="highlight-box">
               <p class="mb-3">이 문서는</p>
@@ -290,7 +489,7 @@
           </div>
 
           <!-- 2. SIMG에서 '일'이란 무엇인가 -->
-          <div class="concept-card">
+          <div id="s1-2" class="concept-card">
             <h3><i class="fas fa-briefcase"></i> 2️⃣ SIMG에서 '일'이란 무엇인가</h3>
             <div class="highlight-box">
               <p class="mb-3">SIMG에서 일은</p>
@@ -305,7 +504,7 @@
           </div>
 
           <!-- 3. SIMG의 일하는 방식 5가지 원칙 -->
-          <div class="concept-card">
+          <div id="s1-3" class="concept-card">
             <h3><i class="fas fa-list-ol"></i> 3️⃣ SIMG의 일하는 방식 5가지 원칙</h3>
             
             <div class="row mb-3">
@@ -379,7 +578,7 @@
           </div>
 
           <!-- 4. 우리가 피하는 일하는 방식 -->
-          <div class="concept-card">
+          <div id="s1-4" class="concept-card">
             <h3><i class="fas fa-exclamation-triangle"></i> 4️⃣ 우리가 피하는 일하는 방식</h3>
             <div class="alert alert-danger">
               <p class="mb-3">SIMG에서는 아래 방식이 반복되면 문제가 됩니다.</p>
@@ -394,7 +593,7 @@
           </div>
 
           <!-- 5. SIMG에서 말하는 '성장' -->
-          <div class="concept-card">
+          <div id="s1-5" class="concept-card">
             <h3><i class="fas fa-chart-line"></i> 5️⃣ SIMG에서 말하는 '성장'</h3>
             <div class="highlight-box">
               <p class="mb-3"><strong>성장은 직급이 아닙니다.</strong></p>
@@ -421,7 +620,7 @@
           </div>
 
           <!-- 6. SIMG는 실수를 이렇게 다룬다 -->
-          <div class="concept-card">
+          <div id="s1-6" class="concept-card">
             <h3><i class="fas fa-shield-alt"></i> 6️⃣ SIMG는 실수를 이렇게 다룬다</h3>
             <div class="row">
               <div class="col-md-6 mb-3">
@@ -456,7 +655,7 @@
           </div>
 
           <!-- 7. 우리가 지향하는 최종 상태 -->
-          <div class="concept-card">
+          <div id="s1-7" class="concept-card">
             <h3><i class="fas fa-bullseye"></i> 7️⃣ 우리가 지향하는 최종 상태</h3>
             <div class="highlight-box" style="border-left-color: #198754;">
               <p class="mb-3" style="font-size: 1.1rem; font-weight: 500;">
@@ -472,7 +671,7 @@
           </div>
 
           <!-- 8. 이 문서의 가장 중요한 문장 -->
-          <div class="summary-box">
+          <div id="s1-8" class="summary-box">
             <h3><i class="fas fa-star"></i> 8️⃣ 이 문서의 가장 중요한 문장</h3>
             <p style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem;">
               SIMG는<br>
@@ -486,7 +685,7 @@
           </div>
 
           <!-- 활용 권장 위치 -->
-          <div class="concept-card">
+          <div id="s1-9" class="concept-card">
             <h3><i class="fas fa-bookmark"></i> 📌 활용 권장 위치</h3>
             <div class="row">
               <div class="col-md-6 mb-2">
@@ -509,7 +708,7 @@
         <section id="section2" class="guide-section">
 
           <!-- 핵심 정의 -->
-          <div class="concept-card">
+          <div id="s2-1" class="concept-card">
             <h3><i class="fas fa-lightbulb"></i> 핵심 정의</h3>
             <div class="highlight-box">
               <p class="mb-0" style="font-size: 1.1rem; font-weight: 500;">
@@ -553,7 +752,7 @@
           </div>
 
           <!-- 구조적 의미 -->
-          <div class="concept-card">
+          <div id="s2-2" class="concept-card">
             <h3><i class="fas fa-sitemap"></i> 구조적 의미 (5가지 요소)</h3>
             <p class="mb-3">티켓 하나에는 다음이 모두 포함됩니다:</p>
             
@@ -621,7 +820,7 @@
           </div>
 
           <!-- 실무적 의미 -->
-          <div class="concept-card">
+          <div id="s2-3" class="concept-card">
             <h3><i class="fas fa-balance-scale"></i> 실무적 의미</h3>
             <p class="mb-3">전통적 업무 방식과의 차이:</p>
             
@@ -661,7 +860,7 @@
           </div>
 
           <!-- 기능적 의미 -->
-          <div class="concept-card">
+          <div id="s2-4" class="concept-card">
             <h3><i class="fas fa-cogs"></i> 기능적 의미 (3가지 역할)</h3>
             
             <div class="row">
@@ -707,7 +906,7 @@
           </div>
 
           <!-- 조직적 의미 -->
-          <div class="concept-card">
+          <div id="s2-5" class="concept-card">
             <h3><i class="fas fa-building"></i> 조직적 의미</h3>
             <h4>개인 → 조직 자산 전환</h4>
             <div class="highlight-box" style="border-left-color: #198754;">
@@ -721,7 +920,7 @@
           </div>
 
           <!-- 철학적 의미 -->
-          <div class="concept-card">
+          <div id="s2-6" class="concept-card">
             <h3><i class="fas fa-heart"></i> 철학적 의미</h3>
             <div class="highlight-box" style="border-left-color: #198754;">
               <h4 style="color: #198754; margin-bottom: 1rem;">
@@ -745,7 +944,7 @@
           </div>
 
           <!-- 한 문장 요약 -->
-          <div class="summary-box" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+          <div id="s2-7" class="summary-box" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
             <h3><i class="fas fa-quote-left"></i> 한 문장 요약</h3>
             <p>
               티켓 = 업무를 사람에게서 분리하여 시스템에 기록하고,<br>
@@ -754,7 +953,7 @@
           </div>
 
           <!-- 실무 적용 원칙 -->
-          <div class="concept-card">
+          <div id="s2-8" class="concept-card">
             <h3><i class="fas fa-rocket"></i> 실무 적용 원칙</h3>
             
             <div class="highlight-box" style="border-left-color: #ffc107;">
@@ -821,7 +1020,7 @@
         <section id="section3" class="guide-section">
 
           <!-- 기본 원칙 -->
-          <div class="concept-card">
+          <div id="s3-1" class="concept-card">
             <h3><i class="fas fa-lightbulb text-warning"></i> 기본 원칙</h3>
             <div class="alert alert-info mb-0" role="alert">
               <ul class="mb-0">
@@ -1132,7 +1331,7 @@
           </div>
 
           <!-- 티켓 유형 간 흐름 -->
-          <div class="concept-card">
+          <div id="s3-3" class="concept-card">
             <h3><i class="fas fa-route text-primary"></i> 티켓 유형 간 자연스러운 흐름</h3>
             <div class="text-center p-4" style="background: #f8f9fa; border-radius: 0.5rem;">
               <div class="mb-2">
@@ -1160,7 +1359,7 @@
           </div>
 
           <!-- 빠른 판단 가이드 -->
-          <div class="concept-card">
+          <div id="s3-4" class="concept-card">
             <h3><i class="fas fa-bolt text-warning"></i> 빠른 판단 가이드 (직원용)</h3>
             <p class="mb-3"><strong>"이 일을 왜 시작했는가?"</strong></p>
             
@@ -1215,7 +1414,7 @@
           </div>
 
           <!-- 실무 적용 예시 -->
-          <div class="concept-card">
+          <div id="s3-5" class="concept-card">
             <h3><i class="fas fa-lightbulb text-info"></i> 실무 적용 예시</h3>
             
             <div class="alert alert-success">
@@ -1243,7 +1442,7 @@
           </div>
 
           <!-- 주의사항 -->
-          <div class="concept-card">
+          <div id="s3-6" class="concept-card">
             <h3><i class="fas fa-exclamation-triangle text-danger"></i> 주의사항</h3>
             
             <div class="alert alert-info mb-0">
@@ -1270,7 +1469,7 @@
           </div>
 
           <!-- 체크리스트 -->
-          <div class="alert alert-warning">
+          <div id="s3-7" class="alert alert-warning">
             <h4><i class="fas fa-clipboard-check"></i> 체크리스트 (티켓 생성 전)</h4>
             <div class="mb-2">☐ 이 일의 시작 목적이 명확한가?</div>
             <div class="mb-2">☐ 9가지 유형 중 하나에 해당하는가?</div>
@@ -1281,7 +1480,7 @@
           </div>
 
           <!-- 핵심 메시지 -->
-          <div class="summary-box" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+          <div id="s3-8" class="summary-box" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
             <h3><i class="fas fa-heart"></i> 핵심 메시지</h3>
             <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 1rem;">
               <strong>유형이 명확할수록, 책임·기준·승인이 쉬워집니다</strong>
@@ -1310,6 +1509,11 @@
     </div>
   </main>
 
+  <!-- 맨 위로 버튼 -->
+  <button class="btn-back-to-top" id="btnBackToTop" aria-label="맨 위로">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
@@ -1323,11 +1527,40 @@
       
       await window.sjTemplateLoader.initializePage('tickets-guide');
       
-      // 네비게이션 스크롤 처리
-      const navLinks = document.querySelectorAll('.guide-nav .nav-link');
+      // 사이드바 네비게이션 요소
+      const tocItems = document.querySelectorAll('.guide-toc .toc-item');
+      const tocLinks = document.querySelectorAll('.guide-toc a');
       const sections = document.querySelectorAll('.guide-section');
+      const conceptCards = document.querySelectorAll('.concept-card, .summary-box');
       
-      // 네비게이션 클릭 이벤트
+      // 모바일 네비게이션 (상단 탭)
+      const navLinks = document.querySelectorAll('.guide-nav .nav-link');
+      
+      // 맨 위로 버튼
+      const btnBackToTop = document.getElementById('btnBackToTop');
+      
+      // 사이드바 네비게이션 클릭 이벤트
+      tocLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetId = this.getAttribute('href');
+          const targetElement = document.querySelector(targetId);
+          
+          if (targetElement) {
+            // 부드러운 스크롤
+            const offsetTop = targetElement.offsetTop - 80;
+            window.scrollTo({
+              top: offsetTop,
+              behavior: 'smooth'
+            });
+            
+            // URL 해시 업데이트
+            history.pushState(null, null, targetId);
+          }
+        });
+      });
+      
+      // 모바일 네비게이션 클릭 이벤트
       navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
           e.preventDefault();
@@ -1335,49 +1568,111 @@
           const targetSection = document.querySelector(targetId);
           
           if (targetSection) {
-            // 모든 링크에서 active 제거
             navLinks.forEach(l => l.classList.remove('active'));
-            // 클릭한 링크에 active 추가
             this.classList.add('active');
             
-            // 부드러운 스크롤
-            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const offsetTop = targetSection.offsetTop - 80;
+            window.scrollTo({
+              top: offsetTop,
+              behavior: 'smooth'
+            });
           }
         });
       });
       
-      // 스크롤 시 활성 섹션 감지
-      function updateActiveNav() {
-        let current = '';
+      // 스크롤 시 활성 항목 감지 및 하이라이트
+      function updateActiveNavigation() {
+        const scrollPos = window.pageYOffset + 150;
+        let currentSection = '';
+        let currentItem = '';
+        
+        // 섹션 레벨 감지
         sections.forEach(section => {
           const sectionTop = section.offsetTop;
-          const sectionHeight = section.clientHeight;
-          if (window.pageYOffset >= (sectionTop - 150)) {
-            current = section.getAttribute('id');
+          if (scrollPos >= sectionTop) {
+            currentSection = section.getAttribute('id');
           }
         });
         
+        // 하위 항목 레벨 감지
+        conceptCards.forEach(card => {
+          const cardTop = card.offsetTop;
+          const cardHeight = card.offsetHeight;
+          if (scrollPos >= cardTop - 100 && scrollPos < cardTop + cardHeight) {
+            currentItem = card.getAttribute('id');
+          }
+        });
+        
+        // 사이드바 업데이트
+        tocItems.forEach(item => {
+          const itemSection = item.getAttribute('data-section');
+          item.classList.remove('active', 'expanded');
+          
+          if (itemSection === currentSection) {
+            item.classList.add('active', 'expanded');
+            
+            // 하위 항목 하이라이트
+            const subLinks = item.querySelectorAll('.toc-subitems a');
+            subLinks.forEach(subLink => {
+              subLink.classList.remove('active');
+              const href = subLink.getAttribute('href');
+              if (href === '#' + currentItem || (!currentItem && href === '#' + currentSection)) {
+                subLink.classList.add('active');
+              }
+            });
+          }
+        });
+        
+        // 모바일 네비게이션 업데이트
         navLinks.forEach(link => {
           link.classList.remove('active');
-          if (link.getAttribute('href') === '#' + current) {
+          if (link.getAttribute('href') === '#' + currentSection) {
             link.classList.add('active');
           }
         });
+        
+        // 맨 위로 버튼 표시/숨김
+        if (window.pageYOffset > 300) {
+          btnBackToTop.classList.add('visible');
+        } else {
+          btnBackToTop.classList.remove('visible');
+        }
       }
       
-      window.addEventListener('scroll', updateActiveNav);
+      // 맨 위로 버튼 클릭 이벤트
+      btnBackToTop.addEventListener('click', function() {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+      
+      // 스크롤 이벤트 리스너 (throttle 적용)
+      let ticking = false;
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          window.requestAnimationFrame(function() {
+            updateActiveNavigation();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      });
+      
+      // 초기 활성화
+      updateActiveNavigation();
       
       // URL 해시가 있으면 해당 섹션으로 이동
       if (window.location.hash) {
-        const targetSection = document.querySelector(window.location.hash);
-        if (targetSection) {
+        const targetElement = document.querySelector(window.location.hash);
+        if (targetElement) {
           setTimeout(() => {
-            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            const navLink = document.querySelector(`.guide-nav .nav-link[href="${window.location.hash}"]`);
-            if (navLink) {
-              navLinks.forEach(l => l.classList.remove('active'));
-              navLink.classList.add('active');
-            }
+            const offsetTop = targetElement.offsetTop - 80;
+            window.scrollTo({
+              top: offsetTop,
+              behavior: 'smooth'
+            });
+            updateActiveNavigation();
           }, 500);
         }
       }
