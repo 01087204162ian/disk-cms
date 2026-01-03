@@ -94,3 +94,7 @@ deploy.sh
 # ======================================
 tests/e2e/fixtures/users.json
 tests/e2e/fixtures/users.local.json
+
+# local server env info
+server-env-info.json
+server-env-info.txt
