@@ -221,6 +221,24 @@ class EmployeeModal {
         }
 
         const val = (v, fb = '') => (v === null || v === undefined) ? fb : String(v);
+        
+        // 날짜를 YYYY-MM-DD 형식으로 변환 (date input용)
+        const formatDateForInput = (dateValue) => {
+            if (!dateValue) return '';
+            try {
+                // ISO 8601 형식 (2023-03-31T15:00:00.000Z) 또는 YYYY-MM-DD 형식 처리
+                const date = new Date(dateValue);
+                if (isNaN(date.getTime())) return '';
+                // YYYY-MM-DD 형식으로 변환
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            } catch (error) {
+                console.error('날짜 형식 변환 오류:', error);
+                return '';
+            }
+        };
         const statusBadge = this.employeeManager.getStatusBadge(employee.is_active ? 'active' : 'pending');
         const roleBadge = this.employeeManager.getRoleBadge(employee.role);
 		
@@ -267,7 +285,7 @@ class EmployeeModal {
                                 <input type="text" class="form-control" id="position" name="position" value="${val(employee.position)}">
                                 
                                 <label class="col-form-label">입사일:</label>
-                                <input type="date" class="form-control" id="hire_date" name="hire_date" value="${val(employee.hire_date)}">
+                                <input type="date" class="form-control" id="hire_date" name="hire_date" value="${formatDateForInput(employee.hire_date)}">
                                 
                                 <label class="col-form-label">권한:</label>
                                 <select id="role" name="role" class="form-control">
@@ -359,7 +377,7 @@ class EmployeeModal {
                                 
                                 <div class="mobile-field-group">
                                     <label class="mobile-field-label">입사일</label>
-                                    <input type="date" class="form-control mobile-input" id="hire_date_mobile" name="hire_date_mobile" value="${val(employee.hire_date)}">
+                                    <input type="date" class="form-control mobile-input" id="hire_date_mobile" name="hire_date_mobile" value="${formatDateForInput(employee.hire_date)}">
                                 </div>
                                 
                                 <div class="mobile-field-group">
