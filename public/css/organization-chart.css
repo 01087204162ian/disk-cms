@@ -13,19 +13,18 @@
     margin: 0 auto;
 }
 
-/* ========== 대표(CEO) 섹션 ========== */
-.org-ceo-section {
+/* ========== 경영진(CEO/CFO) 섹션 ========== */
+.org-executives-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    gap: 15px;
 }
 
-.org-ceo-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.org-executive-card {
     border-radius: 16px;
-    padding: 30px 40px;
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    padding: 25px 35px;
     color: white;
     display: flex;
     align-items: center;
@@ -33,56 +32,72 @@
     min-width: 350px;
     position: relative;
     z-index: 10;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.org-ceo-avatar {
-    width: 80px;
-    height: 80px;
+.org-ceo-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.org-cfo-card {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    box-shadow: 0 8px 24px rgba(17, 153, 142, 0.3);
+}
+
+.org-executive-avatar {
+    width: 75px;
+    height: 75px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 36px;
+    font-size: 32px;
     border: 3px solid rgba(255, 255, 255, 0.3);
     flex-shrink: 0;
 }
 
-.org-ceo-info {
+.org-executive-info {
     flex: 1;
 }
 
-.org-ceo-name {
-    font-size: 24px;
+.org-executive-name {
+    font-size: 22px;
     font-weight: 700;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
 }
 
-.org-ceo-email {
-    font-size: 14px;
+.org-executive-position {
+    margin-bottom: 8px;
+}
+
+.org-executive-email {
+    font-size: 13px;
     opacity: 0.9;
-    margin-bottom: 10px;
 }
 
-.org-ceo-role {
-    margin-top: 8px;
+.org-executive-connector {
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(180deg, #667eea 0%, #11998e 100%);
 }
 
-.org-ceo-connector {
+.org-executives-connector {
     width: 4px;
     height: 40px;
-    background: linear-gradient(180deg, #667eea 0%, #dee2e6 100%);
+    background: linear-gradient(180deg, #11998e 0%, #dee2e6 100%);
     margin-top: -1px;
 }
 
 /* ========== 부서 섹션 ========== */
 .org-departments-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
     padding: 0 10px;
 }
 
@@ -126,10 +141,10 @@
 }
 
 .org-dept-name {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: #2d3748;
-    margin: 0 0 5px 0;
+    margin: 0 0 4px 0;
 }
 
 .org-dept-code {
@@ -143,7 +158,7 @@
 }
 
 .org-dept-body {
-    padding: 20px;
+    padding: 15px;
 }
 
 /* ========== 부서장 카드 ========== */
@@ -185,17 +200,17 @@
 }
 
 .org-manager-avatar {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 24px;
     flex-shrink: 0;
-    border: 3px solid rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 .org-manager-info {
@@ -231,15 +246,15 @@
 /* ========== 팀원 카드 ========== */
 .org-team-members {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
 }
 
 .org-member-card {
     background: white;
     border: 1px solid #dee2e6;
-    border-radius: 10px;
-    padding: 15px;
+    border-radius: 8px;
+    padding: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
@@ -255,16 +270,16 @@
 }
 
 .org-member-avatar {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    margin-bottom: 10px;
+    font-size: 20px;
+    margin-bottom: 8px;
 }
 
 .org-member-info {
@@ -300,7 +315,7 @@
 /* ========== 반응형 디자인 ========== */
 @media (max-width: 1200px) {
     .org-departments-container {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
 }
 
@@ -356,18 +371,18 @@
 }
 
 @media (max-width: 480px) {
-    .org-ceo-card {
-        padding: 20px 15px;
+    .org-executive-card {
+        padding: 18px 12px;
     }
     
-    .org-ceo-avatar {
-        width: 60px;
-        height: 60px;
-        font-size: 28px;
+    .org-executive-avatar {
+        width: 55px;
+        height: 55px;
+        font-size: 24px;
     }
     
-    .org-ceo-name {
-        font-size: 18px;
+    .org-executive-name {
+        font-size: 16px;
     }
     
     .org-team-members {
@@ -397,7 +412,7 @@
     animation: fadeInUp 0.4s ease-out;
 }
 
-.org-ceo-section {
+.org-executives-section {
     animation: fadeInUp 0.3s ease-out;
 }
 

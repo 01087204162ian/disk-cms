@@ -7,7 +7,7 @@ class OrganizationChart {
         this.departments = [];
         this.employees = [];
         this.filteredEmployees = [];
-        this.ceo = null; // 대표(SUPER_ADMIN)
+        this.executives = []; // 경영진(CEO, CFO 등)
         this.selectedDepartment = '';
         this.searchKeyword = '';
         this.init();
@@ -79,8 +79,18 @@ class OrganizationChart {
             
             if (empResult.success) {
                 this.employees = empResult.data;
-                // 대표(SUPER_ADMIN) 분리
-                this.ceo = this.employees.find(emp => emp.role === 'SUPER_ADMIN');
+                // 경영진(CEO, CFO 등) 분리 - SUPER_ADMIN 중 position이 CEO 또는 CFO인 사람들
+                this.executives = this.employees.filter(emp => 
+                    emp.role === 'SUPER_ADMIN' && 
+                    (emp.position === 'CEO' || emp.position === 'CFO')
+                ).sort((a, b) => {
+                    // CEO가 먼저, 그 다음 CFO
+                    if (a.position === 'CEO') return -1;
+                    if (b.position === 'CEO') return 1;
+                    if (a.position === 'CFO') return -1;
+                    if (b.position === 'CFO') return 1;
+                    return 0;
+                });
                 this.filteredEmployees = [...this.employees];
             }
 
@@ -121,8 +131,8 @@ class OrganizationChart {
 
     applyFilters() {
         this.filteredEmployees = this.employees.filter(emp => {
-            // 대표는 필터에서 제외 (항상 표시)
-            if (emp.role === 'SUPER_ADMIN') {
+            // 경영진(CEO, CFO)은 필터에서 제외 (항상 표시)
+            if (emp.role === 'SUPER_ADMIN' && (emp.position === 'CEO' || emp.position === 'CFO')) {
                 return true;
             }
             
@@ -156,15 +166,16 @@ class OrganizationChart {
 
         let html = '<div class="org-chart-wrapper">';
         
-        // 1. 대표(CEO) 최상단에 표시
-        if (this.ceo && (!this.selectedDepartment || this.searchKeyword)) {
-            html += this.renderCEO();
+        // 1. 경영진(CEO, CFO) 최상단에 표시
+        if (this.executives.length > 0 && (!this.selectedDepartment || this.searchKeyword)) {
+            html += this.renderExecutives();
         }
 
         // 2. 부서별로 계층 구조 렌더링
         const departmentsWithEmployees = this.departments.map(dept => {
             const deptEmployees = this.filteredEmployees.filter(emp => 
-                emp.department?.id === dept.id && emp.role !== 'SUPER_ADMIN'
+                emp.department?.id === dept.id && 
+                !(emp.role === 'SUPER_ADMIN' && (emp.position === 'CEO' || emp.position === 'CFO'))
             );
             return { department: dept, employees: deptEmployees };
         }).filter(item => item.employees.length > 0 || !this.selectedDepartment);
@@ -179,7 +190,8 @@ class OrganizationChart {
 
         // 3. 부서가 없는 직원들
         const noDeptEmployees = this.filteredEmployees.filter(emp => 
-            !emp.department && emp.role !== 'SUPER_ADMIN'
+            !emp.department && 
+            !(emp.role === 'SUPER_ADMIN' && (emp.position === 'CEO' || emp.position === 'CFO'))
         );
         if (noDeptEmployees.length > 0 && !this.selectedDepartment) {
             html += this.renderNoDepartmentEmployees(noDeptEmployees);
@@ -189,29 +201,44 @@ class OrganizationChart {
         this.container.innerHTML = html;
     }
 
-    renderCEO() {
-        if (!this.ceo) return '';
+    renderExecutives() {
+        if (this.executives.length === 0) return '';
         
-        return `
-            <div class="org-ceo-section">
-                <div class="org-ceo-card">
-                    <div class="org-ceo-avatar">
-                        <i class="fas fa-user-tie"></i>
+        let html = '<div class="org-executives-section">';
+        
+        this.executives.forEach((executive, index) => {
+            const isCEO = executive.position === 'CEO';
+            const positionClass = isCEO ? 'org-ceo-card' : 'org-cfo-card';
+            const positionLabel = isCEO ? 'CEO' : 'CFO';
+            const positionIcon = isCEO ? 'fa-crown' : 'fa-chart-line';
+            
+            html += `
+                <div class="org-executive-card ${positionClass}">
+                    <div class="org-executive-avatar">
+                        <i class="fas ${isCEO ? 'fa-user-tie' : 'fa-user-tie'}"></i>
                     </div>
-                    <div class="org-ceo-info">
-                        <div class="org-ceo-name">
-                            ${this.ceo.name}
-                            <i class="fas fa-crown text-warning ms-2" title="대표"></i>
+                    <div class="org-executive-info">
+                        <div class="org-executive-name">
+                            ${executive.name}
+                            <i class="fas ${positionIcon} text-warning ms-2" title="${positionLabel}"></i>
                         </div>
-                        <div class="org-ceo-email">${this.ceo.email}</div>
-                        <div class="org-ceo-role">
-                            <span class="badge bg-danger">대표</span>
+                        <div class="org-executive-position">
+                            <span class="badge ${isCEO ? 'bg-danger' : 'bg-info'}">${positionLabel}</span>
                         </div>
+                        <div class="org-executive-email">${executive.email}</div>
                     </div>
                 </div>
-                <div class="org-ceo-connector"></div>
-            </div>
-        `;
+            `;
+            
+            // 마지막 항목이 아니면 연결선 추가
+            if (index < this.executives.length - 1) {
+                html += '<div class="org-executive-connector"></div>';
+            }
+        });
+        
+        html += '<div class="org-executives-connector"></div></div>';
+        
+        return html;
     }
 
     renderDepartmentHierarchy(dept, employees) {
