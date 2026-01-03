@@ -43,7 +43,9 @@ class EmployeeModal {
 	// EmployeeModal 클래스에 추가할 메서드
 // 비활성화 메서드 추가
     async deactivateEmployee(email) {
-        if (!confirm('해당 직원을 비활성화하시겠습니까?')) return;
+        // 퇴사일 입력 모달 표시
+        const resignDate = await this.showResignDateModal();
+        if (!resignDate) return; // 취소된 경우
         
         try {
             const response = await fetch(`/api/staff/employees/${encodeURIComponent(email)}/deactivate`, {
@@ -53,7 +55,8 @@ class EmployeeModal {
                 },
                 credentials: 'include',
                 body: JSON.stringify({
-                    notes: '모달에서 관리자에 의한 계정 비활성화'
+                    notes: '모달에서 관리자에 의한 계정 비활성화',
+                    resign_date: resignDate
                 })
             });
             
@@ -79,6 +82,72 @@ class EmployeeModal {
             console.error('계정 비활성화 오류:', error);
             window.sjTemplateLoader.showToast('계정 비활성화 중 오류가 발생했습니다.', 'error');
         }
+    }
+    
+    // 퇴사일 입력 모달 표시
+    showResignDateModal() {
+        return new Promise((resolve) => {
+            // 오늘 날짜를 기본값으로 설정 (YYYY-MM-DD 형식)
+            const today = new Date().toISOString().split('T')[0];
+            
+            // 기존 모달이 있으면 제거
+            const existingModal = document.getElementById('resignDateModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // 퇴사일 입력 모달 HTML 생성
+            const modalHTML = `
+                <div class="modal fade" id="resignDateModal" tabindex="-1" data-bs-backdrop="static">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">퇴사일 지정</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="resignDateInput" class="form-label">퇴사일을 선택하세요:</label>
+                                    <input type="date" class="form-control" id="resignDateInput" value="${today}" required>
+                                    <div class="form-text">해당 직원의 퇴사일을 지정합니다.</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                                <button type="button" class="btn btn-warning" id="confirmDeactivateBtn">비활성화</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 모달 HTML을 document에 추가
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Bootstrap 모달 인스턴스 생성
+            const modalElement = document.getElementById('resignDateModal');
+            const modal = new bootstrap.Modal(modalElement);
+            
+            // 확인 버튼 클릭 이벤트
+            document.getElementById('confirmDeactivateBtn').addEventListener('click', () => {
+                const resignDate = document.getElementById('resignDateInput').value;
+                if (!resignDate) {
+                    window.sjTemplateLoader.showToast('퇴사일을 선택해주세요.', 'error');
+                    return;
+                }
+                modal.hide();
+                resolve(resignDate);
+            });
+            
+            // 모달이 닫힐 때 (취소 버튼 또는 X 버튼)
+            modalElement.addEventListener('hidden.bs.modal', () => {
+                modalElement.remove();
+                resolve(null); // 취소된 경우
+            }, { once: true });
+            
+            // 모달 표시
+            modal.show();
+        });
     }
 
     // 재활성화 메서드 추가
