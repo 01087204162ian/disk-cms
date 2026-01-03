@@ -222,34 +222,26 @@ router.post('/login', async (req, res) => {
             position: user.position
         };
 
-        // 세션 저장 (명시적으로 저장)
-        req.session.save((err) => {
-            if (err) {
-                console.error('세션 저장 오류:', err);
-                return res.status(500).json({
-                    success: false,
-                    message: '세션 저장 중 오류가 발생했습니다.'
-                });
-            }
+        // 세션을 수정했으므로 자동 저장되도록 설정
+        // express-session이 응답 전에 자동으로 세션을 저장함
+        console.log('사용자 로그인 성공:', { 
+            email: user.email,
+            sessionId: req.sessionID,
+            cookie: req.session.cookie,
+            cookieHeader: req.get('Cookie') || 'Cookie 헤더 없음'
+        });
 
-            console.log('사용자 로그인 성공:', { 
+        // 로그인 성공 응답 (세션은 express-session이 자동으로 저장)
+        res.json({
+            success: true,
+            message: '로그인되었습니다.',
+            data: {
                 email: user.email,
-                sessionId: req.sessionID,
-                sessionSaved: true
-            });
-
-            // 로그인 성공 응답
-            res.json({
-                success: true,
-                message: '로그인되었습니다.',
-                data: {
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                    position: user.position,
-                    last_login_at: user.last_login_at
-                }
-            });
+                name: user.name,
+                role: user.role,
+                position: user.position,
+                last_login_at: user.last_login_at
+            }
         });
 
     } catch (error) {
@@ -287,7 +279,9 @@ router.get('/me', (req, res) => {
         sessionId: req.sessionID,
         hasSession: !!req.session,
         hasUser: !!(req.session && req.session.user),
-        sessionKeys: req.session ? Object.keys(req.session) : []
+        sessionKeys: req.session ? Object.keys(req.session) : [],
+        cookies: req.headers.cookie || '쿠키 없음',
+        cookieHeader: req.get('Cookie') || 'Cookie 헤더 없음'
     });
 
     if (req.session && req.session.user) {

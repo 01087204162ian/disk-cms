@@ -52,6 +52,9 @@ const fieldPracticeAccountsRoutes = require('./routes/field-practice/accounts');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 프록시 설정 (Nginx 등 리버스 프록시 사용 시)
+app.set('trust proxy', 1);
+
 // 기본 미들웨어 설정
 app.use(express.json({ limit: '50mb' })); // 파일 업로드를 위해 제한 증가
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));

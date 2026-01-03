@@ -52,7 +52,9 @@ const sessionConfig = session({
     store: store, // MySQL 스토어 또는 null (메모리 기반)
     name: 'connect.sid', // 기본 세션 쿠키 이름
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // HTTPS에서만 true
+        // 프록시를 통해 HTTPS로 접속하는 경우 secure를 false로 설정
+        // 실제 HTTPS 연결은 프록시에서 처리됨
+        secure: process.env.SESSION_SECURE === 'true', // 환경 변수로 제어
         httpOnly: true,
         maxAge: 8 * 60 * 60 * 1000,     // 8시간 (업무시간)
         sameSite: 'lax', // CSRF 보호
