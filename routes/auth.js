@@ -222,19 +222,34 @@ router.post('/login', async (req, res) => {
             position: user.position
         };
 
-        console.log('사용자 로그인 성공:', { email: user.email });
-
-        // 로그인 성공 응답
-        res.json({
-            success: true,
-            message: '로그인되었습니다.',
-            data: {
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                position: user.position,
-                last_login_at: user.last_login_at
+        // 세션 저장 (명시적으로 저장)
+        req.session.save((err) => {
+            if (err) {
+                console.error('세션 저장 오류:', err);
+                return res.status(500).json({
+                    success: false,
+                    message: '세션 저장 중 오류가 발생했습니다.'
+                });
             }
+
+            console.log('사용자 로그인 성공:', { 
+                email: user.email,
+                sessionId: req.sessionID,
+                sessionSaved: true
+            });
+
+            // 로그인 성공 응답
+            res.json({
+                success: true,
+                message: '로그인되었습니다.',
+                data: {
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    position: user.position,
+                    last_login_at: user.last_login_at
+                }
+            });
         });
 
     } catch (error) {
@@ -267,6 +282,14 @@ router.post('/logout', (req, res) => {
 
 // 세션 확인 API
 router.get('/me', (req, res) => {
+    // 디버깅: 세션 정보 로깅
+    console.log('[/api/auth/me] 세션 확인:', {
+        sessionId: req.sessionID,
+        hasSession: !!req.session,
+        hasUser: !!(req.session && req.session.user),
+        sessionKeys: req.session ? Object.keys(req.session) : []
+    });
+
     if (req.session && req.session.user) {
         res.json({
             success: true,

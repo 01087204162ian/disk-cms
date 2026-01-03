@@ -60,7 +60,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // CORS 설정
 app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
-        ? ['https://geunjae.kr', 'https://imet.kr'] 
+        ? ['https://disk-cms.simg.kr', 'https://geunjae.kr', 'https://imet.kr'] 
         : true,
     credentials: true
 }));

@@ -50,11 +50,13 @@ const sessionConfig = session({
     saveUninitialized: false,
     rolling: true,
     store: store, // MySQL 스토어 또는 null (메모리 기반)
+    name: 'connect.sid', // 기본 세션 쿠키 이름
     cookie: {
         secure: process.env.NODE_ENV === 'production', // HTTPS에서만 true
         httpOnly: true,
         maxAge: 8 * 60 * 60 * 1000,     // 8시간 (업무시간)
-        sameSite: 'lax' // CSRF 보호
+        sameSite: 'lax', // CSRF 보호
+        path: '/' // 모든 경로에서 쿠키 사용
     }
 });
 
