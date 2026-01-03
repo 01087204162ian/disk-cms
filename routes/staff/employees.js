@@ -595,7 +595,15 @@ router.patch('/employees/:email/deactivate', requireAuth, requireAdmin, async (r
         
         // DEPT_MANAGER의 경우 본인 부서 직원만 비활성화 가능
         if (userRole === 'DEPT_MANAGER') {
-            if (!req.session.user.department_id || user.department_id !== req.session.user.department_id) {
+            // 현재 로그인한 사용자의 부서 정보 조회 (세션에 없을 수 있으므로 DB에서 조회)
+            const [currentManager] = await pool.execute(
+                'SELECT department_id FROM users WHERE email = ?',
+                [req.session.user.email]
+            );
+            
+            const managerDepartmentId = currentManager.length > 0 ? currentManager[0].department_id : null;
+            
+            if (!managerDepartmentId || user.department_id !== managerDepartmentId) {
                 return res.status(403).json({
                     success: false,
                     message: '본인 부서의 직원만 비활성화할 수 있습니다.'
