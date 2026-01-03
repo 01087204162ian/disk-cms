@@ -83,10 +83,32 @@ class EmployeeManager {
         this.pageSize.addEventListener('change', () => this.handleFilterChange());
         
         // 버튼 클릭
-		 this.manageDepartmentsBtn.addEventListener('click', () => this.departmentManager.showDepartmentModal());//부서
-		 this.manageWorkScheduleBtn.addEventListener('click', () => this.workScheduleManager.showWorkScheduleModal()); // 휴가
-        this.refreshListBtn.addEventListener('click', () => this.loadEmployees());
-        this.exportExcelBtn.addEventListener('click', () => this.handleExportExcel());
+        if (this.manageDepartmentsBtn) {
+            this.manageDepartmentsBtn.addEventListener('click', () => {
+                if (this.departmentManager) {
+                    this.departmentManager.showDepartmentModal();
+                } else {
+                    console.error('DepartmentManager가 초기화되지 않았습니다.');
+                    window.sjTemplateLoader?.showToast('부서 관리 기능을 사용할 수 없습니다.', 'error');
+                }
+            });
+        }
+        if (this.manageWorkScheduleBtn) {
+            this.manageWorkScheduleBtn.addEventListener('click', () => {
+                if (this.workScheduleManager) {
+                    this.workScheduleManager.showWorkScheduleModal();
+                } else {
+                    console.error('WorkScheduleManager가 초기화되지 않았습니다.');
+                    window.sjTemplateLoader?.showToast('근무 일정 관리 기능을 사용할 수 없습니다.', 'error');
+                }
+            });
+        }
+        if (this.refreshListBtn) {
+            this.refreshListBtn.addEventListener('click', () => this.loadEmployees());
+        }
+        if (this.exportExcelBtn) {
+            this.exportExcelBtn.addEventListener('click', () => this.handleExportExcel());
+        }
     }
 
     async loadDepartments() {

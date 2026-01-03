@@ -13,8 +13,28 @@ const { requireAuth, requireRole } = require('../../middleware/auth');
 // 1. 관리용 부서 목록 조회 (상세 정보 포함)
 // GET /api/staff/departments/manage
 // ==============================
-router.get('/manage', requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, res) => {
+router.get('/manage', requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER']), async (req, res) => {
     try {
+        const userRole = req.session.user.role;
+        
+        // DEPT_MANAGER의 경우 본인 부서 ID 조회 (세션에 없을 수 있으므로 DB에서 조회)
+        let userDepartmentId = req.session.user.department_id;
+        if (userRole === 'DEPT_MANAGER' && !userDepartmentId) {
+            const [userInfo] = await pool.execute(
+                'SELECT department_id FROM users WHERE email = ?',
+                [req.session.user.email]
+            );
+            userDepartmentId = userInfo.length > 0 ? userInfo[0].department_id : null;
+        }
+        
+        // DEPT_MANAGER의 경우 본인 부서만 조회하도록 제한
+        let queryParams = [];
+        let whereClause = '';
+        if (userRole === 'DEPT_MANAGER' && userDepartmentId) {
+            whereClause = 'WHERE d.id = ?';
+            queryParams.push(userDepartmentId);
+        }
+        
         const query = `
             SELECT 
                 d.id,
@@ -30,11 +50,12 @@ router.get('/manage', requireRole(['SUPER_ADMIN', 'SYSTEM_ADMIN']), async (req, 
             FROM departments d
             LEFT JOIN users u ON d.manager_id = u.email
             LEFT JOIN users emp ON emp.department_id = d.id AND emp.is_active = 1
+            ${whereClause}
             GROUP BY d.id, d.name, d.code, d.description, d.manager_id, d.created_at, d.updated_at, d.is_active, u.name
             ORDER BY d.is_active DESC, d.created_at DESC
         `;
 
-        const [departments] = await pool.execute(query);
+        const [departments] = await pool.execute(query, queryParams);
 
         res.json({
             success: true,

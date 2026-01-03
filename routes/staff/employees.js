@@ -379,9 +379,11 @@ router.put('/employees/:email', requireAuth, requireAdmin, async (req, res) => {
             updateFields.push('position = ?');
             updateValues.push(convertEmptyToNull(position));
         }
-        if (hire_date !== undefined) {
+        if (hire_date !== undefined && hire_date !== null) {
+            // 빈 문자열도 null로 변환
+            const hireDateValue = hire_date === '' ? null : hire_date;
             updateFields.push('hire_date = ?');
-            updateValues.push(convertEmptyToNull(hire_date));
+            updateValues.push(hireDateValue);
         }
         if (role !== undefined) {
             updateFields.push('role = ?');
