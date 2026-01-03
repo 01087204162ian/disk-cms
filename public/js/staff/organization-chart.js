@@ -1,5 +1,5 @@
 // ==============================
-// js/staff/organization-chart.js - 조직도 시각화 모듈
+// js/staff/organization-chart.js - 조직도 시각화 모듈 (고도화 버전)
 // ==============================
 
 class OrganizationChart {
@@ -7,6 +7,7 @@ class OrganizationChart {
         this.departments = [];
         this.employees = [];
         this.filteredEmployees = [];
+        this.ceo = null; // 대표(SUPER_ADMIN)
         this.selectedDepartment = '';
         this.searchKeyword = '';
         this.init();
@@ -67,18 +68,19 @@ class OrganizationChart {
             const deptResult = await deptResponse.json();
             
             if (deptResult.success) {
-                this.departments = deptResult.data.filter(dept => dept.is_active);
-                this.renderDepartmentFilter();
+                this.departments = deptResult.data;
             }
 
-            // 직원 목록 로드
-            const empResponse = await fetch('/api/staff/employees?limit=1000', {
+            // 직원 목록 로드 (조직도 전용 API)
+            const empResponse = await fetch('/api/staff/employees/org-chart', {
                 credentials: 'include'
             });
             const empResult = await empResponse.json();
             
             if (empResult.success) {
-                this.employees = empResult.data.employees.filter(emp => emp.is_active === 1);
+                this.employees = empResult.data;
+                // 대표(SUPER_ADMIN) 분리
+                this.ceo = this.employees.find(emp => emp.role === 'SUPER_ADMIN');
                 this.filteredEmployees = [...this.employees];
             }
 
@@ -100,7 +102,7 @@ class OrganizationChart {
         this.departments.forEach(dept => {
             const option = document.createElement('option');
             option.value = dept.id;
-            option.textContent = `${dept.name} (${dept.code || ''})`;
+            option.textContent = `${dept.name}${dept.code ? ` (${dept.code})` : ''}`;
             this.departmentFilter.appendChild(option);
         });
     }
@@ -119,6 +121,11 @@ class OrganizationChart {
 
     applyFilters() {
         this.filteredEmployees = this.employees.filter(emp => {
+            // 대표는 필터에서 제외 (항상 표시)
+            if (emp.role === 'SUPER_ADMIN') {
+                return true;
+            }
+            
             // 부서 필터
             if (this.selectedDepartment && emp.department?.id !== parseInt(this.selectedDepartment)) {
                 return false;
@@ -140,60 +147,91 @@ class OrganizationChart {
 
     updateStatistics() {
         this.totalDepartments.textContent = this.departments.length;
-        this.totalEmployees.textContent = this.filteredEmployees.length;
+        this.totalEmployees.textContent = this.employees.length;
     }
 
     renderOrgChart() {
         // 통계 업데이트
         this.updateStatistics();
 
-        // 부서별로 직원 그룹화
-        const employeesByDept = {};
-        this.filteredEmployees.forEach(emp => {
-            const deptId = emp.department?.id || 'no-dept';
-            if (!employeesByDept[deptId]) {
-                employeesByDept[deptId] = [];
-            }
-            employeesByDept[deptId].push(emp);
-        });
-
-        // HTML 생성
         let html = '<div class="org-chart-wrapper">';
         
-        // 부서별로 렌더링
-        this.departments.forEach(dept => {
-            const deptEmployees = employeesByDept[dept.id] || [];
-            if (this.selectedDepartment && dept.id !== parseInt(this.selectedDepartment)) {
-                return; // 선택된 부서만 표시
-            }
-            
-            html += this.renderDepartment(dept, deptEmployees);
-        });
+        // 1. 대표(CEO) 최상단에 표시
+        if (this.ceo && (!this.selectedDepartment || this.searchKeyword)) {
+            html += this.renderCEO();
+        }
 
-        // 부서가 없는 직원들
-        if (employeesByDept['no-dept'] && employeesByDept['no-dept'].length > 0) {
-            html += this.renderNoDepartmentEmployees(employeesByDept['no-dept']);
+        // 2. 부서별로 계층 구조 렌더링
+        const departmentsWithEmployees = this.departments.map(dept => {
+            const deptEmployees = this.filteredEmployees.filter(emp => 
+                emp.department?.id === dept.id && emp.role !== 'SUPER_ADMIN'
+            );
+            return { department: dept, employees: deptEmployees };
+        }).filter(item => item.employees.length > 0 || !this.selectedDepartment);
+
+        if (departmentsWithEmployees.length > 0) {
+            html += '<div class="org-departments-container">';
+            departmentsWithEmployees.forEach(({ department, employees }) => {
+                html += this.renderDepartmentHierarchy(department, employees);
+            });
+            html += '</div>';
+        }
+
+        // 3. 부서가 없는 직원들
+        const noDeptEmployees = this.filteredEmployees.filter(emp => 
+            !emp.department && emp.role !== 'SUPER_ADMIN'
+        );
+        if (noDeptEmployees.length > 0 && !this.selectedDepartment) {
+            html += this.renderNoDepartmentEmployees(noDeptEmployees);
         }
 
         html += '</div>';
-        
         this.container.innerHTML = html;
     }
 
-    renderDepartment(dept, employees) {
-        const manager = employees.find(emp => emp.role === 'DEPT_MANAGER' || emp.email === dept.manager_id);
-        const regularEmployees = employees.filter(emp => emp.email !== (manager?.email));
+    renderCEO() {
+        if (!this.ceo) return '';
+        
+        return `
+            <div class="org-ceo-section">
+                <div class="org-ceo-card">
+                    <div class="org-ceo-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="org-ceo-info">
+                        <div class="org-ceo-name">
+                            ${this.ceo.name}
+                            <i class="fas fa-crown text-warning ms-2" title="대표"></i>
+                        </div>
+                        <div class="org-ceo-email">${this.ceo.email}</div>
+                        <div class="org-ceo-role">
+                            <span class="badge bg-danger">대표</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="org-ceo-connector"></div>
+            </div>
+        `;
+    }
+
+    renderDepartmentHierarchy(dept, employees) {
+        const manager = employees.find(emp => 
+            emp.role === 'DEPT_MANAGER' || emp.email === dept.manager_id
+        );
+        const teamMembers = employees.filter(emp => emp.email !== (manager?.email));
 
         let html = `
-            <div class="org-dept-card mb-4">
-                <div class="org-dept-header">
-                    <h5 class="mb-1">
-                        <i class="fas fa-building me-2"></i>${dept.name}
-                        ${dept.code ? `<small class="text-muted">(${dept.code})</small>` : ''}
-                    </h5>
-                    <div class="text-muted small">
-                        <span class="badge bg-info">${employees.length}명</span>
-                        ${dept.description ? `<span class="ms-2">${dept.description}</span>` : ''}
+            <div class="org-dept-section">
+                <div class="org-dept-header-card">
+                    <div class="org-dept-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="org-dept-info">
+                        <h5 class="org-dept-name">${dept.name}</h5>
+                        ${dept.code ? `<div class="org-dept-code">${dept.code}</div>` : ''}
+                        <div class="org-dept-count">
+                            <span class="badge bg-primary">${employees.length}명</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -202,14 +240,14 @@ class OrganizationChart {
 
         // 부서장 표시
         if (manager) {
-            html += this.renderEmployeeCard(manager, true);
+            html += this.renderManagerCard(manager);
         }
 
-        // 일반 직원들 표시
-        if (regularEmployees.length > 0) {
-            html += '<div class="org-employees-grid">';
-            regularEmployees.forEach(emp => {
-                html += this.renderEmployeeCard(emp, false);
+        // 팀원들 표시
+        if (teamMembers.length > 0) {
+            html += '<div class="org-team-members">';
+            teamMembers.forEach(member => {
+                html += this.renderTeamMemberCard(member);
             });
             html += '</div>';
         }
@@ -222,24 +260,66 @@ class OrganizationChart {
         return html;
     }
 
+    renderManagerCard(manager) {
+        const roleBadge = this.getRoleBadge(manager.role);
+        
+        return `
+            <div class="org-manager-card" onclick="organizationChart.showEmployeeDetail('${manager.email}')">
+                <div class="org-manager-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="org-manager-info">
+                    <div class="org-manager-name">
+                        ${manager.name}
+                        <i class="fas fa-star text-warning ms-1" title="부서장"></i>
+                    </div>
+                    <div class="org-manager-email">${manager.email}</div>
+                    <div class="org-manager-role">${roleBadge}</div>
+                    ${manager.position ? `<div class="org-manager-position">${manager.position}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    renderTeamMemberCard(member) {
+        const roleBadge = this.getRoleBadge(member.role);
+        
+        return `
+            <div class="org-member-card" onclick="organizationChart.showEmployeeDetail('${member.email}')">
+                <div class="org-member-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="org-member-info">
+                    <div class="org-member-name">${member.name}</div>
+                    <div class="org-member-email">${member.email}</div>
+                    <div class="org-member-role">${roleBadge}</div>
+                    ${member.position ? `<div class="org-member-position">${member.position}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
     renderNoDepartmentEmployees(employees) {
         let html = `
-            <div class="org-dept-card mb-4">
-                <div class="org-dept-header">
-                    <h5 class="mb-1">
-                        <i class="fas fa-users me-2"></i>부서 미지정
-                    </h5>
-                    <div class="text-muted small">
-                        <span class="badge bg-secondary">${employees.length}명</span>
+            <div class="org-dept-section">
+                <div class="org-dept-header-card">
+                    <div class="org-dept-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="org-dept-info">
+                        <h5 class="org-dept-name">부서 미지정</h5>
+                        <div class="org-dept-count">
+                            <span class="badge bg-secondary">${employees.length}명</span>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="org-dept-body">
-                    <div class="org-employees-grid">
+                    <div class="org-team-members">
         `;
 
         employees.forEach(emp => {
-            html += this.renderEmployeeCard(emp, false);
+            html += this.renderTeamMemberCard(emp);
         });
 
         html += `
@@ -249,28 +329,6 @@ class OrganizationChart {
         `;
 
         return html;
-    }
-
-    renderEmployeeCard(employee, isManager) {
-        const roleBadge = this.getRoleBadge(employee.role);
-        const managerClass = isManager ? 'org-employee-manager' : '';
-        
-        return `
-            <div class="org-employee-card ${managerClass}" onclick="organizationChart.showEmployeeDetail('${employee.email}')">
-                <div class="org-employee-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="org-employee-info">
-                    <div class="org-employee-name">
-                        ${employee.name}
-                        ${isManager ? '<i class="fas fa-crown text-warning ms-1" title="부서장"></i>' : ''}
-                    </div>
-                    <div class="org-employee-email text-muted small">${employee.email}</div>
-                    <div class="org-employee-role">${roleBadge}</div>
-                    ${employee.position ? `<div class="org-employee-position text-muted small">${employee.position}</div>` : ''}
-                </div>
-            </div>
-        `;
     }
 
     getRoleBadge(role) {
@@ -283,13 +341,50 @@ class OrganizationChart {
         return badges[role] || `<span class="badge bg-secondary">${role}</span>`;
     }
 
-    showEmployeeDetail(email) {
-        // employee-list.js의 EmployeeModal 사용 (전역으로 접근 가능한 경우)
-        if (window.employeeModal && window.employeeModal.showEmployeeDetail) {
-            window.employeeModal.showEmployeeDetail(email);
-        } else {
-            // 모달이 없는 경우 새 창으로 열거나 알림
-            alert(`직원 상세 정보: ${email}\n직원 관리 페이지에서 확인해주세요.`);
+    async showEmployeeDetail(email) {
+        try {
+            // EmployeeModal 클래스를 직접 사용 (employee-modal.js에서 로드됨)
+            if (typeof EmployeeModal !== 'undefined') {
+                // EmployeeModal은 employeeManager를 필요로 하므로 간단한 래퍼 객체 생성
+                const mockEmployeeManager = {
+                    showError: (msg) => {
+                        console.error(msg);
+                        if (window.sjTemplateLoader && window.sjTemplateLoader.showToast) {
+                            window.sjTemplateLoader.showToast(msg, 'error');
+                        }
+                    },
+                    getStatusBadge: (status) => {
+                        const badges = {
+                            'active': '<span class="badge bg-success">활성</span>',
+                            'pending': '<span class="badge bg-warning">승인대기</span>',
+                            'inactive': '<span class="badge bg-secondary">비활성</span>'
+                        };
+                        return badges[status] || '<span class="badge bg-secondary">알 수 없음</span>';
+                    },
+                    getRoleBadge: (role) => {
+                        const badges = {
+                            'SUPER_ADMIN': '<span class="badge bg-danger">최고관리자</span>',
+                            'SYSTEM_ADMIN': '<span class="badge bg-warning text-dark">시스템관리자</span>',
+                            'DEPT_MANAGER': '<span class="badge bg-primary">부서장</span>',
+                            'EMPLOYEE': '<span class="badge bg-secondary">직원</span>'
+                        };
+                        return badges[role] || `<span class="badge bg-secondary">${role}</span>`;
+                    },
+                    loadEmployees: () => {}
+                };
+                
+                const employeeModal = new EmployeeModal(mockEmployeeManager);
+                await employeeModal.showEmployeeDetail(email);
+            } else if (window.employeeModal && window.employeeModal.showEmployeeDetail) {
+                // 전역 employeeModal이 있는 경우 (employees.html에서 로드된 경우)
+                await window.employeeModal.showEmployeeDetail(email);
+            } else {
+                // 모달이 없는 경우 알림
+                alert(`직원 상세 정보: ${email}\n직원 관리 페이지에서 확인해주세요.`);
+            }
+        } catch (error) {
+            console.error('직원 상세 정보 표시 오류:', error);
+            alert('직원 상세 정보를 불러올 수 없습니다.');
         }
     }
 
@@ -310,4 +405,3 @@ document.addEventListener('DOMContentLoaded', function() {
     organizationChart = new OrganizationChart();
     window.organizationChart = organizationChart; // 전역 접근용
 });
-

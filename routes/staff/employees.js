@@ -28,6 +28,64 @@ const requireAdmin = (req, res, next) => {
     }
     next();
 };
+// 조직도용 직원 목록 조회 (모든 사용자 접근 가능, 활성 직원만)
+router.get('/employees/org-chart', requireAuth, async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                u.email,
+                u.name,
+                u.phone,
+                u.employee_id,
+                u.department_id,
+                d.name as department_name,
+                d.code as department_code,
+                u.position,
+                u.role,
+                u.is_active
+            FROM users u
+            LEFT JOIN departments d ON u.department_id = d.id
+            WHERE u.is_active = 1
+            ORDER BY 
+                CASE u.role
+                    WHEN 'SUPER_ADMIN' THEN 1
+                    WHEN 'SYSTEM_ADMIN' THEN 2
+                    WHEN 'DEPT_MANAGER' THEN 3
+                    ELSE 4
+                END,
+                u.name ASC
+        `;
+
+        const [employees] = await pool.execute(query);
+
+        res.json({
+            success: true,
+            data: employees.map(emp => ({
+                email: emp.email,
+                name: emp.name,
+                phone: emp.phone,
+                employee_id: emp.employee_id,
+                department: {
+                    id: emp.department_id,
+                    name: emp.department_name,
+                    code: emp.department_code
+                },
+                position: emp.position,
+                role: emp.role,
+                is_active: emp.is_active
+            })),
+            message: '조직도용 직원 목록을 조회했습니다.'
+        });
+
+    } catch (error) {
+        console.error('조직도용 직원 목록 조회 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '직원 목록을 조회할 수 없습니다.'
+        });
+    }
+});
+
 // 직원 상세 조회 API 추가 (기존 라우터들 사이에)
 router.get('/employees/:email', requireAuth, requireAdmin, async (req, res) => {
     try {

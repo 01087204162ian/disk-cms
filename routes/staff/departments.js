@@ -10,6 +10,45 @@ const { pool } = require('../../config/database');
 const { requireAuth, requireRole } = require('../../middleware/auth');
 
 // ==============================
+// 0. 부서 목록 조회 (조직도용 - 모든 사용자 접근 가능)
+// GET /api/staff/departments
+// ==============================
+router.get('/', requireAuth, async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                d.id,
+                d.name,
+                d.code,
+                d.description,
+                d.manager_id,
+                d.is_active,
+                u.name as manager_name
+            FROM departments d
+            LEFT JOIN users u ON d.manager_id = u.email
+            WHERE d.is_active = 1
+            ORDER BY d.name ASC
+        `;
+
+        const [departments] = await pool.execute(query);
+
+        res.json({
+            success: true,
+            data: departments,
+            message: '부서 목록을 조회했습니다.'
+        });
+
+    } catch (error) {
+        console.error('부서 목록 조회 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '부서 목록을 조회할 수 없습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// ==============================
 // 1. 관리용 부서 목록 조회 (상세 정보 포함)
 // GET /api/staff/departments/manage
 // ==============================
