@@ -195,6 +195,21 @@ class EmployeeModal {
 			// 부서 목록 먼저 로드
 			await this.loadDepartments();
 			
+			// 현재 사용자 정보 로드 (권한 체크용)
+			try {
+				const userResponse = await fetch('/api/auth/me', {
+					credentials: 'include'
+				});
+				if (userResponse.ok) {
+					const userResult = await userResponse.json();
+					if (userResult.success && userResult.data) {
+						this.currentUser = userResult.data;
+					}
+				}
+			} catch (error) {
+				console.error('현재 사용자 정보 로드 오류:', error);
+			}
+			
 			// 그 다음 직원 상세 정보 로드
 			const response = await fetch(`/api/staff/employees/${encodeURIComponent(email)}`, {
 				credentials: 'include'

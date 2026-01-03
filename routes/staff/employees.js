@@ -386,6 +386,13 @@ router.put('/employees/:email', requireAuth, requireAdmin, async (req, res) => {
             updateValues.push(hireDateValue);
         }
         if (role !== undefined) {
+            // 권한 변경은 SUPER_ADMIN, SYSTEM_ADMIN, DEPT_MANAGER만 가능
+            if (!['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(req.session.user.role)) {
+                return res.status(403).json({
+                    success: false,
+                    message: '권한 변경은 최고관리자, 시스템관리자 또는 부서장만 가능합니다.'
+                });
+            }
             updateFields.push('role = ?');
             updateValues.push(role);
         }

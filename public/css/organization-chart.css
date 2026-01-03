@@ -1,0 +1,156 @@
+/* 조직도 스타일 */
+.org-chart-container {
+    min-height: 400px;
+    padding: 20px 0;
+}
+
+.org-chart-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.org-dept-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.org-dept-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    border-bottom: 2px solid #5568d3;
+}
+
+.org-dept-header h5 {
+    color: white;
+    margin: 0;
+    font-weight: 600;
+}
+
+.org-dept-header .text-muted {
+    color: rgba(255,255,255,0.9) !important;
+}
+
+.org-dept-body {
+    padding: 20px;
+}
+
+.org-employees-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.org-employee-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.org-employee-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.org-employee-manager {
+    border: 2px solid #ffc107;
+    background: linear-gradient(135deg, #fff9e6 0%, #fff 100%);
+}
+
+.org-employee-manager .org-employee-avatar {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: white;
+}
+
+.org-employee-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.org-employee-info {
+    width: 100%;
+}
+
+.org-employee-name {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.org-employee-email {
+    font-size: 12px;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.org-employee-role {
+    margin-bottom: 5px;
+}
+
+.org-employee-position {
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .org-employees-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .org-employee-card {
+        padding: 12px;
+    }
+    
+    .org-employee-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    .org-employee-name {
+        font-size: 14px;
+    }
+    
+    .org-dept-header {
+        padding: 12px 15px;
+    }
+    
+    .org-dept-body {
+        padding: 15px;
+    }
+}
+
+/* 부서장이 없는 경우의 스타일 */
+.org-dept-body:empty::after {
+    content: "소속 직원이 없습니다.";
+    display: block;
+    text-align: center;
+    color: #999;
+    padding: 20px;
+    font-style: italic;
+}
+
