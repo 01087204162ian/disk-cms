@@ -180,6 +180,7 @@ router.get('/employees', requireAuth, requireAdmin, async (req, res) => {
                 d.name as department_name,
                 u.position,
                 u.hire_date,
+                u.resign_date,
                 u.role,
                 u.work_type,
                 u.work_schedule,
@@ -229,6 +230,7 @@ router.get('/employees', requireAuth, requireAdmin, async (req, res) => {
                     },
                     position: emp.position,
                     hire_date: emp.hire_date,
+                    resign_date: emp.resign_date,
                     role: emp.role,
                     work_type: emp.work_type,
                     work_schedule: emp.work_schedule,
@@ -557,10 +559,11 @@ const logUserActivity = async (userEmail, actionBy, action, oldStatus, newStatus
 router.patch('/employees/:email/deactivate', requireAuth, requireAdmin, async (req, res) => {
     try {
         const { email } = req.params;
-        const { notes } = req.body; // 비활성화 사유 (선택사항)
+        const { notes, resign_date } = req.body; // 비활성화 사유, 퇴사일 (선택사항)
         
-        // 권한 확인 (SUPER_ADMIN, SYSTEM_ADMIN만 가능)
-        if (!['SUPER_ADMIN', 'SYSTEM_ADMIN'].includes(req.session.user.role)) {
+        // 권한 확인 (SUPER_ADMIN, SYSTEM_ADMIN, DEPT_MANAGER 가능)
+        const userRole = req.session.user.role;
+        if (!['SUPER_ADMIN', 'SYSTEM_ADMIN', 'DEPT_MANAGER'].includes(userRole)) {
             return res.status(403).json({
                 success: false,
                 message: '계정 비활성화 권한이 없습니다.'
@@ -575,9 +578,9 @@ router.patch('/employees/:email/deactivate', requireAuth, requireAdmin, async (r
             });
         }
         
-        // 현재 사용자 정보 조회
+        // 현재 사용자 정보 조회 (부서 정보 포함)
         const [currentUser] = await pool.execute(
-            'SELECT email, name, is_active FROM users WHERE email = ?',
+            'SELECT email, name, is_active, department_id FROM users WHERE email = ?',
             [email]
         );
         
@@ -590,6 +593,16 @@ router.patch('/employees/:email/deactivate', requireAuth, requireAdmin, async (r
         
         const user = currentUser[0];
         
+        // DEPT_MANAGER의 경우 본인 부서 직원만 비활성화 가능
+        if (userRole === 'DEPT_MANAGER') {
+            if (!req.session.user.department_id || user.department_id !== req.session.user.department_id) {
+                return res.status(403).json({
+                    success: false,
+                    message: '본인 부서의 직원만 비활성화할 수 있습니다.'
+                });
+            }
+        }
+        
         // 활성 상태(is_active = 1)인지 확인
         if (user.is_active !== 1) {
             const statusMessage = user.is_active === 0 ? '승인대기 상태입니다.' : 
@@ -601,12 +614,17 @@ router.patch('/employees/:email/deactivate', requireAuth, requireAdmin, async (r
             });
         }
         
-        // 계정 비활성화 실행 (1 -> 2로 변경)
+        // 퇴사일 설정 (요청에 포함된 경우 사용, 없으면 오늘 날짜)
+        const resignDate = resign_date || new Date().toISOString().split('T')[0];
+        
+        // 계정 비활성화 실행 (1 -> 2로 변경) 및 퇴사일 기록
         await pool.execute(`
             UPDATE users 
-            SET is_active = 2, updated_at = NOW()
+            SET is_active = 2, 
+                resign_date = ?,
+                updated_at = NOW()
             WHERE email = ?
-        `, [email]);
+        `, [resignDate, email]);
         
         // 활동 로그 기록
         await logUserActivity(

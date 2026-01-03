@@ -6,6 +6,7 @@ class EmployeeModal {
     constructor(employeeManager) {
         this.employeeManager = employeeManager;
 		this.departments = []; // 부서 목록 저장
+		this.currentUser = null; // 현재 사용자 정보
     }
 	// 부서 목록 로드 메서드 추가
 		async loadDepartments() {
@@ -67,7 +68,12 @@ class EmployeeModal {
                     this.employeeManager.loadEmployees();
                 }
             } else {
-                window.sjTemplateLoader.showToast(result.message || '계정 비활성화에 실패했습니다.', 'error');
+                // 403 에러인 경우 권한 관련 메시지로 변경
+                let errorMessage = result.message || '계정 비활성화에 실패했습니다.';
+                if (response.status === 403 || result.message?.includes('권한') || result.message?.includes('403')) {
+                    errorMessage = '계정 비활성화 권한이 없습니다. 최고관리자, 시스템관리자 또는 부서장만 가능합니다.';
+                }
+                window.sjTemplateLoader.showToast(errorMessage, 'error');
             }
         } catch (error) {
             console.error('계정 비활성화 오류:', error);
@@ -102,7 +108,12 @@ class EmployeeModal {
                     this.employeeManager.loadEmployees();
                 }
             } else {
-                window.sjTemplateLoader.showToast(result.message || '계정 재활성화에 실패했습니다.', 'error');
+                // 403 에러인 경우 권한 관련 메시지로 변경
+                let errorMessage = result.message || '계정 재활성화에 실패했습니다.';
+                if (response.status === 403) {
+                    errorMessage = '계정 재활성화 권한이 없습니다. 최고관리자만 가능합니다.';
+                }
+                window.sjTemplateLoader.showToast(errorMessage, 'error');
             }
         } catch (error) {
             console.error('계정 재활성화 오류:', error);
@@ -224,6 +235,9 @@ class EmployeeModal {
                                 <label class="col-form-label">가입일:</label>
                                 <input type="text" class="form-control" id="created_at" name="created_at" value="${this.formatDateTime(employee.created_at)}" readonly>
                                 
+                                <label class="col-form-label">퇴사일:</label>
+                                <input type="text" class="form-control" id="resign_date" name="resign_date" value="${employee.resign_date ? employee.resign_date : '퇴사하지 않음'}" readonly>
+                                
                                 <!-- 활동 정보 -->
                                 <div class="full-width">
                                     <label class="col-form-label">마지막 로그인:</label>
@@ -320,6 +334,11 @@ class EmployeeModal {
                                 <div class="mobile-field-group">
                                     <label class="mobile-field-label">가입일</label>
                                     <input type="text" class="form-control mobile-input" id="created_at_mobile" name="created_at_mobile" value="${this.formatDateTime(employee.created_at)}" readonly>
+                                </div>
+                                
+                                <div class="mobile-field-group">
+                                    <label class="mobile-field-label">퇴사일</label>
+                                    <input type="text" class="form-control mobile-input" id="resign_date_mobile" name="resign_date_mobile" value="${employee.resign_date ? employee.resign_date : '퇴사하지 않음'}" readonly>
                                 </div>
                                 
                                 <div class="mobile-field-group">
