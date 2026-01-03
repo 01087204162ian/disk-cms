@@ -88,3 +88,9 @@ database/
 *.tar
 *.tar.gz
 deploy.sh
+
+# ======================================
+# 테스트 계정 정보 (보안)
+# ======================================
+tests/e2e/fixtures/users.json
+tests/e2e/fixtures/users.local.json
