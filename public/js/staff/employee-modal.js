@@ -253,7 +253,6 @@ class EmployeeModal {
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="modalTitle">
-                                직원 상세 정보
                                 <small class="d-block mt-1">${employee.name} (${employee.email})</small>
                             </h5>
                             <button type="button" class="btn-close-custom" data-bs-dismiss="modal">×</button>
@@ -464,10 +463,6 @@ class EmployeeModal {
 									<i class="fas fa-check-circle"></i> 재활성화
 								</button>
 							` : ''}
-							
-							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-								<i class="fas fa-times"></i> 닫기
-							</button>
 						</div>
                     </div>
                 </div>
